@@ -461,12 +461,6 @@ body.layout-stack .tab-panel + .tab-panel {
     opacity: 1;
 }
 
-/* ---------- Comment-type color coding ---------- */
-
-.row[data-key="accept"] { border-left: 3px solid #3fb950; }
-.row[data-key="aireject"] { border-left: 3px solid #f85149; }
-.row[data-key="copyreject"] { border-left: 3px solid #d29922; }
-
 .etab[data-key="prompt"] {
     margin-left: 6px;
     border-left: 1px solid #30363d;

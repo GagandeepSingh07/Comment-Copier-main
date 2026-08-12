@@ -158,6 +158,7 @@ const markSelectOptions = document.querySelectorAll('.mark-select-option');
 const sheetAddMarkCustom = document.getElementById('sheet-add-mark-custom');
 const sheetAddBtn = document.getElementById('sheet-add-btn');
 const sheetReset = document.getElementById('sheet-reset');
+const sheetBtn = document.getElementById('sheet-btn');
 const mainTabs = document.querySelectorAll('.tab');
 const tabPanels = document.querySelectorAll('.tab-panel');
 const commentsPanel = document.querySelector('[data-panel="comments"]');
@@ -219,10 +220,10 @@ function selectMark(value) {
     if (value === '__custom__') sheetAddMarkCustom.focus();
 }
 
+const escapeDiv = document.createElement('div');
 function escapeHtml(str) {
-    const div = document.createElement('div');
-    div.textContent = str;
-    return div.innerHTML;
+    escapeDiv.textContent = str;
+    return escapeDiv.innerHTML;
 }
 
 function linesFrom(text) {
@@ -269,8 +270,12 @@ function pushQuickState() {
     }));
 }
 
+let syncHeightScheduled = false;
 function syncHeight() {
+    if (syncHeightScheduled) return;
+    syncHeightScheduled = true;
     requestAnimationFrame(() => {
+        syncHeightScheduled = false;
         if (window.popupAPI && typeof window.popupAPI.resize === 'function') {
             window.popupAPI.resize({
                 width: layoutMode === 'stack' ? 780 : 420,
@@ -416,9 +421,8 @@ function setMainTab(name) {
 }
 
 function updateFooterVisibility() {
-    const sheetBtnEl = document.getElementById('sheet-btn');
     const show = layoutMode === 'stack' || activeMainTab === 'student';
-    sheetBtnEl.classList.toggle('hidden', !show);
+    sheetBtn.classList.toggle('hidden', !show);
 }
 
 function applyLayout() {
@@ -945,7 +949,7 @@ document.getElementById('quit').addEventListener('click', () => {
     if (window.popupAPI) window.popupAPI.quitApp();
 });
 promptBtn.addEventListener('click', copyPrompt);
-document.getElementById('sheet-btn').addEventListener('click', copySheet);
+sheetBtn.addEventListener('click', copySheet);
 let sheetTimer = null;
 [sheetId, sheetName].forEach((el) => {
     el.addEventListener('input', () => {

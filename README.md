@@ -27,7 +27,11 @@ Copy unique accept/reject comments for grading, straight from a system-tray app.
 
 ## Building the installer
 
-Create a Windows installer (NSIS):
+`npm run build` builds all three Windows variants in one pass, each named so they're easy to tell apart:
+
+- `Comment Copier Setup {version} x64.exe` — 64-bit installer
+- `Comment Copier Setup {version} arm64.exe` — ARM64 installer
+- `Comment Copier {version} Portable.exe` — portable, no install needed (x64)
 
 ```sh
 npm run build
@@ -37,53 +41,35 @@ If the build fails due to code-signing certificate lookup (Windows), disable sig
 
 ```powershell
 $env:CSC_IDENTITY_AUTO_DISCOVERY = "false"
-npm.cmd run build
+npm run build
 ```
 
-Create a portable (single .exe) build:
+To build just one variant instead of all three:
 
 ```sh
+npm run build:x64
+npm run build:arm64
 npm run build:portable
 ```
 
-With signing-certificate auto-discovery disabled (Windows):
+With signing-certificate auto-discovery disabled (Windows), prefix any of the above with:
 
 ```powershell
 $env:CSC_IDENTITY_AUTO_DISCOVERY = "false"
-npm.cmd run build:portable
 ```
 
-## Building for ARM64
+### Portable ARM64 build
 
-Build an arm64 installer without changing the config:
-
-```powershell
-$env:CSC_IDENTITY_AUTO_DISCOVERY = "false"
-npx electron-builder --win --arm64
-```
-
-Arm64 portable build:
+The `build:portable` script only targets x64 by default. To also produce an ARM64 portable build:
 
 ```powershell
 $env:CSC_IDENTITY_AUTO_DISCOVERY = "false"
 npx electron-builder --win portable --arm64
 ```
 
-To always build both x64 and arm64 with `npm run build`, change `arch` in `package.json` (under `build.win.target`) to:
-
-```json
-"arch": ["x64", "arm64"]
-```
-
 ## Building for macOS
 
 macOS builds must be done on a **Mac** with Xcode installed. From the project folder:
-
-```sh
-npm run dist -- --mac
-```
-
-Or directly:
 
 ```sh
 npx electron-builder --mac
@@ -115,13 +101,12 @@ Other targets: `rpm`, `snap`, `flatpak`, `pacman`, `tar.gz`. Snap builds require
 
 To build installers for all platforms without owning each OS, use a CI service (e.g. GitHub Actions) with a matrix for `windows-latest`, `macos-latest`, and `ubuntu-latest` runners, running the matching electron-builder command above.
 
-
-Installers are written to the `dist/` folder.
+Windows installers are written to the `dist/` folder (see above for the exact filenames).
 
 ## Sharing the software
 
-- To share the app, you only need the **installer** — `dist/Comment Copier Setup 1.9.3.exe`. End users run it, install, and the app appears in the system tray.
-- If you'd rather give a single **portable** .exe (no install needed), run `npm run build:portable` and share that one instead.
+- For most users, share the installer matching their CPU: `dist/Comment Copier Setup {version} x64.exe` (most Windows PCs) or the `arm64` variant (ARM-based Windows devices). They run it, install, and the app appears in the system tray.
+- If you'd rather give a single **portable** .exe (no install needed), share `dist/Comment Copier {version} Portable.exe` instead.
 - Other files in `dist/` (e.g. `win-unpacked`, `.blockmap`) are build artifacts and don't need to be shared.
 
 ## Project structure

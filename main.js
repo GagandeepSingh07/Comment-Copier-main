@@ -24,6 +24,14 @@ const PLATFORM_NAMES = { win32: 'Windows', darwin: 'macOS', linux: 'Linux' };
 
 const CHANGELOG = [
     {
+        version: '1.9.7',
+        notes: [
+            'Copy Sheet moved to a persistent footer button on Student Details.',
+            'Fixed a broken Prompt icon in the footer.',
+            'Performance: fewer redundant window-resize calls and less per-click overhead.',
+        ],
+    },
+    {
         version: '1.9.3',
         notes: [
             'Added app info panel.',

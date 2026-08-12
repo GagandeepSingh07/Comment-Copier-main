@@ -1,6 +1,6 @@
 {
   "name": "comment-copier",
-  "version": "1.9.3",
+  "version": "1.9.7",
   "description": "Comment Copier — Unique Every Time. Copy unique accept/reject comments for grading.",
   "main": "main.js",
   "author": "@gagan.design.07",
@@ -8,7 +8,9 @@
   "scripts": {
     "start": "electron .",
     "build": "electron-builder --win",
-    "build:portable": "electron-builder --win portable"
+    "build:x64": "electron-builder --win nsis --x64",
+    "build:arm64": "electron-builder --win nsis --arm64",
+    "build:portable": "electron-builder --win portable --x64"
   },
   "devDependencies": {
     "electron": "^43.4.0",
@@ -33,6 +35,10 @@
       "target": [
         {
           "target": "nsis",
+          "arch": ["x64", "arm64"]
+        },
+        {
+          "target": "portable",
           "arch": ["x64"]
         }
       ],
@@ -42,7 +48,11 @@
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
-      "createStartMenuShortcut": true
+      "createStartMenuShortcut": true,
+      "artifactName": "${productName} Setup ${version} ${arch}.${ext}"
+    },
+    "portable": {
+      "artifactName": "${productName} ${version} Portable.${ext}"
     }
   }
 }
