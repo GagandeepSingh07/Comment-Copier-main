@@ -452,16 +452,25 @@ body.layout-stack .tab-panel + .tab-panel {
     display: inline-flex;
     gap: 2px;
     flex-shrink: 0;
-    opacity: 0;
-    transform: translateX(6px);
-    pointer-events: none;
-    transition: opacity 0.18s ease, transform 0.18s ease;
+    opacity: 0.4;
+    pointer-events: auto;
+    transition: opacity 0.18s ease;
 }
 
 .row:hover .row-actions {
     opacity: 1;
-    transform: translateX(0);
-    pointer-events: auto;
+}
+
+/* ---------- Comment-type color coding ---------- */
+
+.row[data-key="accept"] { border-left: 3px solid #3fb950; }
+.row[data-key="aireject"] { border-left: 3px solid #f85149; }
+.row[data-key="copyreject"] { border-left: 3px solid #d29922; }
+
+.etab[data-key="prompt"] {
+    margin-left: 6px;
+    border-left: 1px solid #30363d;
+    border-radius: 0 6px 6px 0;
 }
 
 .mini {
@@ -1005,16 +1014,17 @@ body.layout-stack .tab-panel + .tab-panel {
 }
 
 #prompt-btn {
-    flex: 0 0 34px;
+    flex: 1 1 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding-left: 0;
-    padding-right: 0;
+    gap: 6px;
 }
 
-.sheet-copy {
-    padding: 8px 14px 12px;
+#sheet-btn.action-primary {
+    flex: 1 1 100%;
+    order: -1;
+    margin-bottom: 2px;
 }
 
 .action:hover { background: #21262d; color: var(--text); }

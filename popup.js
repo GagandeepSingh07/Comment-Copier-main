@@ -411,7 +411,14 @@ function setMainTab(name) {
     activeMainTab = name;
     mainTabs.forEach((b) => b.classList.toggle('active', b.dataset.tab === name));
     tabPanels.forEach((p) => p.classList.toggle('active', p.dataset.panel === name));
+    updateFooterVisibility();
     syncHeight();
+}
+
+function updateFooterVisibility() {
+    const sheetBtnEl = document.getElementById('sheet-btn');
+    const show = layoutMode === 'stack' || activeMainTab === 'student';
+    sheetBtnEl.classList.toggle('hidden', !show);
 }
 
 function applyLayout() {
@@ -423,6 +430,7 @@ function applyLayout() {
         : 'Switch to Side by side layout';
     if (layoutMode === 'stack') {
         tabPanels.forEach((p) => p.classList.add('active'));
+        updateFooterVisibility();
     } else {
         setMainTab(activeMainTab);
     }
