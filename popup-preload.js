@@ -8,6 +8,6 @@ contextBridge.exposeInMainWorld('popupAPI', {
     reportCopyResult: (info) => ipcRenderer.send('comment-copier:tray-copied', info),
     quitApp: () => ipcRenderer.send('popup:quit'),
     close: () => ipcRenderer.send('popup:close'),
-    resize: (h) => ipcRenderer.send('popup:resize', h),
+    resize: (size) => ipcRenderer.send('popup:resize', size),
     onClosed: (callback) => ipcRenderer.on('popup:closed', () => callback()),
 });

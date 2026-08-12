@@ -16,6 +16,7 @@ if (!app.requestSingleInstanceLock()) {
 function main() {
 
 const POPUP_WIDTH = 420;
+const POPUP_MAX_WIDTH = 900;
 const POPUP_MIN_HEIGHT = 440;
 const POPUP_MAX_HEIGHT = 760;
 
@@ -114,10 +115,13 @@ ipcMain.on('popup:quit', () => app.quit());
 
 ipcMain.on('popup:close', () => hidePopup());
 
-ipcMain.on('popup:resize', (event, h) => {
+ipcMain.on('popup:resize', (event, size) => {
     if (!popupWindow || popupWindow.isDestroyed()) return;
+    const h = size && typeof size === 'object' ? size.height : size;
+    const w = size && typeof size === 'object' ? size.width : POPUP_WIDTH;
     const height = Math.min(Math.max(Math.round(h), POPUP_MIN_HEIGHT), POPUP_MAX_HEIGHT);
-    popupWindow.setContentSize(POPUP_WIDTH, height);
+    const width = Math.min(Math.max(Math.round(w), POPUP_WIDTH), POPUP_MAX_WIDTH);
+    popupWindow.setContentSize(width, height);
     if (popupWindow.isVisible()) positionPopup();
 });
 

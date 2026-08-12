@@ -1,6 +1,7 @@
 const STORAGE_KEY = 'comment-copier-data-v7';
 const PROMPT_KEY = 'comment-copier-prompt-v1';
 const SHEET_KEY = 'comment-copier-sheet-v3';
+const LAYOUT_KEY = 'comment-copier-layout-v1';
 
 const SHEET_ASSESSMENT_COLS = 9;
 
@@ -163,6 +164,7 @@ const commentsPanel = document.querySelector('[data-panel="comments"]');
 const etabs = document.querySelectorAll('.etab');
 const infoWrap = document.querySelector('.info-wrap');
 const infoBtn = document.getElementById('info-btn');
+const layoutBtn = document.getElementById('layout-btn');
 const infoName = document.getElementById('info-name');
 const infoVersion = document.getElementById('info-version');
 const infoDesc = document.getElementById('info-desc');
@@ -171,6 +173,8 @@ const infoChangelog = document.getElementById('info-changelog');
 const infoReset = document.getElementById('info-reset');
 
 let activeTab = 'accept';
+let activeMainTab = 'comments';
+let layoutMode = 'tabs';
 let dirty = false;
 let sheetEntries = [];
 let selectedMark = 'Checked';
@@ -268,7 +272,10 @@ function pushQuickState() {
 function syncHeight() {
     requestAnimationFrame(() => {
         if (window.popupAPI && typeof window.popupAPI.resize === 'function') {
-            window.popupAPI.resize(document.body.scrollHeight);
+            window.popupAPI.resize({
+                width: layoutMode === 'stack' ? 780 : 420,
+                height: document.body.scrollHeight,
+            });
         }
     });
 }
@@ -401,9 +408,31 @@ function setTab(key) {
 }
 
 function setMainTab(name) {
+    activeMainTab = name;
     mainTabs.forEach((b) => b.classList.toggle('active', b.dataset.tab === name));
     tabPanels.forEach((p) => p.classList.toggle('active', p.dataset.panel === name));
     syncHeight();
+}
+
+function applyLayout() {
+    document.body.classList.toggle('layout-stack', layoutMode === 'stack');
+    mainTabs.forEach((b) => b.classList.toggle('hidden', layoutMode === 'stack'));
+    layoutBtn.setAttribute('aria-pressed', layoutMode === 'stack' ? 'true' : 'false');
+    layoutBtn.title = layoutMode === 'stack'
+        ? 'Switch to Tabs layout'
+        : 'Switch to Side by side layout';
+    if (layoutMode === 'stack') {
+        tabPanels.forEach((p) => p.classList.add('active'));
+    } else {
+        setMainTab(activeMainTab);
+    }
+    syncHeight();
+}
+
+function loadLayout() {
+    const saved = localStorage.getItem(LAYOUT_KEY);
+    layoutMode = saved === 'stack' ? 'stack' : 'tabs';
+    applyLayout();
 }
 
 function saveAll() {
@@ -870,6 +899,11 @@ if (window.popupAPI && typeof window.popupAPI.onClosed === 'function') {
     window.popupAPI.onClosed(closeInfoDropdown);
 }
 mainTabs.forEach((b) => b.addEventListener('click', () => setMainTab(b.dataset.tab)));
+layoutBtn.addEventListener('click', () => {
+    layoutMode = layoutMode === 'stack' ? 'tabs' : 'stack';
+    localStorage.setItem(LAYOUT_KEY, layoutMode);
+    applyLayout();
+});
 etabs.forEach((b) => b.addEventListener('click', () => setTab(b.dataset.key)));
 Object.values(textareas).forEach((ta) => {
     ta.addEventListener('input', () => {
@@ -950,6 +984,7 @@ categories.forEach((key) => {
 });
 renderRows();
 setTab('accept');
+loadLayout();
 updateCounts();
 setDirty(false);
 pushQuickState();
