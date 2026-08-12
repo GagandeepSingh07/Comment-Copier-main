@@ -1,0 +1,48 @@
+{
+  "name": "comment-copier",
+  "version": "1.9.3",
+  "description": "Comment Copier — Unique Every Time. Copy unique accept/reject comments for grading.",
+  "main": "main.js",
+  "author": "@gagan.design.07",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --win",
+    "build:portable": "electron-builder --win portable"
+  },
+  "devDependencies": {
+    "electron": "^33.0.0",
+    "electron-builder": "^25.0.0"
+  },
+  "build": {
+    "appId": "com.commentcopier.app",
+    "productName": "Comment Copier",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "popup.html",
+      "popup.css",
+      "popup.js",
+      "popup-preload.js",
+      "build/tray.png",
+      "build/icon.png"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        }
+      ],
+      "icon": "build/icon.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    }
+  }
+}

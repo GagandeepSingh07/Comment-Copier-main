@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'; script-src 'self'">
+<link rel="stylesheet" href="popup.css">
+</head>
+<body>
+<div class="panel">
+    <div class="topbar">
+        <div class="tabs" id="main-tabs">
+            <button class="tab active" data-tab="comments">Comment Copier</button>
+            <button class="tab" data-tab="student">Student Details</button>
+        </div>
+        <div class="info-wrap">
+            <button type="button" class="info-btn" id="info-btn" aria-label="App info" aria-haspopup="true" aria-expanded="false">i</button>
+            <div class="info-popover" id="info-popover">
+                <div class="info-head">
+                    <img class="info-app-icon" src="build/icon.png" alt="">
+                    <div class="info-title-block">
+                        <div class="info-name" id="info-name">Comment Copier</div>
+                        <div class="info-version" id="info-version"></div>
+                    </div>
+                </div>
+                <div class="info-desc" id="info-desc"></div>
+
+                <button type="button" class="info-section-toggle" data-section="details" aria-expanded="false">
+                    <span>Details</span><span class="chevron"></span>
+                </button>
+                <div class="info-section-body hidden" data-body="details">
+                    <div class="info-meta" id="info-meta"></div>
+                </div>
+
+                <button type="button" class="info-section-toggle" data-section="shortcuts" aria-expanded="false">
+                    <span>Shortcuts</span><span class="chevron"></span>
+                </button>
+                <div class="info-section-body hidden" data-body="shortcuts">
+                    <div class="info-keys">
+                        <div class="info-key-row"><span class="info-key">Ctrl+Enter</span><span>Save all edits</span></div>
+                        <div class="info-key-row"><span class="info-key">Esc</span><span>Close the popup</span></div>
+                    </div>
+                </div>
+
+                <button type="button" class="info-section-toggle" data-section="changelog" aria-expanded="false">
+                    <span>What&rsquo;s new</span><span class="chevron"></span>
+                </button>
+                <div class="info-section-body hidden" data-body="changelog">
+                    <div class="info-changelog" id="info-changelog"></div>
+                </div>
+
+                <button type="button" class="btn-reset" id="info-reset">Reset app data</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="tab-panel active" data-panel="comments">
+        <div class="head">
+            <span class="head-title">Comment Copier</span>
+            <span class="head-total" id="total-count"></span>
+        </div>
+
+        <div class="rows" id="rows"></div>
+
+        <div class="sep"></div>
+
+        <div class="editor-head">
+            <button class="editor-toggle" id="editor-toggle" title="Show or hide the comment editor">Edit comments</button>
+            <div class="editor-head-actions">
+                <span class="save-status" id="save-status">All changes saved</span>
+                <button class="btn-save" id="save-btn">Save</button>
+            </div>
+        </div>
+
+        <div class="editor" id="editor">
+            <div class="etabs">
+                <button class="etab active" data-key="accept">Accept</button>
+                <button class="etab" data-key="aireject">AI Reject</button>
+                <button class="etab" data-key="copyreject">Copy Reject</button>
+                <button class="etab" data-key="prompt">Prompt</button>
+            </div>
+            <div class="edits">
+                <textarea id="accept-text" placeholder="One comment per line"></textarea>
+                <textarea id="aireject-text" placeholder="One comment per line"></textarea>
+                <textarea id="copyreject-text" placeholder="One comment per line"></textarea>
+                <div class="prompt-head" id="prompt-head">
+                    <span class="prompt-label">Prompt</span>
+                    <span class="save-status" id="prompt-status">Saved</span>
+                </div>
+                <textarea id="prompt-text" placeholder="Type the prompt to copy with the Prompt button"></textarea>
+            </div>
+            <div class="editor-add">
+                <input id="editor-add-input" placeholder="Add a comment and press Enter">
+                <button class="btn-add" id="editor-add-btn">Add</button>
+            </div>
+            <div class="editor-meta">
+                <span class="editor-count" id="editor-count"></span>
+                <button class="link" id="editor-restore">Restore defaults</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="tab-panel" data-panel="student">
+        <div class="sheet-head">
+            <span class="sheet-label">Student details</span>
+            <button class="link" id="sheet-reset">Clear</button>
+        </div>
+        <div class="sheet-fields">
+            <input id="sheet-id" placeholder="Student Id">
+            <input id="sheet-name" placeholder="Name">
+        </div>
+        <div class="sheet-preview">
+            <span class="sheet-label">Unit Code &amp; Mark</span>
+            <div class="sheet-add">
+                <input id="sheet-add-code" placeholder="Code (e.g. CPCCPD2011)">
+                <div class="mark-select" id="mark-select">
+                    <button type="button" class="mark-select-trigger" id="mark-select-trigger" aria-haspopup="listbox" aria-expanded="false">
+                        <span class="mark-select-dot dot-checked" id="mark-select-dot"></span>
+                        <span class="mark-select-value" id="mark-select-value">Checked</span>
+                        <svg class="mark-select-chevron" width="10" height="6" viewBox="0 0 10 6" aria-hidden="true"><path d="M0 0l5 6 5-6z"></path></svg>
+                    </button>
+                    <div class="mark-select-menu hidden" id="mark-select-menu" role="listbox">
+                        <button type="button" class="mark-select-option selected" data-value="Checked" role="option" aria-selected="true">
+                            <span class="mark-select-dot dot-checked"></span>Checked
+                        </button>
+                        <button type="button" class="mark-select-option" data-value="AI Detected" role="option" aria-selected="false">
+                            <span class="mark-select-dot dot-ai"></span>AI Detected
+                        </button>
+                        <button type="button" class="mark-select-option" data-value="Copied" role="option" aria-selected="false">
+                            <span class="mark-select-dot dot-copied"></span>Copied
+                        </button>
+                        <div class="mark-select-sep"></div>
+                        <button type="button" class="mark-select-option" data-value="__custom__" role="option" aria-selected="false">
+                            <span class="mark-select-dot dot-custom"></span>Type your own
+                        </button>
+                    </div>
+                </div>
+                <input id="sheet-add-mark-custom" class="hidden" placeholder="Type a mark">
+                <button class="btn-add" id="sheet-add-btn">Add</button>
+            </div>
+            <div class="sheet-preview-list" id="sheet-preview-list"></div>
+        </div>
+    </div>
+
+    <div class="actions">
+        <button class="action action-primary" id="sheet-btn" title="Copy the Excel tracking sheet, then paste into Excel">Copy Sheet</button>
+        <button class="action" id="prompt-btn" title="File Organization Prompt">Copy Prompt</button>
+        <button class="action" id="quit">Quit</button>
+    </div>
+</div>
+<div class="toast" id="toast"></div>
+<script src="popup.js"></script>
+</body>
+</html>
