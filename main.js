@@ -24,6 +24,15 @@ const PLATFORM_NAMES = { win32: 'Windows', darwin: 'macOS', linux: 'Linux' };
 
 const CHANGELOG = [
     {
+        version: '1.10.0',
+        notes: [
+            'Layout toggle and info buttons moved to the bottom footer bar.',
+            'Copy Sheet button moved next to the Name field on Student Details.',
+            'Prompt button is now a compact icon in the footer.',
+            'Info panel opens above the footer button with internal scrolling.',
+        ],
+    },
+    {
         version: '1.9.7',
         notes: [
             'Copy Sheet moved to a persistent footer button on Student Details.',
