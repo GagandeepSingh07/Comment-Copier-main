@@ -919,8 +919,12 @@ body.layout-stack .tab-panel + .tab-panel {
 .sheet-preview-list {
     display: flex;
     flex-wrap: wrap;
+    align-content: flex-start;
     gap: 5px;
-    padding: 6px 0 2px;
+    padding: 6px 4px 6px 0;
+    max-height: 190px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
 }
 
 .sheet-preview-empty {
