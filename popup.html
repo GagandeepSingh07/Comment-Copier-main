@@ -148,12 +148,14 @@
                 <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><path d="M2 4.25A1 1 0 0 1 3 3.25h3l1.2 1.5h5.8a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1h-10a1 1 0 0 1-1-1v-7.5Z"/></svg>
             </button>
             <div class="organizer-popover" id="organizer-popover">
-                <div class="organizer-popover-head">File Organizer</div>
+                <div class="organizer-head">
+                    <div class="organizer-popover-head">File Organizer</div>
+                    <button type="button" class="link" id="organizer-clear-btn" title="Clear the selected folder">Clear</button>
+                </div>
                 <div class="organizer-popover-help">How to use: 1. Click Browse and choose the folder with your files. 2. Click Organize Files to sort them into subfolders.</div>
                 <div class="organizer-fields">
                     <input id="organizer-path" placeholder="No folder selected" readonly>
                     <button type="button" class="btn-add" id="organizer-browse-btn">Browse</button>
-                    <button type="button" class="link" id="organizer-clear-btn" title="Clear the selected folder">Clear</button>
                 </div>
                 <button type="button" class="btn-organize" id="organizer-run-btn" disabled title="Group files into folders named after the code/identifier before the first '-' or space">Organize Files</button>
                 <div class="organizer-summary" id="organizer-summary"></div>

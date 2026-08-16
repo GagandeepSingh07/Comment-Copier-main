@@ -1043,6 +1043,17 @@ body.layout-stack .tab-panel + .tab-panel {
     margin-bottom: 8px;
 }
 
+.organizer-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.organizer-head .organizer-popover-head {
+    margin-bottom: 0;
+}
+
 .organizer-popover-help {
     margin: 6px 0;
     padding: 8px 10px;
