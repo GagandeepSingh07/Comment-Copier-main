@@ -1014,7 +1014,7 @@ body.layout-stack .tab-panel + .tab-panel {
 
 .organizer-popover {
     position: fixed;
-    left: 8px;
+    right: 8px;
     bottom: 54px;
     width: 300px;
     background: #0d1117;
@@ -1041,6 +1041,17 @@ body.layout-stack .tab-panel + .tab-panel {
     font-size: 13px;
     font-weight: 700;
     margin-bottom: 8px;
+}
+
+.organizer-popover-help {
+    margin: 6px 0;
+    padding: 8px 10px;
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 8px;
+    color: var(--muted);
+    font-size: 11px;
+    line-height: 1.5;
 }
 
 .organizer-fields {

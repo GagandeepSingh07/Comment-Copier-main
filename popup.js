@@ -164,6 +164,7 @@ const organizerWrap = document.querySelector('.organizer-wrap');
 const organizerBtn = document.getElementById('organizer-btn');
 const organizerPathInput = document.getElementById('organizer-path');
 const organizerBrowseBtn = document.getElementById('organizer-browse-btn');
+const organizerClearBtn = document.getElementById('organizer-clear-btn');
 const organizerRunBtn = document.getElementById('organizer-run-btn');
 const organizerSummary = document.getElementById('organizer-summary');
 const organizerList = document.getElementById('organizer-list');
@@ -913,6 +914,16 @@ async function pickOrganizerFolder() {
     syncHeight();
 }
 
+function clearOrganizerFolder() {
+    organizerFolder = '';
+    organizerPathInput.value = '';
+    localStorage.removeItem(ORGANIZER_KEY);
+    organizerRunBtn.disabled = true;
+    organizerSummary.textContent = '';
+    organizerList.innerHTML = '';
+    syncHeight();
+}
+
 async function runOrganizer() {
     if (organizerBusy || !organizerFolder) return;
     if (!window.popupAPI || typeof window.popupAPI.organizeFolder !== 'function') {
@@ -935,6 +946,10 @@ async function runOrganizer() {
     syncHeight();
     if (result && result.ok) {
         showToast(`Organized \u2014 ${result.moved} moved, ${result.skipped.length} skipped`);
+        organizerFolder = '';
+        organizerPathInput.value = '';
+        localStorage.removeItem(ORGANIZER_KEY);
+        organizerRunBtn.disabled = true;
     } else {
         showToast(result && result.error ? result.error : 'Organize failed.');
     }
@@ -1009,8 +1024,6 @@ function closeOrganizerDropdown() {
     organizerWrap.classList.remove('open');
     organizerBtn.setAttribute('aria-expanded', 'false');
 }
-window.addEventListener('blur', closeInfoDropdown);
-window.addEventListener('blur', closeOrganizerDropdown);
 if (window.popupAPI && typeof window.popupAPI.onClosed === 'function') {
     window.popupAPI.onClosed(closeInfoDropdown);
     window.popupAPI.onClosed(closeOrganizerDropdown);
@@ -1103,6 +1116,7 @@ document.addEventListener('click', (e) => {
 });
 organizerBrowseBtn.addEventListener('click', pickOrganizerFolder);
 organizerRunBtn.addEventListener('click', runOrganizer);
+organizerClearBtn.addEventListener('click', clearOrganizerFolder);
 
 load();
 loadPrompt();

@@ -131,12 +131,20 @@ ipcMain.handle('comment-copier:copy-sheet', (event, html, text) => {
     return true;
 });
 
+let nativeDialogOpen = false;
+
 ipcMain.handle('file-organizer:pick-folder', async () => {
     if (!popupWindow || popupWindow.isDestroyed()) return null;
-    const result = await dialog.showOpenDialog(popupWindow, {
-        properties: ['openDirectory'],
-        title: 'Choose a folder to organize',
-    });
+    nativeDialogOpen = true;
+    let result;
+    try {
+        result = await dialog.showOpenDialog(popupWindow, {
+            properties: ['openDirectory'],
+            title: 'Choose a folder to organize',
+        });
+    } finally {
+        nativeDialogOpen = false;
+    }
     if (result.canceled || !result.filePaths.length) return null;
     return result.filePaths[0];
 });
@@ -302,7 +310,9 @@ function createPopup() {
 
     popupWindow.loadFile('popup.html');
 
-    popupWindow.on('blur', () => hidePopup());
+    popupWindow.on('blur', () => {
+        if (!nativeDialogOpen) hidePopup();
+    });
 
     popupWindow.on('closed', () => {
         popupWindow = null;
