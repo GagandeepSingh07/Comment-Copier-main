@@ -837,7 +837,7 @@ body.layout-stack .tab-panel + .tab-panel {
 
 .mark-select-chevron {
     flex-shrink: 0;
-    fill: var(--accent);
+    fill: var(--muted);
     transition: transform 0.15s ease;
 }
 
