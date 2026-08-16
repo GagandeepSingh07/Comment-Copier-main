@@ -329,6 +329,27 @@ function renderRows() {
     });
 }
 
+function buildDateLine() {
+    const d = new Date();
+    const day = d.getDate();
+    const month = d.toLocaleString('en', { month: 'long' });
+    const year = d.getFullYear();
+    return `Date: ___${day}____(day)/ ___${month} ____(month)/ _______${year}_____(year)`;
+}
+
+let copyCommentTimer = null;
+
+async function writeClipboard(text) {
+    if (window.popupAPI && typeof window.popupAPI.copyText === 'function') {
+        try {
+            return await window.popupAPI.copyText(text);
+        } catch (e) {
+            return false;
+        }
+    }
+    return false;
+}
+
 async function handleCopy(key) {
     const s = state[key];
     const label = LABELS[key];
@@ -336,16 +357,13 @@ async function handleCopy(key) {
         showToast('Nothing to copy yet \u2014 add comments first.');
         return;
     }
-    const text = s.comments[s.index];
-    const copiedNumber = s.index + 1;
-    let ok = false;
-    if (window.popupAPI && typeof window.popupAPI.copyText === 'function') {
-        try {
-            ok = await window.popupAPI.copyText(text);
-        } catch (e) {
-            ok = false;
-        }
+    if (copyCommentTimer) {
+        clearTimeout(copyCommentTimer);
+        copyCommentTimer = null;
     }
+    const comment = s.comments[s.index];
+    const copiedNumber = s.index + 1;
+    const ok = await writeClipboard(buildDateLine());
     if (!ok) {
         if (window.popupAPI && typeof window.popupAPI.reportCopyResult === 'function') {
             window.popupAPI.reportCopyResult({ ok: false, label });
@@ -353,11 +371,23 @@ async function handleCopy(key) {
         showToast('Copy failed \u2014 please copy manually.');
         return;
     }
-    showToast(`Copied ${label} comment ${copiedNumber}`);
-    s.index = (s.index + 1) % s.comments.length;
-    save();
-    renderRows();
-    pushQuickState();
+    showToast('Date copied \u2014 paste it, comment follows');
+    copyCommentTimer = setTimeout(async () => {
+        copyCommentTimer = null;
+        const ok2 = await writeClipboard(comment);
+        if (!ok2) {
+            if (window.popupAPI && typeof window.popupAPI.reportCopyResult === 'function') {
+                window.popupAPI.reportCopyResult({ ok: false, label });
+            }
+            showToast('Comment copy failed \u2014 please copy manually.');
+            return;
+        }
+        showToast(`Copied ${label} comment ${copiedNumber}`);
+        s.index = (s.index + 1) % s.comments.length;
+        save();
+        renderRows();
+        pushQuickState();
+    }, 1500);
 }
 
 function prevComment(key) {

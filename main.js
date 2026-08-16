@@ -24,6 +24,14 @@ const PLATFORM_NAMES = { win32: 'Windows', darwin: 'macOS', linux: 'Linux' };
 
 const CHANGELOG = [
     {
+        version: '1.11.4',
+        notes: [
+            'Copying a comment now adds today\'s date to the clipboard first, then switches to the comment after a short delay.',
+            'File Organizer: added a Clear button, auto-clears the selected folder after organizing, and shows a how-to-use hint.',
+            'Fixed the popup and File Organizer closing when the folder picker opens.',
+        ],
+    },
+    {
         version: '1.10.0',
         notes: [
             'Layout toggle and info buttons moved to the bottom footer bar.',
