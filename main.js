@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, clipboard, Tray, screen } = require('electron');
+const { app, BrowserWindow, ipcMain, clipboard, Tray, screen, dialog } = require('electron');
 const path = require('path');
 const fs = require('fs');
 
@@ -77,6 +77,31 @@ let tray = null;
 let isQuitting = false;
 let quickState = [];
 
+function deriveOrganizerFolderName(fileName) {
+    let folder;
+    if (fileName.includes('-')) {
+        folder = fileName.split('-')[0];
+    } else {
+        folder = fileName.split(' ')[0];
+    }
+    folder = folder.trim();
+    folder = folder.replace(/final$/i, '');
+    return folder.trim();
+}
+
+function safeMoveSync(src, dest) {
+    try {
+        fs.renameSync(src, dest);
+    } catch (err) {
+        if (err.code === 'EXDEV') {
+            fs.copyFileSync(src, dest);
+            fs.unlinkSync(src);
+        } else {
+            throw err;
+        }
+    }
+}
+
 ipcMain.handle('comment-copier:copy', (event, text) => {
     clipboard.writeText(text);
     return true;
@@ -104,6 +129,90 @@ ipcMain.handle('comment-copier:copy-sheet', (event, html, text) => {
     if (typeof html !== 'string' || !html) return false;
     clipboard.write({ html, text: typeof text === 'string' ? text : '' });
     return true;
+});
+
+ipcMain.handle('file-organizer:pick-folder', async () => {
+    if (!popupWindow || popupWindow.isDestroyed()) return null;
+    const result = await dialog.showOpenDialog(popupWindow, {
+        properties: ['openDirectory'],
+        title: 'Choose a folder to organize',
+    });
+    if (result.canceled || !result.filePaths.length) return null;
+    return result.filePaths[0];
+});
+
+ipcMain.handle('file-organizer:organize', async (event, folderPath) => {
+    if (typeof folderPath !== 'string' || !folderPath) {
+        return { ok: false, error: 'No folder selected.' };
+    }
+
+    let stat;
+    try {
+        stat = fs.statSync(folderPath);
+    } catch (e) {
+        return { ok: false, error: 'Folder not found.' };
+    }
+    if (!stat.isDirectory()) {
+        return { ok: false, error: 'That path is not a folder.' };
+    }
+
+    let entries;
+    try {
+        entries = fs.readdirSync(folderPath, { withFileTypes: true }).filter((d) => d.isFile());
+    } catch (e) {
+        return { ok: false, error: 'Could not read folder: ' + e.message };
+    }
+
+    let moved = 0;
+    const skipped = [];
+
+    for (const entry of entries) {
+        const name = entry.name;
+        const ext = path.extname(name).toLowerCase();
+        if (ext === '.bat' || ext === '.ps1') {
+            skipped.push({ file: name, reason: 'Tool file \u2014 left untouched' });
+            continue;
+        }
+
+        const folder = deriveOrganizerFolderName(name);
+        if (!folder) {
+            skipped.push({ file: name, reason: 'Could not extract a folder name' });
+            continue;
+        }
+
+        const destDir = path.join(folderPath, folder);
+        try {
+            if (!fs.existsSync(destDir)) fs.mkdirSync(destDir, { recursive: true });
+        } catch (e) {
+            skipped.push({ file: name, reason: 'Could not create folder: ' + e.message });
+            continue;
+        }
+
+        const srcFile = path.join(folderPath, name);
+        const baseName = path.basename(name, path.extname(name));
+        const fileExt = path.extname(name);
+        let finalName = name;
+        let destFile = path.join(destDir, finalName);
+        let suffix = 1;
+        while (fs.existsSync(destFile) && suffix <= 1000) {
+            finalName = `${baseName} (${suffix})${fileExt}`;
+            destFile = path.join(destDir, finalName);
+            suffix++;
+        }
+        if (fs.existsSync(destFile)) {
+            skipped.push({ file: name, reason: `Destination folder '${folder}' has no free name available` });
+            continue;
+        }
+
+        try {
+            safeMoveSync(srcFile, destFile);
+            moved++;
+        } catch (e) {
+            skipped.push({ file: name, reason: e.message });
+        }
+    }
+
+    return { ok: true, moved, skipped, total: entries.length };
 });
 
 ipcMain.on('comment-copier:quick-state', (event, payload) => {

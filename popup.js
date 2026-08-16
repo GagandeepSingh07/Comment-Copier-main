@@ -2,6 +2,7 @@ const STORAGE_KEY = 'comment-copier-data-v7';
 const PROMPT_KEY = 'comment-copier-prompt-v1';
 const SHEET_KEY = 'comment-copier-sheet-v3';
 const LAYOUT_KEY = 'comment-copier-layout-v1';
+const ORGANIZER_KEY = 'comment-copier-organizer-path-v1';
 
 const SHEET_ASSESSMENT_COLS = 9;
 
@@ -159,6 +160,13 @@ const sheetAddMarkCustom = document.getElementById('sheet-add-mark-custom');
 const sheetAddBtn = document.getElementById('sheet-add-btn');
 const sheetReset = document.getElementById('sheet-reset');
 const sheetBtn = document.getElementById('sheet-btn');
+const organizerWrap = document.querySelector('.organizer-wrap');
+const organizerBtn = document.getElementById('organizer-btn');
+const organizerPathInput = document.getElementById('organizer-path');
+const organizerBrowseBtn = document.getElementById('organizer-browse-btn');
+const organizerRunBtn = document.getElementById('organizer-run-btn');
+const organizerSummary = document.getElementById('organizer-summary');
+const organizerList = document.getElementById('organizer-list');
 const mainTabs = document.querySelectorAll('.tab');
 const tabPanels = document.querySelectorAll('.tab-panel');
 const commentsPanel = document.querySelector('[data-panel="comments"]');
@@ -179,6 +187,8 @@ let layoutMode = 'tabs';
 let dirty = false;
 let sheetEntries = [];
 let selectedMark = 'Checked';
+let organizerFolder = '';
+let organizerBusy = false;
 
 function markDotClass(value) {
     if (value === 'Checked') return 'dot-checked';
@@ -845,6 +855,91 @@ async function copySheet() {
     showToast('Sheet copied \u2014 paste into Excel');
 }
 
+function loadOrganizerPath() {
+    const saved = localStorage.getItem(ORGANIZER_KEY);
+    if (saved) {
+        organizerFolder = saved;
+        organizerPathInput.value = saved;
+        organizerRunBtn.disabled = false;
+    }
+}
+
+function renderOrganizerResult(result) {
+    if (!result || !result.ok) {
+        organizerSummary.textContent = result && result.error ? result.error : 'Something went wrong.';
+        organizerList.innerHTML = '';
+        return;
+    }
+    organizerSummary.textContent =
+        `${result.moved} file${result.moved === 1 ? '' : 's'} moved, ${result.skipped.length} skipped`;
+    organizerList.innerHTML = '';
+    if (!result.skipped.length) {
+        const empty = document.createElement('div');
+        empty.className = 'organizer-empty';
+        empty.textContent = result.total
+            ? 'All files organized \u2014 nothing skipped.'
+            : 'No files found in that folder.';
+        organizerList.appendChild(empty);
+        return;
+    }
+    result.skipped.forEach((item) => {
+        const el = document.createElement('div');
+        el.className = 'organizer-item';
+        el.innerHTML =
+            '<div class="organizer-item-file">' + escapeHtml(item.file) + '</div>' +
+            '<div class="organizer-item-reason">' + escapeHtml(item.reason) + '</div>';
+        organizerList.appendChild(el);
+    });
+}
+
+async function pickOrganizerFolder() {
+    if (!window.popupAPI || typeof window.popupAPI.pickOrganizeFolder !== 'function') {
+        showToast('Folder picker unavailable.');
+        return;
+    }
+    let picked = null;
+    try {
+        picked = await window.popupAPI.pickOrganizeFolder();
+    } catch (e) {
+        picked = null;
+    }
+    if (!picked) return;
+    organizerFolder = picked;
+    organizerPathInput.value = picked;
+    localStorage.setItem(ORGANIZER_KEY, picked);
+    organizerRunBtn.disabled = false;
+    organizerSummary.textContent = '';
+    organizerList.innerHTML = '';
+    syncHeight();
+}
+
+async function runOrganizer() {
+    if (organizerBusy || !organizerFolder) return;
+    if (!window.popupAPI || typeof window.popupAPI.organizeFolder !== 'function') {
+        showToast('File organizer unavailable.');
+        return;
+    }
+    organizerBusy = true;
+    organizerRunBtn.disabled = true;
+    organizerRunBtn.textContent = 'Organizing\u2026';
+    let result = null;
+    try {
+        result = await window.popupAPI.organizeFolder(organizerFolder);
+    } catch (e) {
+        result = { ok: false, error: 'Organize failed \u2014 ' + e.message };
+    }
+    organizerBusy = false;
+    organizerRunBtn.disabled = false;
+    organizerRunBtn.textContent = 'Organize Files';
+    renderOrganizerResult(result);
+    syncHeight();
+    if (result && result.ok) {
+        showToast(`Organized \u2014 ${result.moved} moved, ${result.skipped.length} skipped`);
+    } else {
+        showToast(result && result.error ? result.error : 'Organize failed.');
+    }
+}
+
 rowsEl.addEventListener('click', (e) => {
     const actBtn = e.target.closest('.mini');
     if (actBtn) {
@@ -901,15 +996,30 @@ document.addEventListener('click', (e) => {
         infoWrap.classList.remove('open');
         infoBtn.setAttribute('aria-expanded', 'false');
     }
+    if (!organizerWrap.contains(e.target)) {
+        organizerWrap.classList.remove('open');
+        organizerBtn.setAttribute('aria-expanded', 'false');
+    }
 });
 function closeInfoDropdown() {
     infoWrap.classList.remove('open');
     infoBtn.setAttribute('aria-expanded', 'false');
 }
+function closeOrganizerDropdown() {
+    organizerWrap.classList.remove('open');
+    organizerBtn.setAttribute('aria-expanded', 'false');
+}
 window.addEventListener('blur', closeInfoDropdown);
+window.addEventListener('blur', closeOrganizerDropdown);
 if (window.popupAPI && typeof window.popupAPI.onClosed === 'function') {
     window.popupAPI.onClosed(closeInfoDropdown);
+    window.popupAPI.onClosed(closeOrganizerDropdown);
 }
+organizerBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const open = organizerWrap.classList.toggle('open');
+    organizerBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+});
 mainTabs.forEach((b) => b.addEventListener('click', () => setMainTab(b.dataset.tab)));
 layoutBtn.addEventListener('click', () => {
     layoutMode = layoutMode === 'stack' ? 'tabs' : 'stack';
@@ -935,6 +1045,12 @@ document.addEventListener('keydown', (e) => {
             infoWrap.classList.remove('open');
             infoBtn.setAttribute('aria-expanded', 'false');
             infoBtn.focus();
+            return;
+        }
+        if (organizerWrap.classList.contains('open')) {
+            organizerWrap.classList.remove('open');
+            organizerBtn.setAttribute('aria-expanded', 'false');
+            organizerBtn.focus();
             return;
         }
         if (!markSelectMenu.classList.contains('hidden')) {
@@ -985,10 +1101,13 @@ document.addEventListener('click', (e) => {
         }
     });
 });
+organizerBrowseBtn.addEventListener('click', pickOrganizerFolder);
+organizerRunBtn.addEventListener('click', runOrganizer);
 
 load();
 loadPrompt();
 loadSheetInputs();
+loadOrganizerPath();
 renderSheetPreview();
 selectMark('Checked');
 categories.forEach((key) => {

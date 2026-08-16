@@ -143,6 +143,21 @@
 
     <div class="actions">
         <button class="action" id="quit">Quit</button>
+        <div class="organizer-wrap">
+            <button type="button" class="organizer-btn" id="organizer-btn" aria-label="File organizer" aria-haspopup="true" aria-expanded="false" title="Organize files into folders">
+                <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><path d="M2 4.25A1 1 0 0 1 3 3.25h3l1.2 1.5h5.8a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1h-10a1 1 0 0 1-1-1v-7.5Z"/></svg>
+            </button>
+            <div class="organizer-popover" id="organizer-popover">
+                <div class="organizer-popover-head">File Organizer</div>
+                <div class="organizer-fields">
+                    <input id="organizer-path" placeholder="No folder selected" readonly>
+                    <button type="button" class="btn-add" id="organizer-browse-btn">Browse</button>
+                </div>
+                <button type="button" class="btn-organize" id="organizer-run-btn" disabled title="Group files into folders named after the code/identifier before the first '-' or space">Organize Files</button>
+                <div class="organizer-summary" id="organizer-summary"></div>
+                <div class="organizer-list" id="organizer-list"></div>
+            </div>
+        </div>
         <button type="button" class="layout-btn" id="layout-btn" title="Switch to Side by side layout" aria-pressed="false">
             <svg class="icon-tabs" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><rect x="2" y="2" width="12" height="5.5" rx="1"/><rect x="2" y="8.5" width="12" height="5.5" rx="1"/></svg>
             <svg class="icon-columns" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><rect x="2" y="2" width="5.5" height="12" rx="1"/><rect x="8.5" y="2" width="5.5" height="12" rx="1"/></svg>
