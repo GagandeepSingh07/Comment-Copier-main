@@ -24,6 +24,16 @@ const PLATFORM_NAMES = { win32: 'Windows', darwin: 'macOS', linux: 'Linux' };
 
 const CHANGELOG = [
     {
+        version: '1.12.0',
+        notes: [
+            'New Card layout: a third view (Tabs → Side by side → Cards) with quick actions shown as icon cards and Student Details stacked underneath.',
+            'Quick action icons redrawn as crisp SVGs (checkmark, AI sparkle, copy) instead of text/arrow glyphs.',
+            'Unit Code & Mark list restyled as full-width rows with a rounded status pill and remove button on the right — applies to every layout.',
+            'Student Details heading hierarchy clarified: “Student details” is now the main heading, “Unit Code & Mark” a smaller sub-heading.',
+            'Student ID, Name, and Copy Sheet now sit on a single row in the Card layout.',
+        ],
+    },
+    {
         version: '1.11.4',
         notes: [
             'Copying a comment now adds today\'s date to the clipboard first, then switches to the comment after a short delay.',
