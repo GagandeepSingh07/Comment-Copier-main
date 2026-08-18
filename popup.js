@@ -732,6 +732,8 @@ function renderSheetPreview() {
         codeSpan.className = 'sheet-preview-code';
         codeSpan.textContent = cell.code;
         item.appendChild(codeSpan);
+        const right = document.createElement('span');
+        right.className = 'sheet-preview-right';
         if (cell.status) {
             const mark = document.createElement('span');
             mark.className = 'sheet-preview-mark';
@@ -743,7 +745,7 @@ function renderSheetPreview() {
             txt.textContent = cell.status;
             mark.appendChild(sym);
             mark.appendChild(txt);
-            item.appendChild(mark);
+            right.appendChild(mark);
         }
         const del = document.createElement('button');
         del.type = 'button';
@@ -751,7 +753,8 @@ function renderSheetPreview() {
         del.title = 'Remove';
         del.textContent = '\u00d7';
         del.addEventListener('click', () => removeSheetEntry(i));
-        item.appendChild(del);
+        right.appendChild(del);
+        item.appendChild(right);
         sheetPreviewList.appendChild(item);
     });
 }
