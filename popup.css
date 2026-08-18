@@ -1231,3 +1231,229 @@ body.layout-stack .tab-panel + .tab-panel {
 }
 
 .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ---------- Card layout ---------- */
+
+.layout-btn .icon-cards { display: none; }
+
+.row-icon { display: none; }
+
+body.layout-cards .layout-btn .icon-tabs,
+body.layout-cards .layout-btn .icon-columns { display: none; }
+
+body.layout-cards .layout-btn .icon-cards { display: block; }
+
+body.layout-cards { min-width: 460px; }
+
+body.layout-cards .panel {
+    border-radius: 18px;
+    box-shadow: 0 12px 32px rgba(1, 4, 9, 0.55);
+}
+
+body.layout-cards .topbar { margin: 16px 16px 0; }
+
+body.layout-cards .tabs { display: none; }
+
+body.layout-cards .tab-panel[data-panel="student"].active {
+    margin-top: 6px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border);
+}
+
+body.layout-cards .head {
+    padding: 0px 16px 4px;
+}
+
+body.layout-cards .head-title {
+    font-size: 15px;
+    font-weight: 800;
+}
+
+body.layout-cards .head-total {
+    font-size: 11.5px;
+}
+
+/* Quick comments grid */
+
+body.layout-cards .rows {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    padding: 6px 16px 10px;
+}
+
+body.layout-cards .row {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 6px;
+    background: #0d1117;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px 10px 14px;
+    transition: transform 0.15s ease, border-color 0.15s ease, background-color 0.15s ease;
+}
+
+body.layout-cards .row:hover {
+    background: #0d1117;
+    border-color: #484f58;
+}
+
+body.layout-cards .row:active { transform: translateY(0); }
+
+body.layout-cards .row-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    color: #1a1a1a;
+}
+
+body.layout-cards .row[data-key="accept"] .row-icon { background: #C6E0B4; }
+
+body.layout-cards .row[data-key="aireject"] .row-icon { background: #F4B7B7; }
+
+body.layout-cards .row[data-key="copyreject"] .row-icon { background: #FFE066; }
+
+body.layout-cards .row.disabled .row-icon { opacity: 0.4; }
+
+body.layout-cards .row-line {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    width: 100%;
+}
+
+body.layout-cards .name {
+    font-size: 12px;
+    font-weight: 700;
+}
+
+body.layout-cards .pos {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: #21262d;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 1px 7px;
+    font-size: 9.5px;
+}
+
+body.layout-cards .row-actions {
+    order: 3;
+    opacity: 0.7;
+    margin-top: 2px;
+}
+
+body.layout-cards .row:hover .row-actions { opacity: 1; }
+
+body.layout-cards .preview {
+    order: 2;
+    margin-top: 0;
+    padding-left: 0;
+    -webkit-line-clamp: 1;
+    line-clamp: 1;
+    font-size: 10.5px;
+}
+
+/* Editor card */
+
+body.layout-cards .editor-head { padding: 10px 16px; }
+
+body.layout-cards .editor { padding: 0 16px 16px; }
+
+body.layout-cards .etabs,
+body.layout-cards .edits textarea,
+body.layout-cards #prompt-text,
+body.layout-cards .editor-add input,
+body.layout-cards .btn-add {
+    border-radius: 12px;
+}
+
+/* Student details cards */
+
+body.layout-cards .tab-panel[data-panel="student"] { padding: 4px 16px 16px; }
+
+body.layout-cards .sheet-head { padding: 16px 2px 8px; }
+
+body.layout-cards .sheet-head .sheet-label {
+    font-size: 15px;
+    font-weight: 800;
+}
+
+body.layout-cards .sheet-preview .sheet-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+body.layout-cards .sheet-fields {
+    padding: 14px;
+    background: #0d1117;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    flex-wrap: nowrap;
+}
+
+body.layout-cards .sheet-fields input {
+    flex: 1 1 0;
+    min-width: 0;
+    border-radius: 10px;
+    padding: 9px 12px;
+}
+
+body.layout-cards #sheet-btn.action-primary {
+    flex: 0 0 auto;
+    border-radius: 10px;
+    padding: 9px 16px;
+    margin-top: 0;
+    white-space: nowrap;
+}
+
+body.layout-cards .sheet-preview {
+    margin-top: 12px;
+    padding: 14px;
+    background: #0d1117;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+}
+
+body.layout-cards .sheet-add {
+    background: #010409;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 10px;
+    margin-top: 8px;
+}
+
+body.layout-cards .sheet-preview-list { margin-top: 8px; }
+
+body.layout-cards .sheet-preview-item {
+    border-radius: 10px;
+    padding: 4px 10px;
+}
+
+/* Footer */
+
+body.layout-cards .actions {
+    padding: 10px 16px 14px;
+    gap: 8px;
+}
+
+body.layout-cards .action {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 9px 10px;
+}
+
+body.layout-cards .action-primary {
+    border-color: transparent;
+}

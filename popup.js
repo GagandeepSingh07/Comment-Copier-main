@@ -289,7 +289,7 @@ function syncHeight() {
         syncHeightScheduled = false;
         if (window.popupAPI && typeof window.popupAPI.resize === 'function') {
             window.popupAPI.resize({
-                width: layoutMode === 'stack' ? 780 : 420,
+                width: layoutMode === 'stack' ? 780 : (layoutMode === 'cards' ? 460 : 420),
                 height: document.body.scrollHeight,
             });
         }
@@ -306,6 +306,12 @@ function showToast(message) {
     }, 1800);
 }
 
+const ROW_ICONS = {
+    accept: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 12.5 9.5 18 20 6"></polyline></svg>',
+    aireject: '<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 3c.4 3.1 1 4.7 2.1 5.9C15.3 10.1 16.9 10.7 20 11.1c-3.1.4-4.7 1-5.9 2.1-1.1 1.2-1.7 2.8-2.1 5.9-.4-3.1-1-4.7-2.1-5.9C8.7 12.1 7.1 11.5 4 11.1c3.1-.4 4.7-1 5.9-2.1C11.1 7.7 11.7 6.1 12 3z"/><circle cx="19" cy="5.2" r="1.3"/></svg>',
+    copyreject: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>',
+};
+
 function renderRows() {
     rowsEl.innerHTML = '';
     categories.forEach((key) => {
@@ -315,6 +321,7 @@ function renderRows() {
         row.dataset.key = key;
         row.title = s.comments.length ? 'Click to copy' : 'No comments yet';
         row.innerHTML =
+            '<span class="row-icon" aria-hidden="true">' + ROW_ICONS[key] + '</span>' +
             '<div class="row-line">' +
                 '<span class="name">' + LABELS[key] + '</span>' +
                 '<span class="row-actions">' +
@@ -462,18 +469,21 @@ function setMainTab(name) {
 }
 
 function updateFooterVisibility() {
-    const show = layoutMode === 'stack' || activeMainTab === 'student';
+    const show = layoutMode === 'stack' || layoutMode === 'cards' || activeMainTab === 'student';
     sheetBtn.classList.toggle('hidden', !show);
 }
 
 function applyLayout() {
     document.body.classList.toggle('layout-stack', layoutMode === 'stack');
-    mainTabs.forEach((b) => b.classList.toggle('hidden', layoutMode === 'stack'));
+    document.body.classList.toggle('layout-cards', layoutMode === 'cards');
+    mainTabs.forEach((b) => b.classList.toggle('hidden', layoutMode === 'stack' || layoutMode === 'cards'));
     layoutBtn.setAttribute('aria-pressed', layoutMode === 'stack' ? 'true' : 'false');
-    layoutBtn.title = layoutMode === 'stack'
-        ? 'Switch to Tabs layout'
-        : 'Switch to Side by side layout';
-    if (layoutMode === 'stack') {
+    layoutBtn.title = layoutMode === 'tabs'
+        ? 'Switch to Side by side layout'
+        : layoutMode === 'stack'
+            ? 'Switch to Card layout'
+            : 'Switch to Tabs layout';
+    if (layoutMode === 'stack' || layoutMode === 'cards') {
         tabPanels.forEach((p) => p.classList.add('active'));
         updateFooterVisibility();
     } else {
@@ -484,7 +494,7 @@ function applyLayout() {
 
 function loadLayout() {
     const saved = localStorage.getItem(LAYOUT_KEY);
-    layoutMode = saved === 'stack' ? 'stack' : 'tabs';
+    layoutMode = (saved === 'stack' || saved === 'cards') ? saved : 'tabs';
     applyLayout();
 }
 
@@ -1064,8 +1074,9 @@ organizerBtn.addEventListener('click', (e) => {
     organizerBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
 });
 mainTabs.forEach((b) => b.addEventListener('click', () => setMainTab(b.dataset.tab)));
+const LAYOUT_CYCLE = { tabs: 'stack', stack: 'cards', cards: 'tabs' };
 layoutBtn.addEventListener('click', () => {
-    layoutMode = layoutMode === 'stack' ? 'tabs' : 'stack';
+    layoutMode = LAYOUT_CYCLE[layoutMode] || 'tabs';
     localStorage.setItem(LAYOUT_KEY, layoutMode);
     applyLayout();
 });
