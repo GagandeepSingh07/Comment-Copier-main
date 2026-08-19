@@ -1379,8 +1379,8 @@ body.layout-cards .topbar { margin: 16px 16px 0; }
 body.layout-cards .tabs { display: none; }
 
 body.layout-cards .tab-panel[data-panel="student"].active {
-    margin-top: 6px;
-    padding-top: 10px;
+    /* margin-top: 4px; */
+    padding-top: 6px;
     border-top: 1px solid var(--border);
 }
 
@@ -1402,8 +1402,9 @@ body.layout-cards .head-total {
 body.layout-cards .rows {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
-    padding: 6px 16px 10px;
+    gap: 12px;
+    padding: 6px 16px 8px;
+    align-items: stretch;
 }
 
 body.layout-cards .row {
@@ -1411,21 +1412,24 @@ body.layout-cards .row {
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: flex-start;
     text-align: center;
     gap: 6px;
     background: #0d1117;
     border: 1px solid var(--border);
     border-radius: 16px;
-    padding: 20px 10px 14px;
-    transition: transform 0.15s ease, border-color 0.15s ease, background-color 0.15s ease;
+    padding: 20px 10px 12px;
+    min-height: 172px;
+    transition: transform 0.15s ease, border-color 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 body.layout-cards .row:hover {
-    background: #0d1117;
+    background: #11161d;
     border-color: #484f58;
+    box-shadow: 0 6px 16px rgba(1, 4, 9, 0.45);
 }
 
-body.layout-cards .row:active { transform: translateY(0); }
+body.layout-cards .row:active { transform: translateY(0); box-shadow: none; }
 
 body.layout-cards .row-icon {
     display: flex;
@@ -1471,26 +1475,42 @@ body.layout-cards .pos {
 
 body.layout-cards .row-actions {
     order: 3;
-    opacity: 0.7;
-    margin-top: 2px;
+    opacity: 0.85;
+    width: 100%;
+    margin-top: 6px;
+    padding-top: 6px;
+    display: flex;
+    justify-content: center;
+    gap: 4px;
+    border-top: 1px solid var(--border);
 }
 
 body.layout-cards .row:hover .row-actions { opacity: 1; }
 
+body.layout-cards .row-actions .mini {
+    flex: 1;
+    padding: 4px 4px;
+    border-radius: 6px;
+}
+
+body.layout-cards .row-actions .mini:hover { background: #21262d; }
+
 body.layout-cards .preview {
     order: 2;
-    margin-top: 0;
+    margin-top: 2px;
     padding-left: 0;
-    -webkit-line-clamp: 1;
-    line-clamp: 1;
+    text-align: left;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
     font-size: 10.5px;
+    min-height: 2.6em;
 }
 
 /* Editor card */
 
-body.layout-cards .editor-head { padding: 10px 16px; }
+body.layout-cards .editor-head { padding: 6px 16px; }
 
-body.layout-cards .editor { padding: 0 16px 16px; }
+body.layout-cards .editor { padding: 0 16px 10px; }
 
 body.layout-cards .etabs,
 body.layout-cards .edits textarea,
@@ -1502,9 +1522,9 @@ body.layout-cards .btn-add {
 
 /* Student details cards */
 
-body.layout-cards .tab-panel[data-panel="student"] { padding: 4px 16px 16px; }
+body.layout-cards .tab-panel[data-panel="student"] { padding: 4px 16px 10px; }
 
-body.layout-cards .sheet-head { padding: 16px 2px 8px; }
+body.layout-cards .sheet-head { padding: 6px 2px 8px; }
 
 body.layout-cards .sheet-head .sheet-label {
     font-size: 15px;
@@ -1543,7 +1563,7 @@ body.layout-cards #sheet-btn.action-primary {
 }
 
 body.layout-cards .sheet-preview {
-    margin-top: 12px;
+    margin-top: 8px;
     padding: 14px;
     background: #0d1117;
     border: 1px solid var(--border);
@@ -1562,12 +1582,18 @@ body.layout-cards .sheet-preview-list { margin-top: 8px; }
 
 body.layout-cards .sheet-preview-item {
     border-radius: 10px;
+    transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+body.layout-cards .sheet-preview-item:hover {
+    border-color: #484f58;
+    background: #161b22;
 }
 
 /* Footer */
 
 body.layout-cards .actions {
-    padding: 10px 16px 14px;
+    padding: 6px 16px 10px;
     gap: 8px;
 }
 
@@ -1579,4 +1605,12 @@ body.layout-cards .action {
 
 body.layout-cards .action-primary {
     border-color: transparent;
+}
+
+body.layout-cards .layout-btn,
+body.layout-cards .organizer-btn,
+body.layout-cards .info-btn,
+body.layout-cards #prompt-btn {
+    width: 30px;
+    height: 30px;
 }
