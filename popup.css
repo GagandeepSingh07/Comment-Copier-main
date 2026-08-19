@@ -918,8 +918,8 @@ body.layout-stack .tab-panel + .tab-panel {
 }
 
 .sheet-preview-list {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
     gap: 6px;
     padding: 6px 4px 6px 0;
     max-height: 190px;
@@ -937,12 +937,13 @@ body.layout-stack .tab-panel + .tab-panel {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 10px;
+    gap: 6px;
     width: 100%;
+    min-width: 0;
     background: #0d1117;
     border: 1px solid #30363d;
     border-radius: 8px;
-    padding: 7px 8px 7px 12px;
+    padding: 7px 6px 7px 10px;
     font-size: 11px;
 }
 
