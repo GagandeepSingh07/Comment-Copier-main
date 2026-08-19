@@ -290,7 +290,7 @@ function syncHeight() {
         syncHeightScheduled = false;
         if (window.popupAPI && typeof window.popupAPI.resize === 'function') {
             window.popupAPI.resize({
-                width: layoutMode === 'stack' ? 780 : (layoutMode === 'cards' ? 460 : 420),
+                width: layoutMode === 'stack' ? 680 : (layoutMode === 'cards' ? 400 : 360),
                 height: document.body.scrollHeight,
             });
         }

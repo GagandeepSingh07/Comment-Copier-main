@@ -43,13 +43,13 @@ html, body {
 
 body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
-    font-size: 12px;
+    font-size: 11px;
     color: var(--text);
     user-select: none;
     cursor: default;
     overflow-x: hidden;
     overflow-y: auto;
-    padding-bottom: 48px;
+    padding-bottom: 42px;
 }
 
 .panel {
@@ -63,8 +63,8 @@ body {
 .topbar {
     display: flex;
     align-items: center;
-    gap: 8px;
-    margin: 10px 10px 0;
+    gap: 6px;
+    margin: 8px 8px 0;
 }
 
 .tabs {
@@ -73,8 +73,8 @@ body {
     display: flex;
     gap: 2px;
     background: #010409;
-    padding: 4px;
-    border-radius: 10px;
+    padding: 3px;
+    border-radius: 8px;
     border: 1px solid var(--border);
 }
 
@@ -84,10 +84,10 @@ body {
     border: none;
     color: var(--muted);
     font-family: inherit;
-    font-size: 11.5px;
+    font-size: 10.5px;
     font-weight: 600;
-    padding: 7px 8px;
-    border-radius: 8px;
+    padding: 5px 7px;
+    border-radius: 6px;
     cursor: pointer;
     transition: background-color 0.15s ease, color 0.15s ease;
 }
@@ -104,8 +104,8 @@ body {
 .layout-btn {
     flex: 0 0 auto;
     align-self: center;
-    width: 24px;
-    height: 24px;
+    width: 20px;
+    height: 20px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -131,8 +131,8 @@ body.layout-stack .layout-btn .icon-columns { display: block; }
 .info-btn {
     flex: 0 0 auto;
     align-self: center;
-    width: 22px;
-    height: 22px;
+    width: 20px;
+    height: 20px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -142,7 +142,7 @@ body.layout-stack .layout-btn .icon-columns { display: block; }
     color: var(--muted);
     font-family: Georgia, "Times New Roman", serif;
     font-style: italic;
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 700;
     line-height: 1;
     cursor: pointer;
@@ -158,13 +158,13 @@ body.layout-stack .layout-btn .icon-columns { display: block; }
 .info-popover {
     position: fixed;
     right: 8px;
-    bottom: 54px;
-    width: 360px;
+    bottom: 48px;
+    width: 310px;
     background: #0d1117;
     border: 1px solid #30363d;
     border-radius: 8px;
-    padding: 12px;
-    height: min(300px, calc(100vh - 62px));
+    padding: 10px;
+    height: min(260px, calc(100vh - 56px));
     overflow-y: auto;
     box-shadow: 0 8px 24px rgba(1, 4, 9, 0.6);
     z-index: 30;
@@ -183,14 +183,14 @@ body.layout-stack .layout-btn .icon-columns { display: block; }
 .info-head {
     display: flex;
     align-items: center;
-    gap: 10px;
-    margin-bottom: 6px;
+    gap: 8px;
+    margin-bottom: 4px;
 }
 
 .info-app-icon {
-    width: 40px;
-    height: 40px;
-    border-radius: 8px;
+    width: 34px;
+    height: 34px;
+    border-radius: 7px;
     flex-shrink: 0;
 }
 
@@ -199,39 +199,39 @@ body.layout-stack .layout-btn .icon-columns { display: block; }
 }
 
 .info-name {
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 700;
     line-height: 1.2;
 }
 
 .info-version {
     color: var(--accent);
-    font-size: 11px;
+    font-size: 10px;
 }
 
 .info-desc {
     color: var(--muted);
-    font-size: 11px;
+    font-size: 10px;
     line-height: 1.5;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
 }
 
 .info-meta {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 3px;
 }
 
 .info-meta-row {
     display: flex;
     align-items: baseline;
-    gap: 8px;
-    font-size: 11px;
+    gap: 6px;
+    font-size: 10px;
 }
 
 .info-meta-label {
     flex-shrink: 0;
-    min-width: 62px;
+    min-width: 56px;
     color: var(--muted);
     font-weight: 600;
 }
@@ -252,9 +252,9 @@ body.layout-stack .layout-btn .icon-columns { display: block; }
     border-bottom: 1px solid var(--border);
     color: var(--text);
     font-family: inherit;
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 700;
-    padding: 7px 2px;
+    padding: 5px 2px;
     cursor: pointer;
     text-align: left;
     transition: color 0.15s ease;
@@ -276,21 +276,21 @@ body.layout-stack .layout-btn .icon-columns { display: block; }
 .info-section-toggle:hover .chevron { border-left-color: var(--accent); }
 
 .info-section-body {
-    padding: 6px 0 8px;
+    padding: 5px 0 6px;
     border-bottom: 1px solid var(--border);
 }
 
 .info-keys {
     display: flex;
     flex-direction: column;
-    gap: 4px;
-    font-size: 11px;
+    gap: 3px;
+    font-size: 10px;
 }
 
 .info-key-row {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
     color: var(--muted);
 }
 
@@ -298,40 +298,40 @@ body.layout-stack .layout-btn .icon-columns { display: block; }
 
 .info-key {
     flex-shrink: 0;
-    min-width: 74px;
+    min-width: 66px;
     font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
-    font-size: 10.5px;
+    font-size: 9.5px;
     background: #21262d;
     border: 1px solid #30363d;
-    border-radius: 5px;
-    padding: 2px 6px;
+    border-radius: 4px;
+    padding: 1px 5px;
     text-align: center;
     color: var(--text) !important;
 }
 
 .info-changelog {
-    max-height: 140px;
+    max-height: 120px;
     overflow-y: auto;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 6px;
     padding-right: 4px;
 }
 
-.info-changelog-entry { padding-left: 8px; }
+.info-changelog-entry { padding-left: 6px; }
 
 .info-changelog-version {
     color: var(--accent);
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 700;
-    margin-bottom: 2px;
+    margin-bottom: 1px;
 }
 
 .info-changelog-notes {
     margin: 0;
-    padding-left: 16px;
+    padding-left: 14px;
     color: var(--muted);
-    font-size: 10.5px;
+    font-size: 9.5px;
     line-height: 1.5;
 }
 
@@ -342,10 +342,10 @@ body.layout-stack .layout-btn .icon-columns { display: block; }
     border: 1px solid rgba(248, 81, 73, 0.5);
     color: #f85149;
     font-family: inherit;
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 600;
-    border-radius: 6px;
-    padding: 5px 8px;
+    border-radius: 5px;
+    padding: 4px 7px;
     cursor: pointer;
     transition: background-color 0.15s ease, color 0.15s ease;
 }
@@ -359,7 +359,7 @@ body.layout-stack .layout-btn .icon-columns { display: block; }
 
 .tab-panel.active { display: block; }
 
-body.layout-stack { min-width: 780px; }
+body.layout-stack { min-width: 680px; }
 
 body.layout-stack .tabs { display: none; }
 
@@ -389,23 +389,23 @@ body.layout-stack .tab-panel + .tab-panel {
     display: flex;
     align-items: baseline;
     justify-content: space-between;
-    gap: 8px;
-    padding: 12px 14px 6px;
+    gap: 6px;
+    padding: 10px 12px 4px;
 }
 
 .head-title {
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 700;
 }
 
 .head-total {
     color: var(--muted);
-    font-size: 11px;
+    font-size: 10px;
 }
 
 /* ---------- Quick rows ---------- */
 
-.rows { padding: 2px 6px 4px; }
+.rows { padding: 2px 5px 3px; }
 
 .row {
     display: block;
@@ -413,11 +413,11 @@ body.layout-stack .tab-panel + .tab-panel {
     text-align: left;
     background: transparent;
     border: none;
-    border-radius: 8px;
-    padding: 6px 8px;
+    border-radius: 6px;
+    padding: 5px 7px;
     color: var(--text);
     font-family: inherit;
-    font-size: 12px;
+    font-size: 11px;
     cursor: pointer;
     transition: background-color 0.18s ease;
 }
@@ -433,7 +433,7 @@ body.layout-stack .tab-panel + .tab-panel {
 .row-line {
     display: flex;
     align-items: baseline;
-    gap: 8px;
+    gap: 6px;
 }
 
 .name {
@@ -444,7 +444,7 @@ body.layout-stack .tab-panel + .tab-panel {
 
 .pos {
     color: var(--muted);
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 600;
     flex-shrink: 0;
 }
@@ -463,9 +463,9 @@ body.layout-stack .tab-panel + .tab-panel {
 }
 
 .etab[data-key="prompt"] {
-    margin-left: 6px;
+    margin-left: 5px;
     border-left: 1px solid #30363d;
-    border-radius: 0 6px 6px 0;
+    border-radius: 0 5px 5px 0;
 }
 
 .mini {
@@ -473,9 +473,9 @@ body.layout-stack .tab-panel + .tab-panel {
     border: none;
     color: var(--muted);
     font-family: inherit;
-    font-size: 11px;
-    padding: 2px 6px;
-    border-radius: 6px;
+    font-size: 10px;
+    padding: 2px 5px;
+    border-radius: 5px;
     cursor: pointer;
     white-space: nowrap;
     transition: background-color 0.15s ease, color 0.15s ease;
@@ -492,10 +492,10 @@ body.layout-stack .tab-panel + .tab-panel {
 .mini[data-act="reset"]:hover { color: #f85149; }
 
 .preview {
-    margin-top: 3px;
-    padding-left: 12px;
+    margin-top: 2px;
+    padding-left: 10px;
     color: var(--muted);
-    font-size: 11.5px;
+    font-size: 10.5px;
     line-height: 1.4;
     display: -webkit-box;
     -webkit-line-clamp: 2;
@@ -507,7 +507,7 @@ body.layout-stack .tab-panel + .tab-panel {
 .sep {
     height: 1px;
     background: var(--border);
-    margin: 2px 12px;
+    margin: 2px 10px;
 }
 
 /* ---------- Editor ---------- */
@@ -516,8 +516,8 @@ body.layout-stack .tab-panel + .tab-panel {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 8px;
-    padding: 8px 14px;
+    gap: 6px;
+    padding: 7px 12px;
 }
 
 .editor-toggle {
@@ -525,10 +525,10 @@ body.layout-stack .tab-panel + .tab-panel {
     border: none;
     color: var(--text);
     font-family: inherit;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 600;
-    padding: 4px 6px;
-    border-radius: 6px;
+    padding: 3px 5px;
+    border-radius: 5px;
     cursor: pointer;
     transition: background-color 0.15s ease, color 0.15s ease;
 }
@@ -538,12 +538,12 @@ body.layout-stack .tab-panel + .tab-panel {
 .editor-head-actions {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
 }
 
 .save-status {
     color: var(--muted);
-    font-size: 10.5px;
+    font-size: 9.5px;
     white-space: nowrap;
 }
 
@@ -553,11 +553,11 @@ body.layout-stack .tab-panel + .tab-panel {
     background: var(--accent);
     color: #010409;
     border: none;
-    border-radius: 6px;
+    border-radius: 5px;
     font-family: inherit;
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 600;
-    padding: 4px 14px;
+    padding: 3px 12px;
     cursor: pointer;
     transition: background-color 0.15s ease, transform 0.05s ease;
 }
@@ -568,7 +568,7 @@ body.layout-stack .tab-panel + .tab-panel {
 
 .btn-save.attention { background: #d29922; }
 
-.editor { display: none; padding: 0 10px 10px; }
+.editor { display: none; padding: 0 8px 8px; }
 
 .editor.open { display: block; }
 
@@ -579,9 +579,9 @@ body.layout-stack .tab-panel + .tab-panel {
     display: flex;
     gap: 2px;
     background: #21262d;
-    padding: 3px;
-    border-radius: 8px;
-    margin-bottom: 8px;
+    padding: 2px;
+    border-radius: 6px;
+    margin-bottom: 6px;
 }
 
 .etab {
@@ -590,10 +590,10 @@ body.layout-stack .tab-panel + .tab-panel {
     border: none;
     color: var(--muted);
     font-family: inherit;
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 600;
-    padding: 5px 8px;
-    border-radius: 6px;
+    padding: 4px 6px;
+    border-radius: 5px;
     cursor: pointer;
     transition: background-color 0.15s ease, color 0.15s ease;
 }
@@ -605,14 +605,14 @@ body.layout-stack .tab-panel + .tab-panel {
 .edits textarea {
     display: none;
     width: 100%;
-    min-height: 150px;
+    min-height: 130px;
     resize: vertical;
     background: #010409;
     border: 1px solid #30363d;
-    border-radius: 8px;
-    padding: 10px;
+    border-radius: 6px;
+    padding: 8px;
     font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
-    font-size: 11.5px;
+    font-size: 10.5px;
     line-height: 1.5;
     color: var(--text);
     user-select: text;
@@ -632,8 +632,8 @@ body.layout-stack .tab-panel + .tab-panel {
 
 .editor-add {
     display: flex;
-    gap: 6px;
-    margin-top: 8px;
+    gap: 5px;
+    margin-top: 6px;
 }
 
 .editor-add input {
@@ -641,10 +641,10 @@ body.layout-stack .tab-panel + .tab-panel {
     min-width: 0;
     background: #010409;
     border: 1px solid #30363d;
-    border-radius: 8px;
-    padding: 6px 10px;
+    border-radius: 6px;
+    padding: 5px 8px;
     font-family: inherit;
-    font-size: 11.5px;
+    font-size: 10.5px;
     color: var(--text);
     user-select: text;
 }
@@ -657,10 +657,10 @@ body.layout-stack .tab-panel + .tab-panel {
     background: #21262d;
     border: 1px solid #30363d;
     color: var(--text);
-    border-radius: 8px;
-    padding: 6px 14px;
+    border-radius: 6px;
+    padding: 5px 12px;
     font-family: inherit;
-    font-size: 11.5px;
+    font-size: 10.5px;
     cursor: pointer;
     transition: background-color 0.15s ease;
 }
@@ -671,17 +671,17 @@ body.layout-stack .tab-panel + .tab-panel {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-top: 6px;
+    margin-top: 5px;
 }
 
-.editor-count { color: var(--muted); font-size: 11px; }
+.editor-count { color: var(--muted); font-size: 10px; }
 
 .link {
     background: none;
     border: none;
     color: var(--accent);
     font-family: inherit;
-    font-size: 11px;
+    font-size: 10px;
     cursor: pointer;
     padding: 2px;
     transition: color 0.15s ease;
@@ -693,12 +693,12 @@ body.layout-stack .tab-panel + .tab-panel {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin: 10px 0 6px;
+    margin: 8px 0 5px;
 }
 
 .prompt-label {
     font-weight: 600;
-    font-size: 11.5px;
+    font-size: 10.5px;
 }
 
 #prompt-text {
@@ -706,10 +706,10 @@ body.layout-stack .tab-panel + .tab-panel {
     resize: vertical;
     background: #010409;
     border: 1px solid #30363d;
-    border-radius: 8px;
-    padding: 10px;
+    border-radius: 6px;
+    padding: 8px;
     font-family: inherit;
-    font-size: 11.5px;
+    font-size: 10.5px;
     line-height: 1.5;
     color: var(--text);
     user-select: text;
@@ -727,18 +727,18 @@ body.layout-stack .tab-panel + .tab-panel {
     display: flex;
     align-items: baseline;
     justify-content: space-between;
-    gap: 8px;
-    padding: 10px 14px 0;
+    gap: 6px;
+    padding: 8px 12px 0;
 }
 
 .sheet-label {
     font-weight: 600;
-    font-size: 11.5px;
+    font-size: 10.5px;
 }
 
 .sheet-hint {
     color: var(--muted);
-    font-size: 10px;
+    font-size: 9.5px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -746,8 +746,8 @@ body.layout-stack .tab-panel + .tab-panel {
 
 .sheet-fields {
     display: flex;
-    gap: 6px;
-    padding: 6px 14px 0;
+    gap: 5px;
+    padding: 5px 12px 0;
 }
 
 .sheet-fields input {
@@ -755,10 +755,10 @@ body.layout-stack .tab-panel + .tab-panel {
     min-width: 0;
     background: #010409;
     border: 1px solid #30363d;
-    border-radius: 8px;
-    padding: 6px 10px;
+    border-radius: 6px;
+    padding: 5px 8px;
     font-family: inherit;
-    font-size: 11.5px;
+    font-size: 10.5px;
     color: var(--text);
     user-select: text;
 }
@@ -768,14 +768,14 @@ body.layout-stack .tab-panel + .tab-panel {
 .sheet-fields input:focus { outline: none; border-color: var(--accent); }
 
 .sheet-preview {
-    padding: 2px 14px 0;
+    padding: 2px 12px 0;
 }
 
 .sheet-add {
     display: flex;
     flex-wrap: wrap;
-    gap: 6px;
-    padding: 6px 0 8px;
+    gap: 5px;
+    padding: 5px 0 6px;
 }
 
 .sheet-add input {
@@ -783,10 +783,10 @@ body.layout-stack .tab-panel + .tab-panel {
     min-width: 0;
     background: #010409;
     border: 1px solid #30363d;
-    border-radius: 8px;
-    padding: 5px 9px;
+    border-radius: 6px;
+    padding: 4px 7px;
     font-family: inherit;
-    font-size: 11px;
+    font-size: 10px;
     color: var(--text);
     user-select: text;
 }
@@ -801,13 +801,13 @@ body.layout-stack .tab-panel + .tab-panel {
     width: 100%;
     display: flex;
     align-items: center;
-    gap: 7px;
+    gap: 6px;
     background-color: #21262d;
     border: 1px solid #30363d;
-    border-radius: 8px;
-    padding: 5px 9px;
+    border-radius: 6px;
+    padding: 4px 7px;
     font-family: inherit;
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 600;
     color: var(--text);
     cursor: pointer;
@@ -846,8 +846,8 @@ body.layout-stack .tab-panel + .tab-panel {
 }
 
 .mark-select-dot {
-    width: 9px;
-    height: 9px;
+    width: 8px;
+    height: 8px;
     border-radius: 50%;
     flex-shrink: 0;
     border: 1px solid rgba(0, 0, 0, 0.25);
@@ -860,13 +860,13 @@ body.layout-stack .tab-panel + .tab-panel {
 
 .mark-select-menu {
     position: absolute;
-    top: calc(100% + 4px);
+    top: calc(100% + 3px);
     left: 0;
     right: 0;
     background: #0d1117;
     border: 1px solid #30363d;
-    border-radius: 8px;
-    padding: 4px;
+    border-radius: 6px;
+    padding: 3px;
     z-index: 20;
     box-shadow: 0 8px 24px rgba(1, 4, 9, 0.6);
 }
@@ -875,13 +875,13 @@ body.layout-stack .tab-panel + .tab-panel {
     width: 100%;
     display: flex;
     align-items: center;
-    gap: 7px;
+    gap: 6px;
     background: transparent;
     border: none;
-    border-radius: 6px;
-    padding: 6px 8px;
+    border-radius: 5px;
+    padding: 5px 7px;
     font-family: inherit;
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 600;
     color: var(--text);
     cursor: pointer;
@@ -899,7 +899,7 @@ body.layout-stack .tab-panel + .tab-panel {
 .mark-select-sep {
     height: 1px;
     background: var(--border);
-    margin: 4px 2px;
+    margin: 3px 2px;
 }
 
 #sheet-add-mark-custom {
@@ -920,36 +920,36 @@ body.layout-stack .tab-panel + .tab-panel {
 .sheet-preview-list {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 6px;
-    padding: 6px 4px 6px 0;
-    max-height: 190px;
+    gap: 5px;
+    padding: 5px 4px 5px 0;
+    max-height: 170px;
     overflow-y: auto;
     overscroll-behavior: contain;
 }
 
 .sheet-preview-empty {
     color: var(--muted);
-    font-size: 11px;
-    padding: 2px 0 6px;
+    font-size: 10px;
+    padding: 2px 0 5px;
 }
 
 .sheet-preview-item {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 6px;
+    gap: 5px;
     width: 100%;
     min-width: 0;
     background: #0d1117;
     border: 1px solid #30363d;
-    border-radius: 8px;
-    padding: 7px 6px 7px 10px;
-    font-size: 11px;
+    border-radius: 6px;
+    padding: 6px 5px 6px 8px;
+    font-size: 10px;
 }
 
 .sheet-preview-code {
     font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 700;
     flex: 1;
     min-width: 0;
@@ -961,18 +961,18 @@ body.layout-stack .tab-panel + .tab-panel {
 .sheet-preview-right {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: 5px;
     flex-shrink: 0;
 }
 
 .sheet-preview-mark {
     display: inline-flex;
     align-items: center;
-    gap: 4px;
+    gap: 3px;
     color: #1a1a1a;
-    font-size: 10.5px;
+    font-size: 9.5px;
     font-weight: 700;
-    padding: 3px 10px;
+    padding: 2px 8px;
     border-radius: 999px;
 }
 
@@ -985,11 +985,11 @@ body.layout-stack .tab-panel + .tab-panel {
     border: none;
     color: var(--muted);
     font-family: inherit;
-    font-size: 15px;
+    font-size: 13px;
     line-height: 1;
     cursor: pointer;
-    padding: 2px 4px;
-    border-radius: 4px;
+    padding: 2px 3px;
+    border-radius: 3px;
 }
 
 .sheet-preview-del:hover { color: #f85149; }
@@ -1006,8 +1006,8 @@ body.layout-stack .tab-panel + .tab-panel {
 .organizer-btn {
     flex: 0 0 auto;
     align-self: center;
-    width: 24px;
-    height: 24px;
+    width: 20px;
+    height: 20px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1029,13 +1029,13 @@ body.layout-stack .tab-panel + .tab-panel {
 .organizer-popover {
     position: fixed;
     right: 8px;
-    bottom: 54px;
-    width: 320px;
+    bottom: 48px;
+    width: 280px;
     background: #0d1117;
     border: 1px solid #30363d;
-    border-radius: 10px;
-    padding: 14px;
-    max-height: min(340px, calc(100vh - 62px));
+    border-radius: 8px;
+    padding: 12px;
+    max-height: min(300px, calc(100vh - 56px));
     overflow-y: auto;
     box-shadow: 0 8px 24px rgba(1, 4, 9, 0.6);
     z-index: 30;
@@ -1052,14 +1052,14 @@ body.layout-stack .tab-panel + .tab-panel {
 }
 
 .organizer-popover-head {
-    font-size: 12.5px;
+    font-size: 11.5px;
     font-weight: 700;
     line-height: 1.3;
 }
 
 .organizer-popover-sub {
     color: var(--muted);
-    font-size: 10.5px;
+    font-size: 10px;
     line-height: 1.3;
     margin-top: 1px;
 }
@@ -1068,16 +1068,16 @@ body.layout-stack .tab-panel + .tab-panel {
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
-    gap: 8px;
-    padding-bottom: 10px;
-    margin-bottom: 10px;
+    gap: 6px;
+    padding-bottom: 8px;
+    margin-bottom: 8px;
     border-bottom: 1px solid var(--border);
 }
 
 .organizer-head-id {
     display: flex;
     align-items: center;
-    gap: 9px;
+    gap: 7px;
     min-width: 0;
 }
 
@@ -1086,9 +1086,9 @@ body.layout-stack .tab-panel + .tab-panel {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 30px;
-    height: 30px;
-    border-radius: 9px;
+    width: 26px;
+    height: 26px;
+    border-radius: 8px;
     background: rgba(88, 166, 255, 0.14);
     color: var(--accent);
 }
@@ -1102,20 +1102,20 @@ body.layout-stack .tab-panel + .tab-panel {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
-    padding: 8px 6px;
-    margin-bottom: 10px;
+    gap: 6px;
+    padding: 6px 5px;
+    margin-bottom: 8px;
     background: #161b22;
     border: 1px solid #30363d;
-    border-radius: 8px;
+    border-radius: 6px;
 }
 
 .organizer-step {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: 5px;
     color: var(--muted);
-    font-size: 10.5px;
+    font-size: 10px;
     line-height: 1;
     white-space: nowrap;
 }
@@ -1130,12 +1130,12 @@ body.layout-stack .tab-panel + .tab-panel {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 15px;
-    height: 15px;
+    width: 13px;
+    height: 13px;
     border-radius: 50%;
     background: rgba(88, 166, 255, 0.16);
     color: var(--accent);
-    font-size: 9.5px;
+    font-size: 8.5px;
     font-weight: 700;
 }
 
@@ -1147,11 +1147,11 @@ body.layout-stack .tab-panel + .tab-panel {
 .organizer-folder-row {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
     background: transparent;
     border: 1.5px dashed #30363d;
-    border-radius: 10px;
-    padding: 9px 9px 9px 12px;
+    border-radius: 8px;
+    padding: 7px 7px 7px 10px;
     cursor: pointer;
     transition: border-color 0.15s ease, background-color 0.15s ease;
 }
@@ -1187,7 +1187,7 @@ body.layout-stack .tab-panel + .tab-panel {
     border: none;
     padding: 0;
     font-family: inherit;
-    font-size: 11.5px;
+    font-size: 10.5px;
     color: var(--text);
     cursor: pointer;
     user-select: text;
@@ -1202,7 +1202,7 @@ body.layout-stack .tab-panel + .tab-panel {
 
 .organizer-browse {
     flex-shrink: 0;
-    padding: 5px 12px;
+    padding: 4px 10px;
     pointer-events: none;
 }
 
@@ -1210,17 +1210,17 @@ body.layout-stack .tab-panel + .tab-panel {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 7px;
+    gap: 6px;
     width: 100%;
-    margin-top: 10px;
+    margin-top: 8px;
     background: var(--accent);
     color: #010409;
     border: none;
-    border-radius: 8px;
+    border-radius: 6px;
     font-family: inherit;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 700;
-    padding: 9px 10px;
+    padding: 7px 8px;
     cursor: pointer;
     transition: background-color 0.15s ease, opacity 0.15s ease;
 }
@@ -1230,44 +1230,44 @@ body.layout-stack .tab-panel + .tab-panel {
 .btn-organize:disabled { opacity: 0.45; cursor: default; }
 
 .organizer-summary {
-    margin-top: 8px;
+    margin-top: 6px;
     color: var(--muted);
-    font-size: 11px;
+    font-size: 10px;
 }
 
 .organizer-list {
-    margin-top: 6px;
+    margin-top: 5px;
     display: flex;
     flex-direction: column;
-    gap: 6px;
-    max-height: 160px;
+    gap: 5px;
+    max-height: 140px;
     overflow-y: auto;
 }
 
 .organizer-item {
     background: #161b22;
     border: 1px solid #30363d;
-    border-radius: 8px;
-    padding: 6px 9px;
+    border-radius: 6px;
+    padding: 5px 7px;
 }
 
 .organizer-item-file {
     font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
-    font-size: 10.5px;
+    font-size: 9.5px;
     font-weight: 600;
     word-break: break-all;
 }
 
 .organizer-item-reason {
     color: #d29922;
-    font-size: 10.5px;
-    margin-top: 2px;
+    font-size: 9.5px;
+    margin-top: 1px;
 }
 
 .organizer-empty {
     color: var(--muted);
-    font-size: 11px;
-    margin-top: 6px;
+    font-size: 10px;
+    margin-top: 5px;
 }
 
 /* ---------- Footer ---------- */
@@ -1279,8 +1279,8 @@ body.layout-stack .tab-panel + .tab-panel {
     right: 0;
     display: flex;
     flex-wrap: wrap;
-    gap: 6px;
-    padding: 6px 8px 10px;
+    gap: 5px;
+    padding: 5px 7px 8px;
     background: var(--card);
     z-index: 5;
     border-top: 1px solid var(--border);
@@ -1293,11 +1293,11 @@ body.layout-stack .tab-panel + .tab-panel {
     text-align: center;
     background: transparent;
     border: none;
-    border-radius: 8px;
-    padding: 7px 10px;
+    border-radius: 6px;
+    padding: 6px 8px;
     color: var(--muted);
     font-family: inherit;
-    font-size: 12px;
+    font-size: 11px;
     cursor: pointer;
     transition: background-color 0.15s ease, color 0.15s ease;
 }
@@ -1308,8 +1308,8 @@ body.layout-stack .tab-panel + .tab-panel {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 22px;
-    height: 22px;
+    width: 20px;
+    height: 20px;
     padding: 0;
     border: 1px solid #30363d;
     border-radius: 50%;
@@ -1318,7 +1318,7 @@ body.layout-stack .tab-panel + .tab-panel {
 #sheet-btn.action-primary {
     flex: 0 0 auto;
     align-self: center;
-    padding: 7px 12px;
+    padding: 6px 10px;
 }
 
 .action:hover { background: #21262d; color: var(--text); }
@@ -1336,14 +1336,14 @@ body.layout-stack .tab-panel + .tab-panel {
 .toast {
     position: fixed;
     left: 50%;
-    bottom: 12px;
-    transform: translateX(-50%) translateY(16px);
+    bottom: 10px;
+    transform: translateX(-50%) translateY(14px);
     background: #21262d;
     border: 1px solid #30363d;
     color: var(--text);
-    padding: 6px 12px;
-    border-radius: 8px;
-    font-size: 11px;
+    padding: 5px 10px;
+    border-radius: 6px;
+    font-size: 10px;
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.2s, transform 0.2s;
@@ -1367,14 +1367,14 @@ body.layout-cards .layout-btn .icon-columns { display: none; }
 
 body.layout-cards .layout-btn .icon-cards { display: block; }
 
-body.layout-cards { min-width: 460px; }
+body.layout-cards { min-width: 400px; }
 
 body.layout-cards .panel {
-    border-radius: 18px;
+    border-radius: 14px;
     box-shadow: 0 12px 32px rgba(1, 4, 9, 0.55);
 }
 
-body.layout-cards .topbar { margin: 16px 16px 0; }
+body.layout-cards .topbar { margin: 14px 14px 0; }
 
 body.layout-cards .tabs { display: none; }
 
@@ -1385,16 +1385,16 @@ body.layout-cards .tab-panel[data-panel="student"].active {
 }
 
 body.layout-cards .head {
-    padding: 0px 16px 4px;
+    padding: 0px 14px 3px;
 }
 
 body.layout-cards .head-title {
-    font-size: 15px;
+    font-size: 13px;
     font-weight: 800;
 }
 
 body.layout-cards .head-total {
-    font-size: 11.5px;
+    font-size: 10.5px;
 }
 
 /* Quick comments grid */
@@ -1402,8 +1402,8 @@ body.layout-cards .head-total {
 body.layout-cards .rows {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 12px;
-    padding: 6px 16px 8px;
+    gap: 10px;
+    padding: 5px 14px 7px;
     align-items: stretch;
 }
 
@@ -1414,12 +1414,12 @@ body.layout-cards .row {
     align-items: center;
     justify-content: flex-start;
     text-align: center;
-    gap: 6px;
+    gap: 5px;
     background: #0d1117;
     border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 20px 10px 12px;
-    min-height: 172px;
+    border-radius: 14px;
+    padding: 16px 8px 10px;
+    min-height: 152px;
     transition: transform 0.15s ease, border-color 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
 }
 
@@ -1435,9 +1435,9 @@ body.layout-cards .row-icon {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 42px;
-    height: 42px;
-    border-radius: 12px;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
     color: #1a1a1a;
 }
 
@@ -1453,35 +1453,35 @@ body.layout-cards .row-line {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 4px;
+    gap: 3px;
     width: 100%;
 }
 
 body.layout-cards .name {
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 700;
 }
 
 body.layout-cards .pos {
     position: absolute;
-    top: 10px;
-    right: 10px;
+    top: 8px;
+    right: 8px;
     background: #21262d;
     border: 1px solid var(--border);
     border-radius: 999px;
-    padding: 1px 7px;
-    font-size: 9.5px;
+    padding: 1px 6px;
+    font-size: 8.5px;
 }
 
 body.layout-cards .row-actions {
     order: 3;
     opacity: 0.85;
     width: 100%;
-    margin-top: 6px;
-    padding-top: 6px;
+    margin-top: 5px;
+    padding-top: 5px;
     display: flex;
     justify-content: center;
-    gap: 4px;
+    gap: 3px;
     border-top: 1px solid var(--border);
 }
 
@@ -1489,8 +1489,8 @@ body.layout-cards .row:hover .row-actions { opacity: 1; }
 
 body.layout-cards .row-actions .mini {
     flex: 1;
-    padding: 4px 4px;
-    border-radius: 6px;
+    padding: 3px 3px;
+    border-radius: 5px;
 }
 
 body.layout-cards .row-actions .mini:hover { background: #21262d; }
@@ -1502,37 +1502,37 @@ body.layout-cards .preview {
     text-align: left;
     -webkit-line-clamp: 2;
     line-clamp: 2;
-    font-size: 10.5px;
-    min-height: 2.6em;
+    font-size: 9.5px;
+    min-height: 2.4em;
 }
 
 /* Editor card */
 
-body.layout-cards .editor-head { padding: 6px 16px; }
+body.layout-cards .editor-head { padding: 5px 14px; }
 
-body.layout-cards .editor { padding: 0 16px 10px; }
+body.layout-cards .editor { padding: 0 14px 8px; }
 
 body.layout-cards .etabs,
 body.layout-cards .edits textarea,
 body.layout-cards #prompt-text,
 body.layout-cards .editor-add input,
 body.layout-cards .btn-add {
-    border-radius: 12px;
+    border-radius: 10px;
 }
 
 /* Student details cards */
 
-body.layout-cards .tab-panel[data-panel="student"] { padding: 4px 16px 10px; }
+body.layout-cards .tab-panel[data-panel="student"] { padding: 3px 14px 8px; }
 
-body.layout-cards .sheet-head { padding: 6px 2px 8px; }
+body.layout-cards .sheet-head { padding: 5px 2px 6px; }
 
 body.layout-cards .sheet-head .sheet-label {
-    font-size: 15px;
+    font-size: 13px;
     font-weight: 800;
 }
 
 body.layout-cards .sheet-preview .sheet-label {
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 700;
     color: var(--muted);
     text-transform: uppercase;
@@ -1540,48 +1540,48 @@ body.layout-cards .sheet-preview .sheet-label {
 }
 
 body.layout-cards .sheet-fields {
-    padding: 14px;
+    padding: 12px;
     background: #0d1117;
     border: 1px solid var(--border);
-    border-radius: 16px;
+    border-radius: 14px;
     flex-wrap: nowrap;
 }
 
 body.layout-cards .sheet-fields input {
     flex: 1 1 0;
     min-width: 0;
-    border-radius: 10px;
-    padding: 9px 12px;
+    border-radius: 8px;
+    padding: 7px 10px;
 }
 
 body.layout-cards #sheet-btn.action-primary {
     flex: 0 0 auto;
-    border-radius: 10px;
-    padding: 9px 16px;
+    border-radius: 8px;
+    padding: 7px 14px;
     margin-top: 0;
     white-space: nowrap;
 }
 
 body.layout-cards .sheet-preview {
-    margin-top: 8px;
-    padding: 14px;
+    margin-top: 6px;
+    padding: 12px;
     background: #0d1117;
     border: 1px solid var(--border);
-    border-radius: 16px;
+    border-radius: 14px;
 }
 
 body.layout-cards .sheet-add {
     background: #010409;
     border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 10px;
-    margin-top: 8px;
+    border-radius: 10px;
+    padding: 8px;
+    margin-top: 6px;
 }
 
-body.layout-cards .sheet-preview-list { margin-top: 8px; }
+body.layout-cards .sheet-preview-list { margin-top: 6px; }
 
 body.layout-cards .sheet-preview-item {
-    border-radius: 10px;
+    border-radius: 8px;
     transition: border-color 0.15s ease, background-color 0.15s ease;
 }
 
@@ -1593,14 +1593,14 @@ body.layout-cards .sheet-preview-item:hover {
 /* Footer */
 
 body.layout-cards .actions {
-    padding: 6px 16px 10px;
-    gap: 8px;
+    padding: 5px 14px 8px;
+    gap: 7px;
 }
 
 body.layout-cards .action {
     border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 9px 10px;
+    border-radius: 8px;
+    padding: 7px 8px;
 }
 
 body.layout-cards .action-primary {
@@ -1611,6 +1611,6 @@ body.layout-cards .layout-btn,
 body.layout-cards .organizer-btn,
 body.layout-cards .info-btn,
 body.layout-cards #prompt-btn {
-    width: 30px;
-    height: 30px;
+    width: 26px;
+    height: 26px;
 }

@@ -15,10 +15,10 @@ if (!app.requestSingleInstanceLock()) {
 
 function main() {
 
-const POPUP_WIDTH = 420;
-const POPUP_MAX_WIDTH = 900;
-const POPUP_MIN_HEIGHT = 440;
-const POPUP_MAX_HEIGHT = 760;
+const POPUP_WIDTH = 360;
+const POPUP_MAX_WIDTH = 760;
+const POPUP_MIN_HEIGHT = 380;
+const POPUP_MAX_HEIGHT = 660;
 
 const PLATFORM_NAMES = { win32: 'Windows', darwin: 'macOS', linux: 'Linux' };
 
@@ -311,7 +311,7 @@ function togglePopup() {
 function createPopup() {
     popupWindow = new BrowserWindow({
         width: POPUP_WIDTH,
-        height: 520,
+        height: 440,
         frame: false,
         resizable: false,
         alwaysOnTop: true,
