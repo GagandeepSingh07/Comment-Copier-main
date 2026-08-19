@@ -149,15 +149,37 @@
             </button>
             <div class="organizer-popover" id="organizer-popover">
                 <div class="organizer-head">
-                    <div class="organizer-popover-head">File Organizer</div>
+                    <div class="organizer-head-id">
+                        <span class="organizer-head-icon">
+                            <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M2 4.25A1 1 0 0 1 3 3.25h3l1.2 1.5h5.8a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1h-10a1 1 0 0 1-1-1v-7.5Z"/></svg>
+                        </span>
+                        <div>
+                            <div class="organizer-popover-head">File Organizer</div>
+                            <div class="organizer-popover-sub">Sort files into folders by code</div>
+                        </div>
+                    </div>
                     <button type="button" class="link" id="organizer-clear-btn" title="Clear the selected folder">Clear</button>
                 </div>
-                <div class="organizer-popover-help">How to use: 1. Click Browse and choose the folder with your files. 2. Click Organize Files to sort them into subfolders.</div>
-                <div class="organizer-fields">
-                    <input id="organizer-path" placeholder="No folder selected" readonly>
-                    <button type="button" class="btn-add" id="organizer-browse-btn">Browse</button>
+                <div class="organizer-steps">
+                    <span class="organizer-step">
+                        <span class="organizer-step-num">1</span>
+                        <strong>Browse</strong> a folder
+                    </span>
+                    <svg class="organizer-step-arrow" width="10" height="8" viewBox="0 0 10 8" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M1 4h8M6 1l3 3-3 3"/></svg>
+                    <span class="organizer-step">
+                        <span class="organizer-step-num">2</span>
+                        <strong>Organize</strong> the files
+                    </span>
                 </div>
-                <button type="button" class="btn-organize" id="organizer-run-btn" disabled title="Group files into folders named after the code/identifier before the first '-' or space">Organize Files</button>
+                <div class="organizer-folder-row" id="organizer-folder-row">
+                    <svg class="organizer-folder-icon" width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><path d="M2 4.25A1 1 0 0 1 3 3.25h3l1.2 1.5h5.8a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1h-10a1 1 0 0 1-1-1v-7.5Z"/></svg>
+                    <input id="organizer-path" placeholder="No folder selected" readonly>
+                    <button type="button" class="btn-add organizer-browse" id="organizer-browse-btn">Browse</button>
+                </div>
+                <button type="button" class="btn-organize" id="organizer-run-btn" disabled title="Group files into folders named after the code/identifier before the first '-' or space">
+                    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M2 4.25A1 1 0 0 1 3 3.25h3l1.2 1.5h5.8a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1h-10a1 1 0 0 1-1-1v-7.5Z"/><path d="M5.5 9.5h5M8 7v5"/></svg>
+                    <span>Organize Files</span>
+                </button>
                 <div class="organizer-summary" id="organizer-summary"></div>
                 <div class="organizer-list" id="organizer-list"></div>
             </div>
