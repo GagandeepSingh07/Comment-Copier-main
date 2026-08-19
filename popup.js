@@ -162,6 +162,7 @@ const sheetReset = document.getElementById('sheet-reset');
 const sheetBtn = document.getElementById('sheet-btn');
 const organizerWrap = document.querySelector('.organizer-wrap');
 const organizerBtn = document.getElementById('organizer-btn');
+const organizerFolderRow = document.getElementById('organizer-folder-row');
 const organizerPathInput = document.getElementById('organizer-path');
 const organizerBrowseBtn = document.getElementById('organizer-browse-btn');
 const organizerClearBtn = document.getElementById('organizer-clear-btn');
@@ -905,6 +906,7 @@ function loadOrganizerPath() {
         organizerFolder = saved;
         organizerPathInput.value = saved;
         organizerRunBtn.disabled = false;
+        organizerFolderRow.classList.add('has-folder');
     }
 }
 
@@ -952,6 +954,7 @@ async function pickOrganizerFolder() {
     organizerPathInput.value = picked;
     localStorage.setItem(ORGANIZER_KEY, picked);
     organizerRunBtn.disabled = false;
+    organizerFolderRow.classList.add('has-folder');
     organizerSummary.textContent = '';
     organizerList.innerHTML = '';
     syncHeight();
@@ -962,6 +965,7 @@ function clearOrganizerFolder() {
     organizerPathInput.value = '';
     localStorage.removeItem(ORGANIZER_KEY);
     organizerRunBtn.disabled = true;
+    organizerFolderRow.classList.remove('has-folder');
     organizerSummary.textContent = '';
     organizerList.innerHTML = '';
     syncHeight();
@@ -1159,6 +1163,7 @@ document.addEventListener('click', (e) => {
     });
 });
 organizerBrowseBtn.addEventListener('click', pickOrganizerFolder);
+organizerFolderRow.addEventListener('click', pickOrganizerFolder);
 organizerRunBtn.addEventListener('click', runOrganizer);
 organizerClearBtn.addEventListener('click', clearOrganizerFolder);
 
