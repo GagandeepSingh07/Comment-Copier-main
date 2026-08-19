@@ -341,7 +341,7 @@ function buildDateLine() {
     const day = d.getDate();
     const month = d.toLocaleString('en', { month: 'long' });
     const year = d.getFullYear();
-    return `Date: ___${day}____(day)/ ___${month} ____(month)/ _______${year}_____(year)`;
+    return `___${day}____(day)/ ___${month} ____(month)/ _______${year}_____(year)`;
 }
 
 let copyCommentTimer = null;
@@ -394,7 +394,7 @@ async function handleCopy(key) {
         save();
         renderRows();
         pushQuickState();
-    }, 1500);
+    }, 500);
 }
 
 function prevComment(key) {
