@@ -64,7 +64,7 @@ body {
     display: flex;
     align-items: center;
     gap: 6px;
-    margin: 8px 8px 0;
+    margin: 14px 14px 0;
 }
 
 .tabs {
@@ -390,22 +390,22 @@ body.layout-stack .tab-panel + .tab-panel {
     align-items: baseline;
     justify-content: space-between;
     gap: 6px;
-    padding: 10px 12px 4px;
+    padding: 0px 14px 3px;
 }
 
 .head-title {
-    font-size: 11px;
-    font-weight: 700;
+    font-size: 13px;
+    font-weight: 800;
 }
 
 .head-total {
     color: var(--muted);
-    font-size: 10px;
+    font-size: 10.5px;
 }
 
 /* ---------- Quick rows ---------- */
 
-.rows { padding: 2px 5px 3px; }
+.rows { padding: 5px 14px 7px; }
 
 .row {
     display: block;
@@ -517,7 +517,7 @@ body.layout-stack .tab-panel + .tab-panel {
     align-items: center;
     justify-content: space-between;
     gap: 6px;
-    padding: 7px 12px;
+    padding: 5px 14px;
 }
 
 .editor-toggle {
@@ -568,7 +568,7 @@ body.layout-stack .tab-panel + .tab-panel {
 
 .btn-save.attention { background: #d29922; }
 
-.editor { display: none; padding: 0 8px 8px; }
+.editor { display: none; padding: 0 14px 8px; }
 
 .editor.open { display: block; }
 
@@ -580,7 +580,7 @@ body.layout-stack .tab-panel + .tab-panel {
     gap: 2px;
     background: #21262d;
     padding: 2px;
-    border-radius: 6px;
+    border-radius: 10px;
     margin-bottom: 6px;
 }
 
@@ -609,7 +609,7 @@ body.layout-stack .tab-panel + .tab-panel {
     resize: vertical;
     background: #010409;
     border: 1px solid #30363d;
-    border-radius: 6px;
+    border-radius: 10px;
     padding: 8px;
     font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
     font-size: 10.5px;
@@ -641,7 +641,7 @@ body.layout-stack .tab-panel + .tab-panel {
     min-width: 0;
     background: #010409;
     border: 1px solid #30363d;
-    border-radius: 6px;
+    border-radius: 10px;
     padding: 5px 8px;
     font-family: inherit;
     font-size: 10.5px;
@@ -657,7 +657,7 @@ body.layout-stack .tab-panel + .tab-panel {
     background: #21262d;
     border: 1px solid #30363d;
     color: var(--text);
-    border-radius: 6px;
+    border-radius: 10px;
     padding: 5px 12px;
     font-family: inherit;
     font-size: 10.5px;
@@ -706,7 +706,7 @@ body.layout-stack .tab-panel + .tab-panel {
     resize: vertical;
     background: #010409;
     border: 1px solid #30363d;
-    border-radius: 6px;
+    border-radius: 10px;
     padding: 8px;
     font-family: inherit;
     font-size: 10.5px;
@@ -728,12 +728,12 @@ body.layout-stack .tab-panel + .tab-panel {
     align-items: baseline;
     justify-content: space-between;
     gap: 6px;
-    padding: 8px 12px 0;
+    padding: 5px 2px 6px;
 }
 
 .sheet-label {
-    font-weight: 600;
-    font-size: 10.5px;
+    font-weight: 800;
+    font-size: 13px;
 }
 
 .sheet-hint {
@@ -747,16 +747,20 @@ body.layout-stack .tab-panel + .tab-panel {
 .sheet-fields {
     display: flex;
     gap: 5px;
-    padding: 5px 12px 0;
+    padding: 12px;
+    background: #0d1117;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    flex-wrap: nowrap;
 }
 
 .sheet-fields input {
-    flex: 1;
+    flex: 1 1 0;
     min-width: 0;
     background: #010409;
     border: 1px solid #30363d;
-    border-radius: 6px;
-    padding: 5px 8px;
+    border-radius: 8px;
+    padding: 7px 10px;
     font-family: inherit;
     font-size: 10.5px;
     color: var(--text);
@@ -768,14 +772,29 @@ body.layout-stack .tab-panel + .tab-panel {
 .sheet-fields input:focus { outline: none; border-color: var(--accent); }
 
 .sheet-preview {
-    padding: 2px 12px 0;
+    padding: 12px;
+    background: #0d1117;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+}
+
+.sheet-preview .sheet-label {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
 }
 
 .sheet-add {
     display: flex;
     flex-wrap: wrap;
     gap: 5px;
-    padding: 5px 0 6px;
+    padding: 8px;
+    margin-top: 6px;
+    background: #010409;
+    border: 1px solid var(--border);
+    border-radius: 10px;
 }
 
 .sheet-add input {
@@ -922,6 +941,7 @@ body.layout-stack .tab-panel + .tab-panel {
     grid-template-columns: repeat(2, 1fr);
     gap: 5px;
     padding: 5px 4px 5px 0;
+    margin-top: 6px;
     max-height: 170px;
     overflow-y: auto;
     overscroll-behavior: contain;
@@ -942,7 +962,7 @@ body.layout-stack .tab-panel + .tab-panel {
     min-width: 0;
     background: #0d1117;
     border: 1px solid #30363d;
-    border-radius: 6px;
+    border-radius: 8px;
     padding: 6px 5px 6px 8px;
     font-size: 10px;
     transition: border-color 0.15s ease, background-color 0.15s ease;
@@ -1285,8 +1305,8 @@ body.layout-stack .tab-panel + .tab-panel {
     right: 0;
     display: flex;
     flex-wrap: wrap;
-    gap: 5px;
-    padding: 5px 7px 8px;
+    gap: 7px;
+    padding: 5px 14px 8px;
     background: var(--card);
     z-index: 5;
     border-top: 1px solid var(--border);
@@ -1299,8 +1319,8 @@ body.layout-stack .tab-panel + .tab-panel {
     text-align: center;
     background: transparent;
     border: none;
-    border-radius: 6px;
-    padding: 6px 8px;
+    border-radius: 8px;
+    padding: 7px 8px;
     color: var(--muted);
     font-family: inherit;
     font-size: 11px;
@@ -1324,7 +1344,9 @@ body.layout-stack .tab-panel + .tab-panel {
 #sheet-btn.action-primary {
     flex: 0 0 auto;
     align-self: center;
-    padding: 6px 10px;
+    padding: 7px 14px;
+    border-radius: 8px;
+    margin-top: 0;
     white-space: nowrap;
 }
 
@@ -1380,27 +1402,11 @@ body.layout-cards .panel {
     box-shadow: 0 12px 32px rgba(1, 4, 9, 0.55);
 }
 
-body.layout-cards .topbar { margin: 14px 14px 0; }
-
 body.layout-cards .tabs { display: none; }
 
 body.layout-cards .tab-panel[data-panel="student"].active {
-    /* margin-top: 4px; */
     padding-top: 6px;
     border-top: 1px solid var(--border);
-}
-
-body.layout-cards .head {
-    padding: 0px 14px 3px;
-}
-
-body.layout-cards .head-title {
-    font-size: 13px;
-    font-weight: 800;
-}
-
-body.layout-cards .head-total {
-    font-size: 10.5px;
 }
 
 /* Quick comments grid */
@@ -1505,101 +1511,20 @@ body.layout-cards .preview {
     display: none;
 }
 
-/* Editor card */
-
-body.layout-cards .editor-head { padding: 5px 14px; }
-
-body.layout-cards .editor { padding: 0 14px 8px; }
-
-body.layout-cards .etabs,
-body.layout-cards .edits textarea,
-body.layout-cards #prompt-text,
-body.layout-cards .editor-add input,
-body.layout-cards .btn-add {
-    border-radius: 10px;
-}
-
 /* Student details cards */
 
 body.layout-cards .tab-panel[data-panel="student"] { padding: 3px 14px 8px; }
 
-body.layout-cards .sheet-head { padding: 5px 2px 6px; }
-
-body.layout-cards .sheet-head .sheet-label {
-    font-size: 13px;
-    font-weight: 800;
-}
-
-body.layout-cards .sheet-preview .sheet-label {
-    font-size: 10px;
-    font-weight: 700;
-    color: var(--muted);
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-}
-
 body.layout-cards .sheet-fields {
-    padding: 12px;
-    background: #0d1117;
-    border: 1px solid var(--border);
-    border-radius: 14px;
     flex-wrap: nowrap;
-}
-
-body.layout-cards .sheet-fields input {
-    flex: 1 1 0;
-    min-width: 0;
-    border-radius: 8px;
-    padding: 7px 10px;
-}
-
-body.layout-cards #sheet-btn.action-primary {
-    flex: 0 0 auto;
-    border-radius: 8px;
-    padding: 7px 14px;
-    margin-top: 0;
-    white-space: nowrap;
 }
 
 body.layout-cards .sheet-preview {
     margin-top: 6px;
-    padding: 12px;
-    background: #0d1117;
-    border: 1px solid var(--border);
-    border-radius: 14px;
-}
-
-body.layout-cards .sheet-add {
-    background: #010409;
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 8px;
-    margin-top: 6px;
-}
-
-body.layout-cards .sheet-preview-list { margin-top: 6px; }
-
-body.layout-cards .sheet-preview-item {
-    border-radius: 8px;
-    transition: border-color 0.15s ease, background-color 0.15s ease;
-}
-
-body.layout-cards .sheet-preview-item:hover {
-    border-color: #484f58;
-    background: #161b22;
-}
-
-/* Footer */
-
-body.layout-cards .actions {
-    padding: 5px 14px 8px;
-    gap: 7px;
 }
 
 body.layout-cards .action {
     border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 7px 8px;
 }
 
 body.layout-cards .action-primary {
