@@ -24,6 +24,24 @@ const PLATFORM_NAMES = { win32: 'Windows', darwin: 'macOS', linux: 'Linux' };
 
 const CHANGELOG = [
     {
+        version: '1.12.4',
+        categories: [
+            {
+                heading: 'Improvements',
+                notes: [
+                    'Tab and Side-by-side layouts now match the Card layout sizing — larger padding, headings, and input/button dimensions across all sections.',
+                    'Tab layout window width increased to 400px to match the Card layout.',
+                ],
+            },
+            {
+                heading: 'Bug Fixes',
+                notes: [
+                    'Fixed inconsistent heights of the Unit Code input, Mark dropdown, and Add button in Student Details.',
+                ],
+            },
+        ],
+    },
+    {
         version: '1.12.0',
         notes: [
             'New Card layout: a third view (Tabs → Side by side → Cards) with quick actions shown as icon cards and Student Details stacked underneath.',

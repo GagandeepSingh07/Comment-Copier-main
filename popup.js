@@ -563,16 +563,21 @@ function renderChangelog(changelog) {
         return;
     }
     if (toggle) toggle.style.display = '';
-    infoChangelog.innerHTML = changelog.map((entry) =>
-        '<div class="info-changelog-entry">' +
+    infoChangelog.innerHTML = changelog.map((entry) => {
+        let body = '';
+        if (Array.isArray(entry.categories) && entry.categories.length) {
+            body = entry.categories.map((cat) =>
+                '<li class="info-changelog-category">' + escapeHtml(cat.heading) + '</li>' +
+                (Array.isArray(cat.notes) ? cat.notes.map((n) => '<li>' + escapeHtml(n) + '</li>').join('') : '')
+            ).join('');
+        } else if (Array.isArray(entry.notes) && entry.notes.length) {
+            body = entry.notes.map((n) => '<li>' + escapeHtml(n) + '</li>').join('');
+        }
+        return '<div class="info-changelog-entry">' +
             '<div class="info-changelog-version">' + escapeHtml(entry.version) + '</div>' +
-            (Array.isArray(entry.notes) && entry.notes.length
-                ? '<ul class="info-changelog-notes">' +
-                    entry.notes.map((n) => '<li>' + escapeHtml(n) + '</li>').join('') +
-                  '</ul>'
-                : '') +
-        '</div>'
-    ).join('');
+            (body ? '<ul class="info-changelog-notes">' + body + '</ul>' : '') +
+        '</div>';
+    }).join('');
 }
 
 let resetArmed = false;
