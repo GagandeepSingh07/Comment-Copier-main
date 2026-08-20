@@ -104,8 +104,8 @@ body {
 .layout-btn {
     flex: 0 0 auto;
     align-self: center;
-    width: 20px;
-    height: 20px;
+    width: 26px;
+    height: 26px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -131,8 +131,8 @@ body.layout-stack .layout-btn .icon-columns { display: block; }
 .info-btn {
     flex: 0 0 auto;
     align-self: center;
-    width: 20px;
-    height: 20px;
+    width: 26px;
+    height: 26px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -945,6 +945,12 @@ body.layout-stack .tab-panel + .tab-panel {
     border-radius: 6px;
     padding: 6px 5px 6px 8px;
     font-size: 10px;
+    transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.sheet-preview-item:hover {
+    border-color: #484f58;
+    background: #161b22;
 }
 
 .sheet-preview-code {
@@ -1006,8 +1012,8 @@ body.layout-stack .tab-panel + .tab-panel {
 .organizer-btn {
     flex: 0 0 auto;
     align-self: center;
-    width: 20px;
-    height: 20px;
+    width: 26px;
+    height: 26px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1308,8 +1314,8 @@ body.layout-stack .tab-panel + .tab-panel {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 20px;
-    height: 20px;
+    width: 26px;
+    height: 26px;
     padding: 0;
     border: 1px solid #30363d;
     border-radius: 50%;
@@ -1319,6 +1325,7 @@ body.layout-stack .tab-panel + .tab-panel {
     flex: 0 0 auto;
     align-self: center;
     padding: 6px 10px;
+    white-space: nowrap;
 }
 
 .action:hover { background: #21262d; color: var(--text); }
@@ -1370,7 +1377,6 @@ body.layout-cards .layout-btn .icon-cards { display: block; }
 body.layout-cards { min-width: 400px; }
 
 body.layout-cards .panel {
-    border-radius: 14px;
     box-shadow: 0 12px 32px rgba(1, 4, 9, 0.55);
 }
 
@@ -1419,7 +1425,7 @@ body.layout-cards .row {
     border: 1px solid var(--border);
     border-radius: 14px;
     padding: 16px 8px 10px;
-    min-height: 152px;
+    min-height: 120px;
     transition: transform 0.15s ease, border-color 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
 }
 
@@ -1496,14 +1502,7 @@ body.layout-cards .row-actions .mini {
 body.layout-cards .row-actions .mini:hover { background: #21262d; }
 
 body.layout-cards .preview {
-    order: 2;
-    margin-top: 2px;
-    padding-left: 0;
-    text-align: left;
-    -webkit-line-clamp: 2;
-    line-clamp: 2;
-    font-size: 9.5px;
-    min-height: 2.4em;
+    display: none;
 }
 
 /* Editor card */
@@ -1607,10 +1606,31 @@ body.layout-cards .action-primary {
     border-color: transparent;
 }
 
-body.layout-cards .layout-btn,
-body.layout-cards .organizer-btn,
-body.layout-cards .info-btn,
-body.layout-cards #prompt-btn {
-    width: 26px;
-    height: 26px;
+/* Card hover tooltip */
+
+.card-tooltip {
+    position: fixed;
+    z-index: 1000;
+    max-width: 280px;
+    padding: 8px 10px;
+    background: #1c2128;
+    border: 1px solid #484f58;
+    border-radius: 8px;
+    color: #c9d1d9;
+    font-size: 11px;
+    line-height: 1.45;
+    white-space: normal;
+    word-wrap: break-word;
+    pointer-events: none;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(4px);
+    transition: opacity 0.18s ease, transform 0.18s ease, visibility 0.18s ease;
+}
+
+body.layout-cards .card-tooltip.active {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
 }

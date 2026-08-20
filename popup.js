@@ -128,6 +128,7 @@ categories.forEach((key) => {
 
 const rowsEl = document.getElementById('rows');
 const toastEl = document.getElementById('toast');
+const cardTooltip = document.getElementById('card-tooltip');
 const totalEl = document.getElementById('total-count');
 const editorEl = document.getElementById('editor');
 const editorToggle = document.getElementById('editor-toggle');
@@ -320,7 +321,7 @@ function renderRows() {
         const row = document.createElement('div');
         row.className = 'row' + (s.comments.length ? '' : ' disabled');
         row.dataset.key = key;
-        row.title = s.comments.length ? 'Click to copy' : 'No comments yet';
+        row.title = '';
         row.innerHTML =
             '<span class="row-icon" aria-hidden="true">' + ROW_ICONS[key] + '</span>' +
             '<div class="row-line">' +
@@ -484,6 +485,10 @@ function applyLayout() {
         : layoutMode === 'stack'
             ? 'Switch to Card layout'
             : 'Switch to Tabs layout';
+    if (layoutMode !== 'cards') {
+        hoveredRow = null;
+        cardTooltip.classList.remove('active');
+    }
     if (layoutMode === 'stack' || layoutMode === 'cards') {
         tabPanels.forEach((p) => p.classList.add('active'));
         updateFooterVisibility();
@@ -716,7 +721,13 @@ function loadSheetInputs() {
     }
 }
 
+function updateSheetActionButton() {
+    const hasData = sheetEntries.length > 0;
+    sheetBtn.classList.toggle('hidden', !hasData);
+}
+
 function renderSheetPreview() {
+    updateSheetActionButton();
     sheetPreviewList.innerHTML = '';
     if (!sheetEntries.length) {
         const empty = document.createElement('div');
@@ -1016,6 +1027,35 @@ rowsEl.addEventListener('click', (e) => {
     const row = e.target.closest('.row');
     if (!row || row.classList.contains('disabled')) return;
     handleCopy(row.dataset.key);
+});
+
+let hoveredRow = null;
+
+rowsEl.addEventListener('mouseover', (e) => {
+    if (layoutMode !== 'cards') return;
+    const row = e.target.closest('.row');
+    if (!row || row.classList.contains('disabled') || row === hoveredRow) return;
+    const s = state[row.dataset.key];
+    if (!s || !s.comments.length) return;
+    hoveredRow = row;
+    cardTooltip.textContent = s.comments[s.index];
+    const rect = row.getBoundingClientRect();
+    let top = rect.bottom + 8;
+    let left = rect.left;
+    if (left + 280 > window.innerWidth) left = window.innerWidth - 290;
+    if (left < 0) left = 4;
+    if (top + 60 > window.innerHeight) top = rect.top - 60;
+    cardTooltip.style.top = top + 'px';
+    cardTooltip.style.left = left + 'px';
+    cardTooltip.classList.add('active');
+});
+
+rowsEl.addEventListener('mouseout', (e) => {
+    const row = e.target.closest('.row');
+    if (!row || !row.contains(e.relatedTarget)) {
+        hoveredRow = null;
+        cardTooltip.classList.remove('active');
+    }
 });
 
 editorToggle.addEventListener('click', toggleEditor);

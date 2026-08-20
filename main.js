@@ -289,12 +289,15 @@ function positionPopup() {
     const pb = popupWindow.getBounds();
     const display = screen.getDisplayNearestPoint({ x: tb.x, y: tb.y });
     const wa = display.workArea;
-    const trayOnBottom = tb.y > wa.y + wa.height / 2;
-    let x = Math.round(tb.x + tb.width / 2 - pb.width / 2);
-    let y = trayOnBottom ? tb.y - pb.height - 8 : tb.y + tb.height + 8;
+    const margin = 8;
+    // Pin to the work area's bottom-right corner (typical tray-flyout spot)
+    // instead of anchoring off the tray icon's own bounds, so every layout
+    // lands in the same on-screen corner regardless of window size.
+    let x = wa.x + wa.width - pb.width - margin;
+    let y = wa.y + wa.height - pb.height - margin;
     x = Math.max(wa.x + 4, Math.min(x, wa.x + wa.width - pb.width - 4));
     y = Math.max(wa.y + 4, Math.min(y, wa.y + wa.height - pb.height - 4));
-    popupWindow.setPosition(x, y);
+    popupWindow.setPosition(Math.round(x), Math.round(y));
 }
 
 function togglePopup() {
