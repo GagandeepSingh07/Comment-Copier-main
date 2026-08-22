@@ -291,7 +291,7 @@ function syncHeight() {
         syncHeightScheduled = false;
         if (window.popupAPI && typeof window.popupAPI.resize === 'function') {
             window.popupAPI.resize({
-                width: layoutMode === 'stack' ? 680 : (layoutMode === 'cards' ? 400 : 400),
+                width: layoutMode === 'stack' ? 760 : (layoutMode === 'cards' ? 460 : 460),
                 height: document.body.scrollHeight,
             });
         }

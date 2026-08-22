@@ -15,8 +15,8 @@ if (!app.requestSingleInstanceLock()) {
 
 function main() {
 
-const POPUP_WIDTH = 360;
-const POPUP_MAX_WIDTH = 760;
+const POPUP_WIDTH = 420;
+const POPUP_MAX_WIDTH = 900;
 const POPUP_MIN_HEIGHT = 380;
 const POPUP_MAX_HEIGHT = 660;
 

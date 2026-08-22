@@ -359,7 +359,7 @@ body.layout-stack .layout-btn .icon-columns { display: block; }
 
 .tab-panel.active { display: block; }
 
-body.layout-stack { min-width: 680px; }
+body.layout-stack { min-width: 760px; }
 
 body.layout-stack .tabs { display: none; }
 
@@ -955,8 +955,9 @@ body.layout-stack .tab-panel + .tab-panel {
 
 .sheet-preview-item {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: space-between;
+    flex-wrap: wrap;
     gap: 5px;
     width: 100%;
     min-width: 0;
@@ -977,33 +978,42 @@ body.layout-stack .tab-panel + .tab-panel {
     font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
     font-size: 10px;
     font-weight: 700;
-    flex: 1;
+    flex: 1 1 auto;
     min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    padding-top: 2px;
+    white-space: normal;
+    overflow-wrap: break-word;
+    word-break: break-word;
 }
 
 .sheet-preview-right {
     display: inline-flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 5px;
-    flex-shrink: 0;
+    flex: 1 1 auto;
+    min-width: 0;
+    justify-content: flex-end;
 }
 
 .sheet-preview-mark {
     display: inline-flex;
     align-items: center;
     gap: 3px;
+    min-width: 0;
+    max-width: 100%;
     color: #1a1a1a;
     font-size: 9.5px;
     font-weight: 700;
     padding: 2px 8px;
-    border-radius: 999px;
+    border-radius: 12px;
+    white-space: normal;
+    overflow-wrap: break-word;
+    word-break: break-word;
 }
 
 .sheet-preview-mark .mark-symbol {
     color: #1a1a1a;
+    flex-shrink: 0;
 }
 
 .sheet-preview-del {
@@ -1016,6 +1026,8 @@ body.layout-stack .tab-panel + .tab-panel {
     cursor: pointer;
     padding: 2px 3px;
     border-radius: 3px;
+    flex-shrink: 0;
+    align-self: flex-start;
 }
 
 .sheet-preview-del:hover { color: #f85149; }
@@ -1396,7 +1408,7 @@ body.layout-cards .layout-btn .icon-columns { display: none; }
 
 body.layout-cards .layout-btn .icon-cards { display: block; }
 
-body.layout-cards { min-width: 400px; }
+body.layout-cards { min-width: 460px; }
 
 body.layout-cards .panel {
     box-shadow: 0 12px 32px rgba(1, 4, 9, 0.55);
