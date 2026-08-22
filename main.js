@@ -24,6 +24,17 @@ const PLATFORM_NAMES = { win32: 'Windows', darwin: 'macOS', linux: 'Linux' };
 
 const CHANGELOG = [
     {
+        version: '1.12.5',
+        categories: [
+            {
+                heading: 'Improvements',
+                notes: [
+                    'File Organizer: folders are now named after just the unit code (e.g. "CPCCCA3019"), ignoring any extra words, version numbers, or parentheses before or after it in the filename.',
+                ],
+            },
+        ],
+    },
+    {
         version: '1.12.4',
         categories: [
             {
@@ -113,7 +124,19 @@ let tray = null;
 let isQuitting = false;
 let quickState = [];
 
+// Matches a typical unit-code pattern: a run of letters immediately
+// followed by a run of digits (e.g. "CPCCCA3019", "CPCWHS3001").
+// Anything before or after this pattern in the filename is ignored.
+const UNIT_CODE_PATTERN = /[A-Za-z]{2,10}\d{2,6}/;
+
 function deriveOrganizerFolderName(fileName) {
+    const match = fileName.match(UNIT_CODE_PATTERN);
+    if (match) {
+        return match[0].toUpperCase();
+    }
+
+    // Fallback for filenames with no recognizable unit-code pattern:
+    // keep the previous "first token" behavior so nothing is silently skipped.
     let folder;
     if (fileName.includes('-')) {
         folder = fileName.split('-')[0];

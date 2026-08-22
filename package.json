@@ -1,6 +1,6 @@
 {
   "name": "comment-copier",
-  "version": "1.12.4",
+  "version": "1.12.5",
   "description": "Comment Copier — Unique Every Time. Copy unique accept/reject comments for grading.",
   "main": "main.js",
   "author": "@gagan.design.07",
