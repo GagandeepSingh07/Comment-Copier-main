@@ -24,6 +24,17 @@ const PLATFORM_NAMES = { win32: 'Windows', darwin: 'macOS', linux: 'Linux' };
 
 const CHANGELOG = [
     {
+        version: '1.14.4',
+        categories: [
+            {
+                heading: 'Import Feature',
+                notes: [
+                    'Student Details: Now User can import a student\'s unit codes and marks directly from the clipboard (copied from Excel) or from a .xlsx file. The app will automatically find the matching student if the file has several.',
+                ],
+            },
+        ],
+    },
+    {
         version: '1.14.3',
         categories: [
             {
