@@ -835,6 +835,23 @@ body.layout-stack .tab-panel + .tab-panel {
     letter-spacing: 0.04em;
 }
 
+.sheet-preview-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 6px;
+}
+
+.sheet-count {
+    color: var(--muted);
+    font-size: 10px;
+    font-weight: 700;
+    background: #010409;
+    border: 1px solid #30363d;
+    border-radius: 999px;
+    padding: 1px 8px;
+}
+
 .sheet-add {
     display: flex;
     flex-wrap: wrap;

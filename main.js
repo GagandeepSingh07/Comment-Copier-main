@@ -24,6 +24,17 @@ const PLATFORM_NAMES = { win32: 'Windows', darwin: 'macOS', linux: 'Linux' };
 
 const CHANGELOG = [
     {
+        version: '1.14.3',
+        categories: [
+            {
+                heading: 'New',
+                notes: [
+                    'Student Details: the "Unit Code & Mark" section now shows a live count of total entries, so you can see at a glance how many codes have been added for the current student.',
+                ],
+            },
+        ],
+    },
+    {
         version: '1.14.2',
         categories: [
             {

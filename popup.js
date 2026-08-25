@@ -150,6 +150,7 @@ const promptBtn = document.getElementById('prompt-btn');
 const sheetId = document.getElementById('sheet-id');
 const sheetName = document.getElementById('sheet-name');
 const sheetPreviewList = document.getElementById('sheet-preview-list');
+const sheetCount = document.getElementById('sheet-count');
 const sheetAddCode = document.getElementById('sheet-add-code');
 const markSelect = document.getElementById('mark-select');
 const markSelectTrigger = document.getElementById('mark-select-trigger');
@@ -737,8 +738,14 @@ function updateSheetActionButton() {
     sheetBtn.classList.toggle('hidden', !hasData);
 }
 
+function updateSheetCount() {
+    const total = sheetEntries.length;
+    sheetCount.textContent = total === 1 ? '1 entry' : `${total} entries`;
+}
+
 function renderSheetPreview() {
     updateSheetActionButton();
+    updateSheetCount();
     sheetPreviewList.innerHTML = '';
     if (!sheetEntries.length) {
         const empty = document.createElement('div');
