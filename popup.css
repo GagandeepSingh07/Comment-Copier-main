@@ -736,6 +736,12 @@ body.layout-stack .tab-panel + .tab-panel {
     font-size: 13px;
 }
 
+.sheet-head-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
 .sheet-hint {
     color: var(--muted);
     font-size: 9.5px;

@@ -125,3 +125,6 @@ Windows installers are written to the `dist/` folder (see above for the exact fi
 - Comments, prompt, and sheet data are stored in the app's data folder
   (shown in the **Details** section of the **info** popup in the app).
 - Use the **Reset app data** button in the app to clear all saved data.
+- **Import Excel** (Student Details tab) reads `.xlsx` files only — it parses the
+  file's internal XML directly with no external library, so older binary `.xls`
+  files aren't supported. Save/export as `.xlsx` first if needed.

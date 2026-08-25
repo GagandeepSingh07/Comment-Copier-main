@@ -6,6 +6,7 @@ contextBridge.exposeInMainWorld('popupAPI', {
     copySheet: (html, text) => ipcRenderer.invoke('comment-copier:copy-sheet', html, text),
     pickOrganizeFolder: () => ipcRenderer.invoke('file-organizer:pick-folder'),
     organizeFolder: (folderPath) => ipcRenderer.invoke('file-organizer:organize', folderPath),
+    importSheetFile: () => ipcRenderer.invoke('sheet-import:pick-and-parse'),
     pushQuickState: (payload) => ipcRenderer.send('comment-copier:quick-state', payload),
     reportCopyResult: (info) => ipcRenderer.send('comment-copier:tray-copied', info),
     quitApp: () => ipcRenderer.send('popup:quit'),

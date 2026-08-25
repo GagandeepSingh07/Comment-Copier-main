@@ -160,6 +160,7 @@ const markSelectOptions = document.querySelectorAll('.mark-select-option');
 const sheetAddMarkCustom = document.getElementById('sheet-add-mark-custom');
 const sheetAddBtn = document.getElementById('sheet-add-btn');
 const sheetReset = document.getElementById('sheet-reset');
+const sheetImportBtn = document.getElementById('sheet-import-btn');
 const sheetBtn = document.getElementById('sheet-btn');
 const organizerWrap = document.querySelector('.organizer-wrap');
 const organizerBtn = document.getElementById('organizer-btn');
@@ -192,6 +193,7 @@ let sheetEntries = [];
 let selectedMark = 'Checked';
 let organizerFolder = '';
 let organizerBusy = false;
+let sheetImportBusy = false;
 
 function markDotClass(value) {
     if (value === 'Checked') return 'dot-checked';
@@ -831,6 +833,158 @@ function resetSheetData() {
     showToast('Sheet data cleared.');
 }
 
+function normalizeCell(v) {
+    return (v === null || v === undefined ? '' : String(v)).trim();
+}
+
+function rowIsBlank(row) {
+    return !row || row.every((c) => !normalizeCell(c));
+}
+
+// Reads the plain 2D array of rows/cells returned by the main-process xlsx
+// parser and groups it into per-student blocks. Understands two shapes:
+//   1) The app's own "Copy Sheet" table: a header row containing
+//      "Student Id" and "Name", followed by one or more 2-row blocks per
+//      student (a code row then a status row), separated by blank rows.
+//      Excel only stores a value in the top-left cell of a merged range, so
+//      after the first block the Student Id/Name cells read as blank even
+//      though they visually still belong to the same student — in that
+//      case the codes are appended to the currently open student instead
+//      of starting a new (empty-named) one.
+//   2) A plain two-column Code/Mark list with no student header, in which
+//      case everything is treated as one unnamed block.
+function parseStudentBlocksFromRows(rows) {
+    const headerIdx = rows.findIndex((r) =>
+        r.some((c) => /student\s*id/i.test(normalizeCell(c))) &&
+        r.some((c) => /name/i.test(normalizeCell(c)))
+    );
+
+    if (headerIdx === -1) {
+        const codeHeaderIdx = rows.findIndex((r) => r.some((c) => /code/i.test(normalizeCell(c))));
+        const startRow = codeHeaderIdx === -1 ? 0 : codeHeaderIdx + 1;
+        const codes = [];
+        for (let i = startRow; i < rows.length; i++) {
+            const row = rows[i] || [];
+            const code = normalizeCell(row[0]);
+            if (!code) continue;
+            codes.push({ code, status: normalizeCell(row[1]) });
+        }
+        return codes.length ? [{ studentId: '', name: '', codes }] : [];
+    }
+
+    const blocks = [];
+    let current = null;
+    let i = headerIdx + 1;
+    while (i < rows.length) {
+        const row = rows[i] || [];
+        if (rowIsBlank(row)) {
+            i++;
+            continue;
+        }
+        const studentId = normalizeCell(row[0]);
+        const name = normalizeCell(row[1]);
+        const codeRow = row;
+        const statusRow = rows[i + 1] || [];
+        const codes = [];
+        const width = Math.max(codeRow.length, statusRow.length);
+        for (let c = 2; c < width; c++) {
+            const code = normalizeCell(codeRow[c]);
+            if (!code) continue;
+            codes.push({ code, status: normalizeCell(statusRow[c]) });
+        }
+
+        if (studentId || name) {
+            // A Student Id or Name cell means a new student's merged region
+            // starts here.
+            current = { studentId, name, codes: codes.slice() };
+            blocks.push(current);
+        } else if (current) {
+            // Blank Id/Name cells belong to a merged range — keep adding
+            // codes to the student that's currently open.
+            current.codes.push(...codes);
+        } else if (codes.length) {
+            // Codes with no student header at all (unlikely, but handle it).
+            current = { studentId: '', name: '', codes: codes.slice() };
+            blocks.push(current);
+        }
+
+        i += 2;
+        while (i < rows.length && rowIsBlank(rows[i])) i++;
+    }
+    return blocks;
+}
+
+function applyImportedBlock(block) {
+    if (block.studentId) sheetId.value = block.studentId;
+    if (block.name) sheetName.value = block.name;
+    const existingKeys = new Set(sheetEntries.map((e) => e.code.toLowerCase()));
+    let added = 0;
+    let updated = 0;
+    block.codes.forEach(({ code, status }) => {
+        if (!code) return;
+        const key = code.toLowerCase();
+        if (existingKeys.has(key)) {
+            const existing = sheetEntries.find((e) => e.code.toLowerCase() === key);
+            if (existing && status && existing.status !== status) {
+                existing.status = status;
+                updated++;
+            }
+            return;
+        }
+        existingKeys.add(key);
+        sheetEntries.push({ code, status: status || '' });
+        added++;
+    });
+    renderSheetPreview();
+    persistSheetData();
+    syncHeight();
+    return { added, updated };
+}
+
+async function importSheetFromExcel() {
+    if (sheetImportBusy) return;
+    if (!window.popupAPI || typeof window.popupAPI.importSheetFile !== 'function') {
+        showToast('Excel import unavailable.');
+        return;
+    }
+    sheetImportBusy = true;
+    sheetImportBtn.disabled = true;
+    let result;
+    try {
+        result = await window.popupAPI.importSheetFile();
+    } catch (e) {
+        result = { ok: false, error: 'Import failed \u2014 ' + e.message };
+    }
+    sheetImportBusy = false;
+    sheetImportBtn.disabled = false;
+
+    if (!result) return; // user cancelled the file picker
+    if (!result.ok) {
+        showToast(result.error || 'Could not read that file.');
+        return;
+    }
+
+    const blocks = parseStudentBlocksFromRows(result.rows || []);
+    if (!blocks.length) {
+        showToast('No student data found in that file.');
+        return;
+    }
+
+    const currentId = sheetId.value.trim().toLowerCase();
+    let target = blocks[0];
+    if (currentId) {
+        const match = blocks.find((b) => b.studentId.toLowerCase() === currentId);
+        if (match) target = match;
+    }
+
+    const { added, updated } = applyImportedBlock(target);
+    const who = target.studentId || target.name || 'student';
+    let msg = `Imported ${who} \u2014 ${added} code${added === 1 ? '' : 's'} added`;
+    if (updated) msg += `, ${updated} updated`;
+    if (blocks.length > 1) msg += ` (${blocks.length} students found in file)`;
+    showToast(msg + '.');
+}
+
 function buildSheetHtml(data) {
     const n = SHEET_ASSESSMENT_COLS;
     const head = 'border:' + SHEET_BORDER + ' ' + SHEET_COLORS.border +
@@ -1180,6 +1334,7 @@ let sheetTimer = null;
     });
 });
 sheetReset.addEventListener('click', resetSheetData);
+sheetImportBtn.addEventListener('click', importSheetFromExcel);
 sheetAddBtn.addEventListener('click', addSheetEntry);
 sheetAddCode.addEventListener('input', () => {
     const val = sheetAddCode.value.trim().toLowerCase();
