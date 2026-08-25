@@ -1,7 +1,6 @@
 const { app, BrowserWindow, ipcMain, clipboard, Tray, screen, dialog } = require('electron');
 const path = require('path');
 const fs = require('fs');
-const zlib = require('zlib');
 
 app.commandLine.appendSwitch('disable-gpu-cache');
 app.commandLine.appendSwitch('disk-cache-size', '0');
@@ -14,159 +13,6 @@ if (!app.requestSingleInstanceLock()) {
     main();
 }
 
-// ---------------------------------------------------------------------------
-// Dependency-free .xlsx reader.
-// An .xlsx file is a ZIP archive of XML parts. We: (1) walk the ZIP central
-// directory to locate the worksheet and shared-strings entries, (2) inflate
-// them, and (3) parse the XML into a plain 2D array of row/cell text — no
-// external packages required.
-// ---------------------------------------------------------------------------
-
-function listZipEntries(buffer) {
-    const EOCD_SIG = 0x06054b50;
-    const CD_SIG = 0x02014b50;
-    const minLen = 22;
-    let eocdOffset = -1;
-    const searchFloor = Math.max(0, buffer.length - minLen - 65535);
-    for (let i = buffer.length - minLen; i >= searchFloor; i--) {
-        if (buffer.readUInt32LE(i) === EOCD_SIG) {
-            eocdOffset = i;
-            break;
-        }
-    }
-    if (eocdOffset === -1) throw new Error('Not a valid .xlsx file (zip signature not found)');
-
-    const totalEntries = buffer.readUInt16LE(eocdOffset + 10);
-    let cdOffset = buffer.readUInt32LE(eocdOffset + 16);
-    const entries = [];
-    for (let n = 0; n < totalEntries; n++) {
-        if (buffer.readUInt32LE(cdOffset) !== CD_SIG) break;
-        const compMethod = buffer.readUInt16LE(cdOffset + 10);
-        const compSize = buffer.readUInt32LE(cdOffset + 20);
-        const nameLen = buffer.readUInt16LE(cdOffset + 28);
-        const extraLen = buffer.readUInt16LE(cdOffset + 30);
-        const commentLen = buffer.readUInt16LE(cdOffset + 32);
-        const localOffset = buffer.readUInt32LE(cdOffset + 42);
-        const name = buffer.toString('utf8', cdOffset + 46, cdOffset + 46 + nameLen);
-        entries.push({ name, compMethod, compSize, localOffset });
-        cdOffset += 46 + nameLen + extraLen + commentLen;
-    }
-    return entries;
-}
-
-function extractZipEntry(buffer, entry) {
-    const LOCAL_SIG = 0x04034b50;
-    if (buffer.readUInt32LE(entry.localOffset) !== LOCAL_SIG) {
-        throw new Error('Corrupt zip entry: ' + entry.name);
-    }
-    const nameLen = buffer.readUInt16LE(entry.localOffset + 26);
-    const extraLen = buffer.readUInt16LE(entry.localOffset + 28);
-    const dataStart = entry.localOffset + 30 + nameLen + extraLen;
-    const compData = buffer.slice(dataStart, dataStart + entry.compSize);
-    if (entry.compMethod === 0) return compData;
-    if (entry.compMethod === 8) return zlib.inflateRawSync(compData);
-    throw new Error('Unsupported compression method in xlsx file');
-}
-
-function decodeXmlEntities(str) {
-    return str
-        .replace(/&lt;/g, '<')
-        .replace(/&gt;/g, '>')
-        .replace(/&quot;/g, '"')
-        .replace(/&apos;/g, "'")
-        .replace(/&#x([0-9a-fA-F]+);/g, (m, hex) => String.fromCodePoint(parseInt(hex, 16)))
-        .replace(/&#(\d+);/g, (m, dec) => String.fromCodePoint(parseInt(dec, 10)))
-        .replace(/&amp;/g, '&');
-}
-
-function parseSharedStrings(xml) {
-    if (!xml) return [];
-    const strings = [];
-    const siRe = /<si\b[^>]*>([\s\S]*?)<\/si>/g;
-    let m;
-    while ((m = siRe.exec(xml))) {
-        const parts = [];
-        const tRe = /<t\b[^>]*>([\s\S]*?)<\/t>/g;
-        let tm;
-        while ((tm = tRe.exec(m[1]))) parts.push(decodeXmlEntities(tm[1]));
-        strings.push(parts.join(''));
-    }
-    return strings;
-}
-
-function colLetterToIndex(letters) {
-    let idx = 0;
-    for (let i = 0; i < letters.length; i++) {
-        idx = idx * 26 + (letters.charCodeAt(i) - 64);
-    }
-    return idx; // 1-based
-}
-
-function parseSheetRows(xml, sharedStrings) {
-    const rows = [];
-    const rowRe = /<row\b([^>]*)(?:\/>|>([\s\S]*?)<\/row>)/g;
-    let rm;
-    while ((rm = rowRe.exec(xml))) {
-        const attrs = rm[1];
-        const inner = rm[2] || '';
-        const rMatch = attrs.match(/\br="(\d+)"/);
-        const rowNum = rMatch ? parseInt(rMatch[1], 10) : rows.length + 1;
-        const rowArr = [];
-        const cellRe = /<c\b([^>]*?)(?:\/>|>([\s\S]*?)<\/c>)/g;
-        let cm;
-        while ((cm = cellRe.exec(inner))) {
-            const cAttrs = cm[1];
-            const cInner = cm[2] || '';
-            const refMatch = cAttrs.match(/\br="([A-Z]+)\d+"/);
-            const typeMatch = cAttrs.match(/\bt="([^"]+)"/);
-            const type = typeMatch ? typeMatch[1] : null;
-            let value = '';
-            if (type === 'inlineStr') {
-                const parts = [];
-                const tRe = /<t\b[^>]*>([\s\S]*?)<\/t>/g;
-                let tm;
-                while ((tm = tRe.exec(cInner))) parts.push(decodeXmlEntities(tm[1]));
-                value = parts.join('');
-            } else {
-                const vMatch = cInner.match(/<v>([\s\S]*?)<\/v>/);
-                const raw = vMatch ? vMatch[1] : '';
-                if (type === 's') {
-                    const idx = parseInt(raw, 10);
-                    value = sharedStrings[idx] !== undefined ? sharedStrings[idx] : '';
-                } else if (type === 'str' || type === 'b') {
-                    value = decodeXmlEntities(raw);
-                } else {
-                    value = raw; // plain number
-                }
-            }
-            const colIdx = refMatch ? colLetterToIndex(refMatch[1]) : rowArr.length + 1;
-            rowArr[colIdx - 1] = value;
-        }
-        for (let i = 0; i < rowArr.length; i++) if (rowArr[i] === undefined) rowArr[i] = '';
-        rows[rowNum - 1] = rowArr;
-    }
-    for (let i = 0; i < rows.length; i++) if (rows[i] === undefined) rows[i] = [];
-    return rows;
-}
-
-function parseXlsxToRows(buffer) {
-    const entries = listZipEntries(buffer);
-    const sheetEntry = entries
-        .filter((e) => /^xl\/worksheets\/sheet(\d+)\.xml$/i.test(e.name))
-        .sort((a, b) => {
-            const na = parseInt(a.name.match(/(\d+)/)[1], 10);
-            const nb = parseInt(b.name.match(/(\d+)/)[1], 10);
-            return na - nb;
-        })[0];
-    if (!sheetEntry) throw new Error('No worksheet found in that file');
-    const sharedEntry = entries.find((e) => e.name === 'xl/sharedStrings.xml');
-
-    const sheetXml = extractZipEntry(buffer, sheetEntry).toString('utf8');
-    const sharedXml = sharedEntry ? extractZipEntry(buffer, sharedEntry).toString('utf8') : '';
-    const sharedStrings = parseSharedStrings(sharedXml);
-    return parseSheetRows(sheetXml, sharedStrings);
-}
-
 function main() {
 
 const POPUP_WIDTH = 420;
@@ -177,6 +23,40 @@ const POPUP_MAX_HEIGHT = 660;
 const PLATFORM_NAMES = { win32: 'Windows', darwin: 'macOS', linux: 'Linux' };
 
 const CHANGELOG = [
+    {
+        version: '1.14.2',
+        categories: [
+            {
+                heading: 'Improvements',
+                notes: [
+                    'Paste / Paste box: the stacked Student Id / Name / Assessment Code block layout is now recognized even without the literal "Student Id"/"Name" header text — a real Excel roster export (codes start straight away, no header row) now imports correctly instead of being misread as a single stray code.',
+                ],
+            },
+        ],
+    },
+    {
+        version: '1.14.1',
+        categories: [
+            {
+                heading: 'Improvements',
+                notes: [
+                    'Paste / Paste box: a plain Code/Mark list no longer needs to be tab-separated — comma-separated, multiple-spaced, or single-spaced "CODE, Mark" lines are now understood too, so a whole list of unit codes and marks can be typed or pasted in and imported in one go.',
+                ],
+            },
+        ],
+    },
+    {
+        version: '1.14.0',
+        categories: [
+            {
+                heading: 'Changed',
+                notes: [
+                    'Student Details: "Import Excel" (file picker) replaced with "Paste" — copy a range of cells in Excel (Ctrl+C), then click Paste to import directly from the clipboard, no file dialog needed.',
+                    'Added a "Paste box" fallback: opens a text area to paste into manually, for when clipboard access isn\'t available or the data needs a quick edit before importing.',
+                ],
+            },
+        ],
+    },
     {
         version: '1.13.1',
         categories: [
@@ -459,28 +339,17 @@ ipcMain.handle('file-organizer:organize', async (event, folderPath) => {
     return { ok: true, moved, skipped, total: entries.length };
 });
 
-ipcMain.handle('sheet-import:pick-and-parse', async () => {
-    if (!popupWindow || popupWindow.isDestroyed()) return null;
-    nativeDialogOpen = true;
-    let result;
+ipcMain.handle('sheet-import:read-clipboard', () => {
+    let text = '';
     try {
-        result = await dialog.showOpenDialog(popupWindow, {
-            properties: ['openFile'],
-            title: 'Choose an Excel file to import',
-            filters: [{ name: 'Excel Workbook', extensions: ['xlsx'] }],
-        });
-    } finally {
-        nativeDialogOpen = false;
-    }
-    if (result.canceled || !result.filePaths.length) return null;
-
-    try {
-        const buffer = fs.readFileSync(result.filePaths[0]);
-        const rows = parseXlsxToRows(buffer);
-        return { ok: true, rows };
+        text = clipboard.readText() || '';
     } catch (e) {
-        return { ok: false, error: 'Could not read that Excel file \u2014 ' + e.message };
+        return { ok: false, error: 'Could not read the clipboard.' };
     }
+    if (!text.trim()) {
+        return { ok: false, error: 'Clipboard is empty \u2014 copy cells from Excel first.' };
+    }
+    return { ok: true, text };
 });
 
 ipcMain.on('comment-copier:quick-state', (event, payload) => {

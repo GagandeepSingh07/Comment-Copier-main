@@ -777,6 +777,49 @@ body.layout-stack .tab-panel + .tab-panel {
 
 .sheet-fields input:focus { outline: none; border-color: var(--accent); }
 
+.sheet-paste-panel {
+    margin-top: 6px;
+    padding: 10px;
+    background: #0d1117;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+}
+
+#sheet-paste-textarea {
+    width: 100%;
+    min-height: 80px;
+    resize: vertical;
+    background: #010409;
+    border: 1px solid #30363d;
+    border-radius: 10px;
+    padding: 8px;
+    font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+    font-size: 10.5px;
+    line-height: 1.5;
+    color: var(--text);
+    user-select: text;
+}
+
+#sheet-paste-textarea::placeholder { color: #484f58; }
+
+#sheet-paste-textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px rgba(88, 166, 255, 0.2);
+}
+
+.sheet-paste-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 6px;
+}
+
+.sheet-paste-actions .btn-add {
+    padding: 5px 14px;
+}
+
 .sheet-preview {
     padding: 12px;
     background: #0d1117;

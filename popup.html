@@ -102,7 +102,8 @@
         <div class="sheet-head">
             <span class="sheet-label">Student details</span>
             <div class="sheet-head-actions">
-                <button class="link" id="sheet-import-btn" title="Import a student's Unit Code &amp; Mark table from an Excel (.xlsx) file">Import Excel</button>
+                <button class="link" id="sheet-paste-btn" title="Copy a range of cells in Excel (Ctrl+C), then click here to import from the clipboard">Paste</button>
+                <button class="link" id="sheet-paste-toggle" title="Paste into a text box instead">Paste box</button>
                 <button class="link" id="sheet-reset">Clear</button>
             </div>
         </div>
@@ -110,6 +111,13 @@
             <input id="sheet-id" placeholder="Student Id">
             <input id="sheet-name" placeholder="Name">
             <button class="action action-primary" id="sheet-btn" title="Copy the Excel tracking sheet, then paste into Excel">Copy Sheet</button>
+        </div>
+        <div class="sheet-paste-panel hidden" id="sheet-paste-panel">
+            <textarea id="sheet-paste-textarea" placeholder="Paste an Excel table here, or type one code + mark per line, e.g.&#10;CPCCCA3002, Checked&#10;CPCCWHS2001, AI Detected"></textarea>
+            <div class="sheet-paste-actions">
+                <button class="link" id="sheet-paste-cancel">Cancel</button>
+                <button class="btn-add" id="sheet-paste-import-btn">Import</button>
+            </div>
         </div>
         <div class="sheet-preview">
             <span class="sheet-label">Unit Code &amp; Mark</span>

@@ -160,7 +160,12 @@ const markSelectOptions = document.querySelectorAll('.mark-select-option');
 const sheetAddMarkCustom = document.getElementById('sheet-add-mark-custom');
 const sheetAddBtn = document.getElementById('sheet-add-btn');
 const sheetReset = document.getElementById('sheet-reset');
-const sheetImportBtn = document.getElementById('sheet-import-btn');
+const sheetPasteBtn = document.getElementById('sheet-paste-btn');
+const sheetPasteToggle = document.getElementById('sheet-paste-toggle');
+const sheetPastePanel = document.getElementById('sheet-paste-panel');
+const sheetPasteTextarea = document.getElementById('sheet-paste-textarea');
+const sheetPasteImportBtn = document.getElementById('sheet-paste-import-btn');
+const sheetPasteCancelBtn = document.getElementById('sheet-paste-cancel');
 const sheetBtn = document.getElementById('sheet-btn');
 const organizerWrap = document.querySelector('.organizer-wrap');
 const organizerBtn = document.getElementById('organizer-btn');
@@ -193,7 +198,6 @@ let sheetEntries = [];
 let selectedMark = 'Checked';
 let organizerFolder = '';
 let organizerBusy = false;
-let sheetImportBusy = false;
 
 function markDotClass(value) {
     if (value === 'Checked') return 'dot-checked';
@@ -841,25 +845,61 @@ function rowIsBlank(row) {
     return !row || row.every((c) => !normalizeCell(c));
 }
 
-// Reads the plain 2D array of rows/cells returned by the main-process xlsx
-// parser and groups it into per-student blocks. Understands two shapes:
-//   1) The app's own "Copy Sheet" table: a header row containing
-//      "Student Id" and "Name", followed by one or more 2-row blocks per
-//      student (a code row then a status row), separated by blank rows.
-//      Excel only stores a value in the top-left cell of a merged range, so
-//      after the first block the Student Id/Name cells read as blank even
-//      though they visually still belong to the same student — in that
-//      case the codes are appended to the currently open student instead
-//      of starting a new (empty-named) one.
-//   2) A plain two-column Code/Mark list with no student header, in which
-//      case everything is treated as one unnamed block.
+// Matches a typical unit-code pattern: letters immediately followed by
+// digits (e.g. "CPCCCA3002", "MSMEN272") — mirrors the pattern main.js uses
+// for the File Organizer, so both features agree on what "looks like a code".
+const CODE_LOOKS_LIKE = /^[A-Za-z]{2,10}\d{2,6}$/;
+
+// True if a row's cells from column 2 onward are mostly unit-code-shaped.
+// Used to recognize the app's own stacked block layout (Student Id | Name |
+// Code, Code, Code…) even when it's missing the literal "Student Id"/"Name"
+// header text — which is normal, since that header only exists when the data
+// came from this app's own "Copy Sheet" output. A real Excel roster export
+// usually starts straight in with a row of codes.
+function looksLikeCodeRow(row) {
+    const rest = row.slice(2).map(normalizeCell).filter(Boolean);
+    if (!rest.length) return false;
+    const codeLike = rest.filter((c) => CODE_LOOKS_LIKE.test(c));
+    return codeLike.length >= Math.ceil(rest.length * 0.6);
+}
+
+// Reads a plain 2D array of rows/cells (from a clipboard/pasted-text split)
+// and groups it into per-student blocks. Understands two shapes:
+//   1) The stacked block table — Student Id / Name in columns 0/1 of the
+//      first row of each block, then unit codes across the rest of that
+//      row, then a status row directly below it, then a blank separator
+//      row before the next block. This is recognized either by a literal
+//      "Student Id" + "Name" header row (the shape this app's own "Copy
+//      Sheet" produces) or, if no such header exists, by the first non-
+//      blank row already looking like one of these code rows (a real
+//      Excel roster export usually has no header row at all). Excel only
+//      stores a value in the top-left cell of a merged range, so after the
+//      first block the Student Id/Name cells read as blank even though
+//      they visually still belong to the same student — in that case the
+//      codes are appended to the currently open student instead of
+//      starting a new (empty-named) one.
+//   2) A plain two-column Code/Mark list with no student id/name at all, in
+//      which case everything is treated as one unnamed block.
 function parseStudentBlocksFromRows(rows) {
-    const headerIdx = rows.findIndex((r) =>
+    let startIdx = rows.findIndex((r) =>
         r.some((c) => /student\s*id/i.test(normalizeCell(c))) &&
         r.some((c) => /name/i.test(normalizeCell(c)))
     );
+    let hasBlockHeader = startIdx !== -1;
+    if (hasBlockHeader) startIdx += 1;
 
-    if (headerIdx === -1) {
+    if (!hasBlockHeader) {
+        const firstDataIdx = rows.findIndex((r) => !rowIsBlank(r));
+        if (firstDataIdx !== -1) {
+            const r = rows[firstDataIdx];
+            if (normalizeCell(r[0]) && normalizeCell(r[1]) && looksLikeCodeRow(r)) {
+                hasBlockHeader = true;
+                startIdx = firstDataIdx;
+            }
+        }
+    }
+
+    if (!hasBlockHeader) {
         const codeHeaderIdx = rows.findIndex((r) => r.some((c) => /code/i.test(normalizeCell(c))));
         const startRow = codeHeaderIdx === -1 ? 0 : codeHeaderIdx + 1;
         const codes = [];
@@ -874,7 +914,7 @@ function parseStudentBlocksFromRows(rows) {
 
     const blocks = [];
     let current = null;
-    let i = headerIdx + 1;
+    let i = startIdx;
     while (i < rows.length) {
         const row = rows[i] || [];
         if (rowIsBlank(row)) {
@@ -941,32 +981,38 @@ function applyImportedBlock(block) {
     return { added, updated };
 }
 
-async function importSheetFromExcel() {
-    if (sheetImportBusy) return;
-    if (!window.popupAPI || typeof window.popupAPI.importSheetFile !== 'function') {
-        showToast('Excel import unavailable.');
-        return;
-    }
-    sheetImportBusy = true;
-    sheetImportBtn.disabled = true;
-    let result;
-    try {
-        result = await window.popupAPI.importSheetFile();
-    } catch (e) {
-        result = { ok: false, error: 'Import failed \u2014 ' + e.message };
-    }
-    sheetImportBusy = false;
-    sheetImportBtn.disabled = false;
+// Splits one line of pasted text into cells for a single row. Excel's
+// clipboard paste is always tab-separated, so that's tried first (and takes
+// priority for full "Student Id / Name / Assessment Code" table rows, which
+// only ever come from Excel). For lines typed or pasted by hand — the plain
+// Code/Mark case — we also accept a comma, a run of 2+ spaces, or (as a
+// last resort) a single space, splitting only on the *first* gap so a
+// multi-word mark like "AI Detected" stays intact as one cell.
+function splitPastedLine(line) {
+    if (line.includes('\t')) return line.split('\t');
+    if (line.includes(',')) return line.split(',').map((c) => c.trim());
+    const multiSpace = line.split(/ {2,}/);
+    if (multiSpace.length > 1) return multiSpace.map((c) => c.trim());
+    const singleSpace = line.match(/^(\S+)\s+(.+)$/);
+    if (singleSpace) return [singleSpace[1], singleSpace[2].trim()];
+    return [line];
+}
 
-    if (!result) return; // user cancelled the file picker
-    if (!result.ok) {
-        showToast(result.error || 'Could not read that file.');
-        return;
-    }
+// Splits pasted text (from the clipboard or the paste-box textarea) into
+// the same plain 2D array of rows/cells that parseStudentBlocksFromRows()
+// expects, one row per line.
+function parsePastedText(text) {
+    return text
+        .replace(/\r\n/g, '\n')
+        .replace(/\r/g, '\n')
+        .split('\n')
+        .map(splitPastedLine);
+}
 
-    const blocks = parseStudentBlocksFromRows(result.rows || []);
+function importRowsIntoSheet(rows) {
+    const blocks = parseStudentBlocksFromRows(rows);
     if (!blocks.length) {
-        showToast('No student data found in that file.');
+        showToast('No student data found in that paste.');
         return;
     }
 
@@ -981,8 +1027,47 @@ async function importSheetFromExcel() {
     const who = target.studentId || target.name || 'student';
     let msg = `Imported ${who} \u2014 ${added} code${added === 1 ? '' : 's'} added`;
     if (updated) msg += `, ${updated} updated`;
-    if (blocks.length > 1) msg += ` (${blocks.length} students found in file)`;
+    if (blocks.length > 1) msg += ` (${blocks.length} students found)`;
     showToast(msg + '.');
+}
+
+async function pasteFromClipboard() {
+    if (!window.popupAPI || typeof window.popupAPI.readClipboardText !== 'function') {
+        showToast('Clipboard paste unavailable.');
+        return;
+    }
+    let result;
+    try {
+        result = await window.popupAPI.readClipboardText();
+    } catch (e) {
+        result = { ok: false, error: 'Could not read the clipboard.' };
+    }
+    if (!result || !result.ok) {
+        showToast((result && result.error) || 'Clipboard is empty \u2014 copy cells from Excel first.');
+        return;
+    }
+    importRowsIntoSheet(parsePastedText(result.text));
+}
+
+function toggleSheetPastePanel(forceOpen) {
+    const willOpen = forceOpen === undefined ? sheetPastePanel.classList.contains('hidden') : forceOpen;
+    sheetPastePanel.classList.toggle('hidden', !willOpen);
+    if (willOpen) {
+        sheetPasteTextarea.focus();
+    } else {
+        sheetPasteTextarea.value = '';
+    }
+    syncHeight();
+}
+
+function importFromPasteTextarea() {
+    const text = sheetPasteTextarea.value;
+    if (!text.trim()) {
+        showToast('Paste some cells first.');
+        return;
+    }
+    importRowsIntoSheet(parsePastedText(text));
+    toggleSheetPastePanel(false);
 }
 
 function buildSheetHtml(data) {
@@ -1334,7 +1419,16 @@ let sheetTimer = null;
     });
 });
 sheetReset.addEventListener('click', resetSheetData);
-sheetImportBtn.addEventListener('click', importSheetFromExcel);
+sheetPasteBtn.addEventListener('click', pasteFromClipboard);
+sheetPasteToggle.addEventListener('click', () => toggleSheetPastePanel());
+sheetPasteCancelBtn.addEventListener('click', () => toggleSheetPastePanel(false));
+sheetPasteImportBtn.addEventListener('click', importFromPasteTextarea);
+sheetPasteTextarea.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        e.preventDefault();
+        importFromPasteTextarea();
+    }
+});
 sheetAddBtn.addEventListener('click', addSheetEntry);
 sheetAddCode.addEventListener('input', () => {
     const val = sheetAddCode.value.trim().toLowerCase();
