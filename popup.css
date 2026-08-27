@@ -845,7 +845,7 @@ body.layout-stack .tab-panel + .tab-panel {
 .sheet-count {
     color: var(--muted);
     font-size: 10px;
-    font-weight: 700;
+    font-weight: 500;
     background: #010409;
     border: 1px solid #30363d;
     border-radius: 999px;

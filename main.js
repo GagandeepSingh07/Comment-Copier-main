@@ -24,23 +24,12 @@ const PLATFORM_NAMES = { win32: 'Windows', darwin: 'macOS', linux: 'Linux' };
 
 const CHANGELOG = [
     {
-        version: '1.14.5',
-        categories: [
-            {
-                heading: 'Bug Fixes',
-                notes: [
-                    'Fixed newly added default comments not appearing for existing users — the app now automatically merges any new built-in comments into your saved lists on startup, without touching or removing any of your own custom comments or edits.',
-                ],
-            },
-        ],
-    },
-    {
         version: '1.14.4',
         categories: [
             {
-                heading: 'New',
+                heading: 'Import Feature',
                 notes: [
-                    'Comment Copier: each quick-copy row now shows "current / total" (e.g. "3 / 30") instead of just the current position, so the exact number of comments in each list is always visible and updates live as comments are added, removed, or restored to defaults.',
+                    'Student Details: Now User can import a student\'s unit codes and marks directly from the clipboard (copied from Excel) or from a .xlsx file. The app will automatically find the matching student if the file has several.',
                 ],
             },
         ],
