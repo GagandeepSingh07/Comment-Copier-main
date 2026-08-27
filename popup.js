@@ -85,6 +85,24 @@ const defaultAccept = [
     "The assignment was completed in a structured and appropriate manner, fulfilling the specified requirements.",
     "The student's work demonstrates satisfactory achievement of the assessment outcomes and complies with the required expectations.",
     "The submission effectively responds to the task and provides evidence that the assessment criteria have been successfully addressed.",
+    "The student presented the required content clearly and completed the assignment according to the given instructions.",
+    "The work demonstrates an appropriate application of the knowledge and skills required to complete the task.",
+    "The student has shown a satisfactory ability to understand the purpose of the assignment and respond appropriately.",
+    "The submission covers the essential aspects of the task and demonstrates a suitable level of academic engagement.",
+    "The work provides sufficient evidence of the student's ability to apply the relevant concepts effectively.",
+    "The student has interpreted the assignment brief correctly and addressed the topic in an appropriate manner.",
+    "The submission is organised effectively, with the main elements of the task clearly presented.",
+    "The assignment reflects a satisfactory level of effort and an appropriate approach to completing the required work.",
+    "The student has included the necessary information and addressed the relevant areas of the task appropriately.",
+    "The work demonstrates the student's ability to apply suitable methods and approaches to the assigned task.",
+    "The submission shows satisfactory development and application of the knowledge required for the assessment.",
+    "The student has communicated the relevant ideas clearly and maintained an appropriate focus on the task.",
+    "The assignment demonstrates a suitable balance between accuracy, organisation, and completion.",
+    "The submitted work reflects a responsible approach to the assessment and appropriate attention to quality.",
+    "The student has completed the task with sufficient detail to demonstrate achievement of the intended objectives.",
+    "The work demonstrates a satisfactory level of engagement with the subject and the requirements of the assignment.",
+    "The submission is relevant to the assignment brief and provides an appropriate response to the given task.",
+    "The student has successfully completed the assessment and demonstrated achievement of the essential objectives.",
 ];
 
 const defaultAiReject = [
@@ -100,6 +118,24 @@ const defaultAiReject = [
     "The submission seems to have been written by an AI and must be completed again by the student.",
     "The assignment is not written in the student's own words and appears AI-generated.",
     "The submission was identified as AI-generated content and needs to be revised.",
+    "The submitted work contains indications of AI-generated content and should be rewritten by the student.",
+    "The response raises concerns regarding the use of AI and requires resubmission in the student's own words.",
+    "The writing style and content suggest that the submission may not represent the student's original work.",
+    "The assignment requires further review because the submitted content shows characteristics commonly associated with AI-generated writing.",
+    "The work should be redone to ensure that it reflects the student's own understanding and independent effort.",
+    "The submission contains patterns that indicate possible AI assistance and cannot be accepted in its current form.",
+    "The content does not provide sufficient evidence of the student's individual authorship and requires revision.",
+    "The response should be rewritten independently, as the current submission raises concerns about AI-generated content.",
+    "The assignment displays characteristics inconsistent with original student writing and requires the student's own revision.",
+    "The submission cannot be accepted in its current form due to concerns regarding the originality of the written content.",
+    "The work requires resubmission with content that clearly demonstrates the student's personal understanding of the topic.",
+    "The assignment shows substantial indicators of machine-generated writing and should be completed again independently.",
+    "The current response does not sufficiently demonstrate independent student authorship and requires revision.",
+    "The submission should be revised to ensure that the ideas and explanations are presented in the student's own language.",
+    "The content raises concerns about the authenticity of the student's work and requires a revised submission.",
+    "The assignment needs to be rewritten to demonstrate the student's individual knowledge and understanding of the subject.",
+    "The response shows possible reliance on AI-generated material and should be revised before it can be accepted.",
+    "The submitted work requires revision because it does not clearly establish that the content was independently produced by the student.",
 ];
 
 const defaultCopyReject = [
@@ -115,6 +151,24 @@ const defaultCopyReject = [
     "The response duplicates content found online without citing the source.",
     "The assignment is not the student's original work and appears to be copied.",
     "The submission matches existing material too closely and needs to be rewritten.",
+    "The submitted content shows a significant similarity to material available from other sources and requires revision.",
+    "The assignment raises concerns about originality because portions of the work closely match previously existing content.",
+    "The response includes material that appears to have been reproduced without sufficient acknowledgment of the original source.",
+    "The work cannot be accepted in its current form because it does not demonstrate sufficient originality.",
+    "The submission contains similarities to external material that require the student to rewrite the work independently.",
+    "The assignment appears to rely heavily on previously published or submitted content rather than original student work.",
+    "The content requires revision because the level of similarity to existing sources raises concerns about plagiarism.",
+    "The student's submission does not provide adequate evidence that the work was independently created.",
+    "The response contains passages that closely correspond with material from other sources and should be rewritten.",
+    "The assignment should be resubmitted with original content written independently by the student.",
+    "The submitted work raises concerns regarding copied material and requires substantial revision before acceptance.",
+    "The content appears insufficiently original and should be rewritten using the student's own understanding and expression.",
+    "The response contains material that may have been taken from another source without appropriate citation or acknowledgment.",
+    "The work demonstrates an unacceptable level of similarity to existing content and cannot be accepted as original.",
+    "The assignment requires revision to ensure that the final submission reflects the student's own original work.",
+    "The submission includes content that closely resembles other available material and should be revised for originality.",
+    "The work should be rewritten independently, as the current submission raises concerns about the source and originality of the content.",
+    "The assignment cannot be approved because significant portions appear to be based on copied or previously existing material.",
 ];
 
 const categories = ['accept', 'aireject', 'copyreject'];
@@ -257,16 +311,32 @@ function load() {
     } catch (e) {
         data = null;
     }
+    let mergedAny = false;
     categories.forEach((key) => {
         const saved = data && data[key];
         if (saved && Array.isArray(saved.comments)) {
-            state[key].comments = saved.comments;
+            // Start from what's saved (keeps any custom edits/order/deletions
+            // the user made), then append any newer default comments that
+            // aren't already present — so expanding the built-in defaults
+            // in code shows up for existing users without wiping their data.
+            const comments = saved.comments.slice();
+            const seen = new Set(comments.map((c) => c.trim().toLowerCase()));
+            DEFAULTS[key].forEach((c) => {
+                const norm = c.trim().toLowerCase();
+                if (!seen.has(norm)) {
+                    comments.push(c);
+                    seen.add(norm);
+                    mergedAny = true;
+                }
+            });
+            state[key].comments = comments;
             state[key].index = typeof saved.index === 'number' ? saved.index : 0;
         } else {
             state[key].comments = [...DEFAULTS[key]];
             state[key].index = 0;
         }
     });
+    if (mergedAny) save();
 }
 
 function save() {
@@ -338,7 +408,7 @@ function renderRows() {
                     '<button type="button" class="mini" data-act="prev" title="Previous comment">Prev</button>' +
                     '<button type="button" class="mini" data-act="reset" title="Reset to first comment">Reset</button>' +
                 '</span>' +
-                '<span class="pos">[' + (s.comments.length ? s.index + 1 : 0) + ']</span>' +
+                '<span class="pos">[' + (s.comments.length ? (s.index + 1) + ' / ' + s.comments.length : 0) + ']</span>' +
             '</div>' +
             '<div class="preview">' + escapeHtml(s.comments.length ? s.comments[s.index] : '(no comments yet)') + '</div>';
         rowsEl.appendChild(row);
