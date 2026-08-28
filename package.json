@@ -24,10 +24,15 @@
     },
     "files": [
       "main.js",
+      "shared-data.js",
       "popup.html",
       "popup.css",
       "popup.js",
       "popup-preload.js",
+      "mainwindow.html",
+      "mainwindow.css",
+      "mainwindow.js",
+      "mainwindow-preload.js",
       "build/tray.png",
       "build/icon.png"
     ],

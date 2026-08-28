@@ -199,6 +199,7 @@ function appBuildDate() {
 }
 
 let popupWindow = null;
+let mainWindow = null;
 let tray = null;
 let isQuitting = false;
 let quickState = [];
@@ -400,6 +401,10 @@ ipcMain.on('popup:quit', () => app.quit());
 
 ipcMain.on('popup:close', () => hidePopup());
 
+ipcMain.on('comment-copier:open-main', () => {
+    openMainWindow();
+});
+
 ipcMain.on('popup:resize', (event, size) => {
     if (!popupWindow || popupWindow.isDestroyed()) return;
     const h = size && typeof size === 'object' ? size.height : size;
@@ -489,18 +494,10 @@ function createPopup() {
                     console.log('SMOKE popup:', popup);
                     console.log('SMOKE quickStateItems:', quickState.length);
 
-                    await popupWindow.webContents.executeJavaScript(`document.querySelector('.row[data-key="accept"] [data-act="copy"]').click()`);
+                    await popupWindow.webContents.executeJavaScript(`document.querySelector('.row[data-key="accept"]').click()`);
                     await new Promise((r) => setTimeout(r, 800));
                     console.log('SMOKE copy-clipboard:', clipboard.readText().slice(0, 60));
                     console.log('SMOKE quickState-after:', JSON.stringify(quickState));
-
-                    await popupWindow.webContents.executeJavaScript(`document.getElementById('editor-toggle').click()`);
-                    await new Promise((r) => setTimeout(r, 200));
-                    console.log('SMOKE editor-open:', await popupWindow.webContents.executeJavaScript(`document.getElementById('editor').classList.contains('open')`));
-
-                    await popupWindow.webContents.executeJavaScript(`document.getElementById('save-btn').click()`);
-                    await new Promise((r) => setTimeout(r, 300));
-                    console.log('SMOKE save-status:', await popupWindow.webContents.executeJavaScript(`document.getElementById('save-status').textContent`));
 
                     await popupWindow.webContents.executeJavaScript(`document.getElementById('prompt-btn').click()`);
                     await new Promise((r) => setTimeout(r, 300));
@@ -510,12 +507,94 @@ function createPopup() {
                     await new Promise((r) => setTimeout(r, 300));
                     console.log('SMOKE sheet-clipboard-html:', clipboard.readHTML().slice(0, 120));
                     console.log('SMOKE sheet-clipboard-text:', clipboard.readText().slice(0, 60));
+
+                    openMainWindow();
+                    if (mainWindow && !mainWindow.isDestroyed()) {
+                        mainWindow.webContents.once('did-finish-load', () => {
+                            setTimeout(async () => {
+                                await new Promise((r) => setTimeout(r, 300));
+                                try {
+                                    const mainWin = await mainWindow.webContents.executeJavaScript(`JSON.stringify({
+                                        nav: [...document.querySelectorAll('.nav-item')].map((e) => e.textContent.trim()),
+                                        panels: document.querySelectorAll('[data-view-panel]').length,
+                                        etabs: [...document.querySelectorAll('.etab')].map((e) => e.textContent),
+                                        commentCards: document.querySelectorAll('#comment-list .comment-card').length,
+                                        promptTextarea: !!document.getElementById('prompt-text'),
+                                        saveStatus: document.getElementById('save-status').textContent,
+                                    })`);
+                                    console.log('SMOKE main-window:', mainWin);
+
+                                    await mainWindow.webContents.executeJavaScript(`document.querySelector('.nav-item[data-view="settings"]').click()`);
+                                    await new Promise((r) => setTimeout(r, 100));
+                                    console.log('SMOKE main-settings-active:', await mainWindow.webContents.executeJavaScript(`document.querySelector('[data-view-panel="settings"]').classList.contains('active')`));
+
+                                    await mainWindow.webContents.executeJavaScript(`document.querySelector('.nav-item[data-view="about"]').click()`);
+                                    await new Promise((r) => setTimeout(r, 300));
+                                    console.log('SMOKE main-about-name:', await mainWindow.webContents.executeJavaScript(`document.getElementById('mw-info-name').textContent`));
+                                } catch (e) {
+                                    console.error('Main-window smoke test failed:', e);
+                                }
+                                setTimeout(() => app.quit(), 300);
+                            }, 200);
+                        });
+                    } else {
+                        setTimeout(() => app.quit(), 300);
+                    }
                 } catch (e) {
                     console.error('Smoke test failed:', e);
+                    setTimeout(() => app.quit(), 300);
                 }
-                setTimeout(() => app.quit(), 300);
             }, 2500);
         });
+    }
+}
+
+function createMainWindow() {
+    if (mainWindow && !mainWindow.isDestroyed()) return;
+
+    mainWindow = new BrowserWindow({
+        width: 900,
+        height: 620,
+        minWidth: 720,
+        minHeight: 480,
+        show: false,
+        backgroundColor: '#0d1117',
+        title: 'Comment Copier',
+        autoHideMenuBar: true,
+        webPreferences: {
+            preload: path.join(__dirname, 'mainwindow-preload.js'),
+            contextIsolation: true,
+            nodeIntegration: false,
+            spellcheck: false,
+        },
+    });
+
+    mainWindow.loadFile('mainwindow.html');
+
+    mainWindow.once('ready-to-show', () => {
+        mainWindow.show();
+        mainWindow.focus();
+    });
+
+    // Keep the app alive (tray app); closing the main window just hides it.
+    mainWindow.on('close', (e) => {
+        if (!isQuitting) {
+            e.preventDefault();
+            mainWindow.hide();
+        }
+    });
+
+    mainWindow.on('closed', () => {
+        mainWindow = null;
+    });
+}
+
+function openMainWindow() {
+    createMainWindow();
+    if (!isQuitting && mainWindow && !mainWindow.isDestroyed()) {
+        if (mainWindow.isMinimized()) mainWindow.restore();
+        mainWindow.show();
+        mainWindow.focus();
     }
 }
 
@@ -536,6 +615,7 @@ app.on('second-instance', () => {
         popupWindow.show();
         popupWindow.focus();
     }
+    openMainWindow();
 });
 
 app.whenReady().then(() => {

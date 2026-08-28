@@ -12,44 +12,6 @@
             <button class="tab active" data-tab="comments">Comment Copier</button>
             <button class="tab" data-tab="student">Student Details</button>
         </div>
-        <div class="info-wrap">
-            <div class="info-popover" id="info-popover">
-                <div class="info-head">
-                    <img class="info-app-icon" src="build/icon.png" alt="">
-                    <div class="info-title-block">
-                        <div class="info-name" id="info-name">Comment Copier</div>
-                        <div class="info-version" id="info-version"></div>
-                    </div>
-                </div>
-                <div class="info-desc" id="info-desc"></div>
-
-                <button type="button" class="info-section-toggle" data-section="details" aria-expanded="false">
-                    <span>Details</span><span class="chevron"></span>
-                </button>
-                <div class="info-section-body hidden" data-body="details">
-                    <div class="info-meta" id="info-meta"></div>
-                </div>
-
-                <button type="button" class="info-section-toggle" data-section="shortcuts" aria-expanded="false">
-                    <span>Shortcuts</span><span class="chevron"></span>
-                </button>
-                <div class="info-section-body hidden" data-body="shortcuts">
-                    <div class="info-keys">
-                        <div class="info-key-row"><span class="info-key">Ctrl+Enter</span><span>Save all edits</span></div>
-                        <div class="info-key-row"><span class="info-key">Esc</span><span>Close the popup</span></div>
-                    </div>
-                </div>
-
-                <button type="button" class="info-section-toggle" data-section="changelog" aria-expanded="false">
-                    <span>What&rsquo;s new</span><span class="chevron"></span>
-                </button>
-                <div class="info-section-body hidden" data-body="changelog">
-                    <div class="info-changelog" id="info-changelog"></div>
-                </div>
-
-                <button type="button" class="btn-reset" id="info-reset">Reset app data</button>
-            </div>
-        </div>
     </div>
 
     <div class="tab-panel active" data-panel="comments">
@@ -59,43 +21,6 @@
         </div>
 
         <div class="rows" id="rows"></div>
-
-        <div class="sep"></div>
-
-        <div class="editor-head">
-            <button class="editor-toggle" id="editor-toggle" title="Show or hide the comment editor">Edit comments</button>
-            <div class="editor-head-actions">
-                <span class="save-status" id="save-status">All changes saved</span>
-                <button class="btn-save" id="save-btn">Save</button>
-            </div>
-        </div>
-
-        <div class="editor" id="editor">
-            <div class="etabs">
-                <button class="etab active" data-key="accept">Accept</button>
-                <button class="etab" data-key="aireject">AI Reject</button>
-                <button class="etab" data-key="copyreject">Copy Reject</button>
-                <button class="etab" data-key="prompt">Prompt</button>
-            </div>
-            <div class="edits">
-                <textarea id="accept-text" placeholder="One comment per line"></textarea>
-                <textarea id="aireject-text" placeholder="One comment per line"></textarea>
-                <textarea id="copyreject-text" placeholder="One comment per line"></textarea>
-                <div class="prompt-head" id="prompt-head">
-                    <span class="prompt-label">Prompt</span>
-                    <span class="save-status" id="prompt-status">Saved</span>
-                </div>
-                <textarea id="prompt-text" placeholder="Type the prompt to copy with the Prompt button"></textarea>
-            </div>
-            <div class="editor-add">
-                <input id="editor-add-input" placeholder="Add a comment and press Enter">
-                <button class="btn-add" id="editor-add-btn">Add</button>
-            </div>
-            <div class="editor-meta">
-                <span class="editor-count" id="editor-count"></span>
-                <button class="link" id="editor-restore">Restore defaults</button>
-            </div>
-        </div>
     </div>
 
     <div class="tab-panel" data-panel="student">
@@ -206,11 +131,14 @@
             <svg class="icon-columns" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><rect x="2" y="2" width="5.5" height="12" rx="1"/><rect x="8.5" y="2" width="5.5" height="12" rx="1"/></svg>
             <svg class="icon-cards" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><rect x="2" y="2" width="5" height="5" rx="1.2"/><rect x="9" y="2" width="5" height="5" rx="1.2"/><rect x="2" y="9" width="5" height="5" rx="1.2"/><rect x="9" y="9" width="5" height="5" rx="1.2"/></svg>
         </button>
-        <button type="button" class="info-btn" id="info-btn" aria-label="App info" aria-haspopup="true" aria-expanded="false">i</button>
+        <button type="button" class="main-btn" id="open-main-btn" title="Open the Comment Copier main window" aria-label="Open main window">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><circle cx="8" cy="8" r="2.2"/><path d="M8 1.5v2M8 12.5v2M1.5 8h2M12.5 8h2M3.3 3.3l1.4 1.4M11.3 11.3l1.4 1.4M12.7 3.3l-1.4 1.4M4.7 11.3l-1.4 1.4"/></svg>
+        </button>
     </div>
 </div>
 <div class="toast" id="toast"></div>
 <div class="card-tooltip" id="card-tooltip"></div>
+<script src="shared-data.js"></script>
 <script src="popup.js"></script>
 </body>
 </html>

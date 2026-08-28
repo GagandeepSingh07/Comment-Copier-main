@@ -10,6 +10,7 @@ contextBridge.exposeInMainWorld('popupAPI', {
     pushQuickState: (payload) => ipcRenderer.send('comment-copier:quick-state', payload),
     reportCopyResult: (info) => ipcRenderer.send('comment-copier:tray-copied', info),
     quitApp: () => ipcRenderer.send('popup:quit'),
+    openMain: () => ipcRenderer.send('comment-copier:open-main'),
     close: () => ipcRenderer.send('popup:close'),
     resize: (size) => ipcRenderer.send('popup:resize', size),
     onClosed: (callback) => ipcRenderer.on('popup:closed', () => callback()),
