@@ -391,6 +391,11 @@ const ROW_ICONS = {
     copyreject: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>',
 };
 
+const MINI_ICONS = {
+    prev: '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 14 4 9 9 4"></polyline><path d="M20 20v-7a4 4 0 0 0-4-4H4"></path></svg>',
+    reset: '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>',
+};
+
 function renderRows() {
     rowsEl.innerHTML = '';
     categories.forEach((key) => {
@@ -399,16 +404,18 @@ function renderRows() {
         row.className = 'row' + (s.comments.length ? '' : ' disabled');
         row.dataset.key = key;
         row.title = '';
+        const posLabel = layoutMode === 'cards'
+            ? String(s.comments.length ? s.index + 1 : 0)
+            : '[' + (s.comments.length ? (s.index + 1) + ' / ' + s.comments.length : 0) + ']';
         row.innerHTML =
             '<span class="row-icon" aria-hidden="true">' + ROW_ICONS[key] + '</span>' +
             '<div class="row-line">' +
                 '<span class="name">' + LABELS[key] + '</span>' +
                 '<span class="row-actions">' +
-                    '<button type="button" class="mini mini-copy" data-act="copy" title="Copy to clipboard">Copy</button>' +
-                    '<button type="button" class="mini" data-act="prev" title="Previous comment">Prev</button>' +
-                    '<button type="button" class="mini" data-act="reset" title="Reset to first comment">Reset</button>' +
+                    '<button type="button" class="mini" data-act="prev" title="Previous comment"><span class="mini-icon" aria-hidden="true">' + MINI_ICONS.prev + '</span><span class="mini-label">Prev</span></button>' +
+                    '<button type="button" class="mini" data-act="reset" title="Reset to first comment"><span class="mini-icon" aria-hidden="true">' + MINI_ICONS.reset + '</span><span class="mini-label">Reset</span></button>' +
                 '</span>' +
-                '<span class="pos">[' + (s.comments.length ? (s.index + 1) + ' / ' + s.comments.length : 0) + ']</span>' +
+                '<span class="pos">' + posLabel + '</span>' +
             '</div>' +
             '<div class="preview">' + escapeHtml(s.comments.length ? s.comments[s.index] : '(no comments yet)') + '</div>';
         rowsEl.appendChild(row);
@@ -572,6 +579,7 @@ function applyLayout() {
     } else {
         setMainTab(activeMainTab);
     }
+    renderRows();
     syncHeight();
 }
 

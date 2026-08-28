@@ -483,6 +483,8 @@ body.layout-stack .tab-panel + .tab-panel {
 
 .mini:hover { background: #30363d; color: var(--text); }
 
+.mini-icon { display: none; }
+
 .mini-copy { color: var(--accent); font-weight: 600; }
 
 .mini-copy:hover { background: rgba(88, 166, 255, 0.15); color: #79c0ff; }
@@ -1508,8 +1510,8 @@ body.layout-cards .row {
     background: #0d1117;
     border: 1px solid var(--border);
     border-radius: 14px;
-    padding: 16px 8px 10px;
-    min-height: 120px;
+    padding: 18px 8px 12px;
+    min-height: 130px;
     transition: transform 0.15s ease, border-color 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
 }
 
@@ -1525,10 +1527,15 @@ body.layout-cards .row-icon {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 36px;
-    height: 36px;
-    border-radius: 10px;
+    width: 56px;
+    height: 56px;
+    border-radius: 16px;
     color: #1a1a1a;
+}
+
+body.layout-cards .row-icon svg {
+    width: 26px;
+    height: 26px;
 }
 
 body.layout-cards .row[data-key="accept"] .row-icon { background: #C6E0B4; }
@@ -1556,34 +1563,58 @@ body.layout-cards .pos {
     position: absolute;
     top: 8px;
     right: 8px;
+    min-width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     background: #21262d;
     border: 1px solid var(--border);
     border-radius: 999px;
-    padding: 1px 6px;
-    font-size: 8.5px;
+    padding: 0 5px;
+    font-size: 9.5px;
+    font-weight: 600;
+    color: var(--muted);
 }
 
 body.layout-cards .row-actions {
-    order: 3;
-    opacity: 0.85;
-    width: 100%;
-    margin-top: 5px;
-    padding-top: 5px;
     display: flex;
+    flex-direction: row;
     justify-content: center;
-    gap: 3px;
-    border-top: 1px solid var(--border);
+    align-items: center;
+    gap: 6px;
+    margin-top: 6px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.15s ease;
+    border-top: none;
+    padding-top: 0;
 }
 
-body.layout-cards .row:hover .row-actions { opacity: 1; }
+body.layout-cards .row:hover .row-actions {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+body.layout-cards .row-actions .mini-copy { display: none; }
 
 body.layout-cards .row-actions .mini {
-    flex: 1;
-    padding: 3px 3px;
-    border-radius: 5px;
+    flex: none;
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    color: var(--muted);
 }
 
-body.layout-cards .row-actions .mini:hover { background: #21262d; }
+body.layout-cards .row-actions .mini-label { display: none; }
+
+body.layout-cards .row-actions .mini-icon { display: flex; }
+
+body.layout-cards .row-actions .mini:hover { background: #21262d; color: var(--text); }
 
 body.layout-cards .preview {
     display: none;
