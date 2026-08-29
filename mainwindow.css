@@ -1,6 +1,7 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
+    color-scheme: dark;
     --bg: #0d1117;
     --card: #161b22;
     --border: #21262d;
@@ -302,6 +303,12 @@ body {
     width: 14px;
     height: 14px;
     cursor: pointer;
+    flex: 0 0 auto;
+}
+
+.card-check:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
 }
 
 .comment-card.selected {
@@ -1124,6 +1131,7 @@ body.theme-light .theme-option.active { color: #ffffff; }
 /* ---------- Light theme ---------- */
 
 body.theme-light {
+    color-scheme: light;
     --bg: #f6f8fa;
     --card: #ffffff;
     --border: #d0d7de;
