@@ -3,6 +3,7 @@ const PROMPT_KEY = 'comment-copier-prompt-v1';
 const SHEET_KEY = 'comment-copier-sheet-v3';
 const LAYOUT_KEY = 'comment-copier-layout-v1';
 const ORGANIZER_KEY = 'comment-copier-organizer-path-v1';
+const DATE_FIRST_KEY = 'comment-copier-date-first-v1';
 
 const SHEET_ASSESSMENT_COLS = 9;
 

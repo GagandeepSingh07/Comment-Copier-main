@@ -96,33 +96,6 @@ body {
 
 .tab.active { background: var(--accent); color: #010409; }
 
-.layout-btn {
-    flex: 0 0 auto;
-    align-self: center;
-    width: 26px;
-    height: 26px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 1px solid #30363d;
-    border-radius: 50%;
-    background: transparent;
-    color: var(--muted);
-    cursor: pointer;
-    transition: background-color 0.15s ease, color 0.15s ease;
-}
-
-.layout-btn:hover {
-    background: #21262d;
-    color: var(--text);
-}
-
-.layout-btn .icon-columns { display: none; }
-
-body.layout-stack .layout-btn .icon-tabs { display: none; }
-
-body.layout-stack .layout-btn .icon-columns { display: block; }
-
 .main-btn {
     flex: 0 0 auto;
     align-self: center;
@@ -1258,14 +1231,7 @@ body.layout-stack .tab-panel + .tab-panel {
 
 /* ---------- Card layout ---------- */
 
-.layout-btn .icon-cards { display: none; }
-
 .row-icon { display: none; }
-
-body.layout-cards .layout-btn .icon-tabs,
-body.layout-cards .layout-btn .icon-columns { display: none; }
-
-body.layout-cards .layout-btn .icon-cards { display: block; }
 
 body.layout-cards { min-width: 460px; }
 

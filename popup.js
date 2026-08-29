@@ -41,10 +41,9 @@ const organizerSummary = document.getElementById('organizer-summary');
 const organizerList = document.getElementById('organizer-list');
 const mainTabs = document.querySelectorAll('.tab');
 const tabPanels = document.querySelectorAll('.tab-panel');
-const layoutBtn = document.getElementById('layout-btn');
 
 let activeMainTab = 'comments';
-let layoutMode = 'tabs';
+let layoutMode = 'cards';
 let sheetEntries = [];
 let selectedMark = 'Checked';
 let organizerFolder = '';
@@ -224,6 +223,11 @@ function buildDateLine() {
 
 let copyCommentTimer = null;
 
+function getDateFirstSetting() {
+    const saved = localStorage.getItem(DATE_FIRST_KEY);
+    return saved === null ? true : saved !== '0';
+}
+
 async function writeClipboard(text) {
     if (window.popupAPI && typeof window.popupAPI.copyText === 'function') {
         try {
@@ -248,6 +252,22 @@ async function handleCopy(key) {
     }
     const comment = s.comments[s.index];
     const copiedNumber = s.index + 1;
+    if (!getDateFirstSetting()) {
+        const ok = await writeClipboard(comment);
+        if (!ok) {
+            if (window.popupAPI && typeof window.popupAPI.reportCopyResult === 'function') {
+                window.popupAPI.reportCopyResult({ ok: false, label });
+            }
+            showToast('Copy failed \u2014 please copy manually.');
+            return;
+        }
+        showToast(`Copied ${label} comment ${copiedNumber}`);
+        s.index = (s.index + 1) % s.comments.length;
+        save();
+        renderRows();
+        pushQuickState();
+        return;
+    }
     const ok = await writeClipboard(buildDateLine());
     if (!ok) {
         if (window.popupAPI && typeof window.popupAPI.reportCopyResult === 'function') {
@@ -318,12 +338,6 @@ function applyLayout() {
     document.body.classList.toggle('layout-stack', layoutMode === 'stack');
     document.body.classList.toggle('layout-cards', layoutMode === 'cards');
     mainTabs.forEach((b) => b.classList.toggle('hidden', layoutMode === 'stack' || layoutMode === 'cards'));
-    layoutBtn.setAttribute('aria-pressed', layoutMode === 'stack' ? 'true' : 'false');
-    layoutBtn.title = layoutMode === 'tabs'
-        ? 'Switch to Side by side layout'
-        : layoutMode === 'stack'
-            ? 'Switch to Card layout'
-            : 'Switch to Tabs layout';
     if (layoutMode !== 'cards') {
         hoveredRow = null;
         cardTooltip.classList.remove('active');
@@ -340,7 +354,7 @@ function applyLayout() {
 
 function loadLayout() {
     const saved = localStorage.getItem(LAYOUT_KEY);
-    layoutMode = (saved === 'stack' || saved === 'cards') ? saved : 'tabs';
+    layoutMode = (saved === 'tabs' || saved === 'stack') ? saved : 'cards';
     applyLayout();
 }
 
@@ -1058,12 +1072,6 @@ organizerBtn.addEventListener('click', (e) => {
     organizerBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
 });
 mainTabs.forEach((b) => b.addEventListener('click', () => setMainTab(b.dataset.tab)));
-const LAYOUT_CYCLE = { tabs: 'stack', stack: 'cards', cards: 'tabs' };
-layoutBtn.addEventListener('click', () => {
-    layoutMode = LAYOUT_CYCLE[layoutMode] || 'tabs';
-    localStorage.setItem(LAYOUT_KEY, layoutMode);
-    applyLayout();
-});
 document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
         if (organizerWrap.classList.contains('open')) {
@@ -1150,8 +1158,11 @@ loadLayout();
 updateCounts();
 pushQuickState();
 
-// Keep in sync with comment-list edits made in the main window.
-window.addEventListener('storage', () => {
+// Keep in sync with comment-list edits and the popup layout chosen in the main window.
+window.addEventListener('storage', (e) => {
+    if (e.key === LAYOUT_KEY) {
+        loadLayout();
+    }
     load();
     renderRows();
     updateCounts();

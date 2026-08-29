@@ -78,6 +78,26 @@
             <div class="settings-block">
                 <div class="setting-row">
                     <div class="setting-info">
+                        <div class="setting-title">Popup layout</div>
+                        <div class="setting-desc">How the tray popup arranges Comment Copier and Student Details.</div>
+                    </div>
+                    <div class="layout-picker" id="mw-layout-picker" role="group" aria-label="Popup layout">
+                        <button type="button" class="layout-picker-option" data-layout="cards">Cards</button>
+                        <button type="button" class="layout-picker-option" data-layout="tabs">Tabs</button>
+                        <button type="button" class="layout-picker-option" data-layout="stack">Side by side</button>
+                    </div>
+                </div>
+                <div class="setting-row">
+                    <div class="setting-info">
+                        <div class="setting-title">Date before comment</div>
+                        <div class="setting-desc">When copying a comment, put today's date on the clipboard first, then the comment.</div>
+                    </div>
+                    <button type="button" class="toggle" id="mw-date-first" role="switch" aria-checked="true" title="Toggle date-first copying">
+                        <span class="toggle-thumb"></span>
+                    </button>
+                </div>
+                <div class="setting-row">
+                    <div class="setting-info">
                         <div class="setting-title">Reset app data</div>
                         <div class="setting-desc">Clear all saved comment lists, prompt, and student details back to defaults.</div>
                     </div>

@@ -28,6 +28,8 @@ const infoDesc = document.getElementById('mw-info-desc');
 const infoMeta = document.getElementById('mw-info-meta');
 const infoChangelog = document.getElementById('mw-info-changelog');
 const resetBtn = document.getElementById('mw-reset');
+const layoutPickerOptions = document.querySelectorAll('#mw-layout-picker .layout-picker-option');
+const dateFirstToggle = document.getElementById('mw-date-first');
 
 let activeTab = 'accept';
 let dirty = false;
@@ -397,6 +399,18 @@ function handleReset() {
     location.reload();
 }
 
+function loadLayoutSetting() {
+    const saved = localStorage.getItem(LAYOUT_KEY);
+    const mode = (saved === 'tabs' || saved === 'stack') ? saved : 'cards';
+    layoutPickerOptions.forEach((b) => b.classList.toggle('active', b.dataset.layout === mode));
+}
+
+function loadDateFirstSetting() {
+    const saved = localStorage.getItem(DATE_FIRST_KEY);
+    const enabled = saved === null ? true : saved !== '0';
+    dateFirstToggle.setAttribute('aria-checked', enabled ? 'true' : 'false');
+}
+
 function setView(name) {
     navItems.forEach((b) => b.classList.toggle('active', b.dataset.view === name));
     panels.forEach((p) => p.classList.toggle('active', p.dataset.viewPanel === name));
@@ -431,6 +445,10 @@ window.addEventListener('storage', (e) => {
         if (wasPrompt) loadPrompt();
         renderList();
         updateCounts();
+    } else if (e.key === LAYOUT_KEY) {
+        loadLayoutSetting();
+    } else if (e.key === DATE_FIRST_KEY) {
+        loadDateFirstSetting();
     }
 });
 
@@ -456,6 +474,19 @@ document.querySelectorAll('.info-section-toggle').forEach((btn) => {
     });
 });
 resetBtn.addEventListener('click', handleReset);
+layoutPickerOptions.forEach((b) => {
+    b.addEventListener('click', () => {
+        localStorage.setItem(LAYOUT_KEY, b.dataset.layout);
+        layoutPickerOptions.forEach((x) => x.classList.toggle('active', x === b));
+        showToast(`Popup layout set to ${b.textContent}.`);
+    });
+});
+dateFirstToggle.addEventListener('click', () => {
+    const enabled = dateFirstToggle.getAttribute('aria-checked') !== 'true';
+    localStorage.setItem(DATE_FIRST_KEY, enabled ? '1' : '0');
+    dateFirstToggle.setAttribute('aria-checked', enabled ? 'true' : 'false');
+    showToast(enabled ? 'Date-first copy on.' : 'Date-first copy off.');
+});
 document.getElementById('mw-quit').addEventListener('click', () => {
     if (window.mainWindowAPI && typeof window.mainWindowAPI.quitApp === 'function') {
         window.mainWindowAPI.quitApp();
@@ -466,6 +497,8 @@ load();
 setTab('accept');
 updateCounts();
 setDirty(false);
+loadLayoutSetting();
+loadDateFirstSetting();
 if (window.mainWindowAPI && typeof window.mainWindowAPI.getAppInfo === 'function') {
     window.mainWindowAPI.getAppInfo().then((info) => {
         if (!info) return;
