@@ -560,6 +560,7 @@ function createMainWindow() {
         show: false,
         backgroundColor: '#0d1117',
         title: 'Comment Copier',
+        icon: path.join(__dirname, 'build', 'icon.png'),
         autoHideMenuBar: true,
         webPreferences: {
             preload: path.join(__dirname, 'mainwindow-preload.js'),
