@@ -31,6 +31,7 @@ const infoMeta = document.getElementById('mw-info-meta');
 const infoChangelog = document.getElementById('mw-info-changelog');
 const githubLink = document.getElementById('mw-github-link');
 const developerEl = document.getElementById('mw-developer');
+const helperEl = document.getElementById('mw-helper');
 const updateBtn = document.getElementById('mw-update-btn');
 const diagnosticsBtn = document.getElementById('mw-diagnostics-btn');
 const resetBtn = document.getElementById('mw-reset');
@@ -941,6 +942,7 @@ async function refreshAboutInfo() {
     renderChangelog(info.changelog);
     if (githubLink) githubLink.href = info.repository || githubLink.href;
     if (developerEl) developerEl.textContent = info.author;
+    if (helperEl) helperEl.textContent = info.helper;
 }
 
 async function checkForUpdates() {

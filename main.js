@@ -25,7 +25,7 @@ const PLATFORM_NAMES = { win32: 'Windows', darwin: 'macOS', linux: 'Linux' };
 
 const CHANGELOG = [
     {
-        version: '1.16.0',
+        version: '1.15.5',
         categories: [
             {
                 heading: 'New',
@@ -328,6 +328,7 @@ ipcMain.handle('comment-copier:app-info', () => {
         version: app.getVersion(),
         description: 'Comment Copier \u2014 Unique Every Time. Copy unique accept/reject comments for grading.',
         author: '@gagan.design.07',
+        helper: '@nishaaujla46',
         license: 'MIT',
         repository: 'https://github.com/GagandeepSingh07/Comment-Copier-main',
         electron: process.versions.electron,
