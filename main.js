@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, clipboard, Tray, screen, dialog, shell } = require('electron');
+const { app, BrowserWindow, ipcMain, clipboard, Tray, screen, dialog, shell, globalShortcut } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const https = require('https');
@@ -24,6 +24,45 @@ const POPUP_MAX_HEIGHT = 660;
 const PLATFORM_NAMES = { win32: 'Windows', darwin: 'macOS', linux: 'Linux' };
 
 const CHANGELOG = [
+    {
+        version: '1.15.0',
+        categories: [
+            {
+                heading: 'New',
+                notes: [
+                    'Comment Editor: search/filter box above the comment list to quickly jump to a comment.',
+                    'Comment Editor: drag any comment card to a new position to reorder.',
+                    'Comment Editor: duplicate comments are rejected when adding instead of being silently added.',
+                    'Comment Editor: deleting a comment now offers "Undo".',
+                    'Comment Editor: bulk select comments and delete them all at once.',
+                    'Comment Editor: placeholders like {name} or {unit} can be used in comments and are substituted from Student Details when copying, with a live preview.',
+                    'Comment Editor: usage counter shows how many times each comment has been copied.',
+                ],
+            },
+            {
+                heading: 'Settings',
+                notes: [
+                    'Added Backup & Restore \u2014 export all comment lists, the prompt, student details, and settings to a JSON file, and import it back.',
+                    'Added a Launch at startup toggle to start the app when you sign in to Windows.',
+                    'Added a configurable global hotkey to open the tray popup from anywhere.',
+                    'Added a light theme option alongside the default dark theme.',
+                ],
+            },
+            {
+                heading: 'About',
+                notes: [
+                    'Added an "Export diagnostics" button that copies app info and comment counts for bug reports.',
+                ],
+            },
+            {
+                heading: 'Other',
+                notes: [
+                    'Keyboard shortcuts: Ctrl+N focuses the add-comment box, Ctrl+F focuses search, Ctrl+B backs up your data.',
+                    'The main window now remembers its size and position between launches.',
+                ],
+            },
+        ],
+    },
     {
         version: '1.14.4',
         categories: [
@@ -461,6 +500,126 @@ ipcMain.handle('sheet-import:read-clipboard', () => {
     return { ok: true, text };
 });
 
+ipcMain.handle('backup:export', async (event, payload) => {
+    const owner = mainWindow && !mainWindow.isDestroyed() ? mainWindow : popupWindow;
+    if (!owner) return { ok: false, error: 'No window to attach the dialog to.' };
+    const stamp = new Date().toISOString().slice(0, 10);
+    let result;
+    try {
+        result = await dialog.showSaveDialog(owner, {
+            title: 'Back up Comment Copier data',
+            defaultPath: `comment-copier-backup-${stamp}.json`,
+            filters: [{ name: 'JSON backup', extensions: ['json'] }],
+        });
+    } catch (e) {
+        return { ok: false, error: 'Could not open the save dialog.' };
+    }
+    if (result.canceled || !result.filePath) return { ok: false, canceled: true };
+    try {
+        fs.writeFileSync(result.filePath, JSON.stringify(payload, null, 2), 'utf8');
+    } catch (e) {
+        return { ok: false, error: 'Could not write the backup file.' };
+    }
+    return { ok: true, filePath: result.filePath };
+});
+
+ipcMain.handle('backup:import', async (event) => {
+    const owner = mainWindow && !mainWindow.isDestroyed() ? mainWindow : popupWindow;
+    if (!owner) return { ok: false, error: 'No window to attach the dialog to.' };
+    let result;
+    try {
+        result = await dialog.showOpenDialog(owner, {
+            title: 'Restore Comment Copier data',
+            properties: ['openFile'],
+            filters: [{ name: 'JSON backup', extensions: ['json'] }],
+        });
+    } catch (e) {
+        return { ok: false, error: 'Could not open the file dialog.' };
+    }
+    if (result.canceled || !result.filePaths || !result.filePaths.length) {
+        return { ok: false, canceled: true };
+    }
+    const filePath = result.filePaths[0];
+    let raw;
+    try {
+        raw = fs.readFileSync(filePath, 'utf8');
+    } catch (e) {
+        return { ok: false, error: 'Could not read the backup file.' };
+    }
+    try {
+        const data = JSON.parse(raw);
+        if (data && typeof data === 'object') return { ok: true, data };
+        return { ok: false, error: 'Backup file has no data.' };
+    } catch (e) {
+        return { ok: false, error: 'Backup file is not valid JSON.' };
+    }
+});
+
+ipcMain.handle('app:set-login-item', (event, enabled) => {
+    try {
+        app.setLoginItemSettings({ openAtLogin: !!enabled });
+        return { ok: true };
+    } catch (e) {
+        return { ok: false, error: 'Couldn\u2019t update the startup setting.' };
+    }
+});
+
+ipcMain.handle('app:get-login-item', () => {
+    try {
+        const settings = app.getLoginItemSettings();
+        return !!settings.openAtLogin;
+    } catch (e) {
+        return false;
+    }
+});
+
+let registeredHotkey = null;
+const configFile = () => path.join(app.getPath('userData'), 'config.json');
+function loadConfig() {
+    try {
+        return JSON.parse(fs.readFileSync(configFile(), 'utf8')) || {};
+    } catch (e) {
+        return {};
+    }
+}
+function saveConfig(partial) {
+    try {
+        const cfg = Object.assign({}, loadConfig(), partial);
+        fs.writeFileSync(configFile(), JSON.stringify(cfg), 'utf8');
+    } catch (e) {}
+}
+
+function registerHotkey(accelerator) {
+    if (registeredHotkey) {
+        try {
+            if (globalShortcut.isRegistered(registeredHotkey)) globalShortcut.unregister(registeredHotkey);
+        } catch (e) {}
+    }
+    registeredHotkey = null;
+    if (!accelerator) return { ok: true, registered: false, accelerator: '' };
+    try {
+        const ok = globalShortcut.register(String(accelerator), () => {
+            if (popupWindow && !popupWindow.isDestroyed()) {
+                togglePopup();
+            }
+        });
+        if (!ok) return { ok: false, error: 'That shortcut is already in use or not available.', current: registeredHotkey || '' };
+        registeredHotkey = String(accelerator);
+        saveConfig({ globalHotkey: String(accelerator) });
+        return { ok: true, registered: true, accelerator: String(accelerator) };
+    } catch (e) {
+        return { ok: false, error: 'That shortcut is not valid.', current: registeredHotkey || '' };
+    }
+}
+
+ipcMain.handle('hotkey:set', (event, accelerator) => {
+    const result = registerHotkey(accelerator);
+    if (result.ok && !result.registered) saveConfig({ globalHotkey: '' });
+    return result;
+});
+
+ipcMain.handle('hotkey:get', () => registeredHotkey || loadConfig().globalHotkey || '');
+
 ipcMain.on('comment-copier:quick-state', (event, payload) => {
     if (Array.isArray(payload)) {
         quickState = payload;
@@ -635,12 +794,25 @@ function createPopup() {
     }
 }
 
+function windowBoundsInBounds(b) {
+    if (!b || typeof b.width !== 'number' || typeof b.height !== 'number') return false;
+    if (b.width < 520 || b.height < 400) return false;
+    const displays = screen.getAllDisplays();
+    return displays.some((d) => {
+        const wa = d.workArea;
+        const overlapX = b.x < wa.x + wa.width && b.x + b.width > wa.x;
+        const overlapY = b.y < wa.y + wa.height && b.y + b.height > wa.y;
+        return overlapX && overlapY;
+    });
+}
+
 function createMainWindow() {
     if (mainWindow && !mainWindow.isDestroyed()) return;
 
-    mainWindow = new BrowserWindow({
-        width: 900,
-        height: 620,
+    const saved = windowBoundsInBounds(loadConfig().mainWindowBounds) ? loadConfig().mainWindowBounds : null;
+    const opts = {
+        width: saved ? saved.width : 900,
+        height: saved ? saved.height : 620,
         minWidth: 520,
         minHeight: 400,
         show: false,
@@ -654,7 +826,12 @@ function createMainWindow() {
             nodeIntegration: false,
             spellcheck: false,
         },
-    });
+    };
+    if (saved) {
+        opts.x = Math.round(saved.x);
+        opts.y = Math.round(saved.y);
+    }
+    mainWindow = new BrowserWindow(opts);
 
     mainWindow.loadFile('mainwindow.html');
 
@@ -662,6 +839,20 @@ function createMainWindow() {
         mainWindow.show();
         mainWindow.focus();
     });
+
+    let boundsTimer = null;
+    const rememberBounds = () => {
+        if (!mainWindow || mainWindow.isDestroyed()) return;
+        if (mainWindow.isMaximized() || mainWindow.isMinimized() || mainWindow.isFullScreen()) return;
+        clearTimeout(boundsTimer);
+        boundsTimer = setTimeout(() => {
+            try {
+                saveConfig({ mainWindowBounds: mainWindow.getBounds() });
+            } catch (e) {}
+        }, 400);
+    };
+    mainWindow.on('resize', rememberBounds);
+    mainWindow.on('move', rememberBounds);
 
     // Keep the app alive (tray app); closing the main window just hides it.
     mainWindow.on('close', (e) => {
@@ -709,6 +900,7 @@ app.whenReady().then(() => {
     loadStats();
     createPopup();
     createTray();
+    registerHotkey(loadConfig().globalHotkey || '');
 });
 
 }

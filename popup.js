@@ -208,7 +208,7 @@ function renderRows() {
                 '</span>' +
                 '<span class="pos">' + posLabel + '</span>' +
             '</div>' +
-            '<div class="preview">' + escapeHtml(s.comments.length ? s.comments[s.index] : '(no comments yet)') + '</div>';
+            '<div class="preview">' + escapeHtml(s.comments.length ? substitutePlaceholders(s.comments[s.index], placeholderValues()) : '(no comments yet)') + '</div>';
         rowsEl.appendChild(row);
     });
 }
@@ -239,6 +239,26 @@ async function writeClipboard(text, count) {
     return false;
 }
 
+function placeholderValues() {
+    const values = {};
+    if (sheetName && sheetName.value) values.name = sheetName.value.trim();
+    if (sheetId && sheetId.value) values.id = sheetId.value.trim();
+    if (sheetEntries && sheetEntries.length && sheetEntries[0].code) {
+        values.unit = sheetEntries[0].code;
+        values.code = sheetEntries[0].code;
+    }
+    return values;
+}
+
+function recordUsage(key, index) {
+    try {
+        const usage = JSON.parse(localStorage.getItem(USAGE_KEY)) || {};
+        if (!usage[key]) usage[key] = {};
+        usage[key][index] = (usage[key][index] || 0) + 1;
+        localStorage.setItem(USAGE_KEY, JSON.stringify(usage));
+    } catch (e) {}
+}
+
 async function handleCopy(key) {
     const s = state[key];
     const label = LABELS[key];
@@ -250,8 +270,15 @@ async function handleCopy(key) {
         clearTimeout(copyCommentTimer);
         copyCommentTimer = null;
     }
-    const comment = s.comments[s.index];
+    const comment = substitutePlaceholders(s.comments[s.index], placeholderValues());
     const copiedNumber = s.index + 1;
+    const advance = () => {
+        recordUsage(key, s.index);
+        s.index = (s.index + 1) % s.comments.length;
+        save();
+        renderRows();
+        pushQuickState();
+    };
     if (!getDateFirstSetting()) {
         const ok = await writeClipboard(comment);
         if (!ok) {
@@ -262,10 +289,7 @@ async function handleCopy(key) {
             return;
         }
         showToast(`Copied ${label} comment ${copiedNumber}`);
-        s.index = (s.index + 1) % s.comments.length;
-        save();
-        renderRows();
-        pushQuickState();
+        advance();
         return;
     }
     const ok = await writeClipboard(buildDateLine(), false);
@@ -288,10 +312,7 @@ async function handleCopy(key) {
             return;
         }
         showToast(`Copied ${label} comment ${copiedNumber}`);
-        s.index = (s.index + 1) % s.comments.length;
-        save();
-        renderRows();
-        pushQuickState();
+        advance();
     }, 500);
 }
 
@@ -1032,7 +1053,7 @@ rowsEl.addEventListener('mouseover', (e) => {
     const s = state[row.dataset.key];
     if (!s || !s.comments.length) return;
     hoveredRow = row;
-    cardTooltip.textContent = s.comments[s.index];
+    cardTooltip.textContent = substitutePlaceholders(s.comments[s.index], placeholderValues());
     const rect = row.getBoundingClientRect();
     let top = rect.bottom + 8;
     let left = rect.left;

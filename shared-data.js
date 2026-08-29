@@ -4,6 +4,12 @@ const SHEET_KEY = 'comment-copier-sheet-v3';
 const LAYOUT_KEY = 'comment-copier-layout-v1';
 const ORGANIZER_KEY = 'comment-copier-organizer-path-v1';
 const DATE_FIRST_KEY = 'comment-copier-date-first-v1';
+const THEME_KEY = 'comment-copier-theme-v1';
+const HOTKEY_KEY = 'comment-copier-hotkey-v1';
+
+// Per-comment usage counters live under a separate storage key so a full
+// restore/backup of the editor data doesn't get tangled with them.
+const USAGE_KEY = 'comment-copier-usage-v1';
 
 const SHEET_ASSESSMENT_COLS = 9;
 
@@ -175,3 +181,37 @@ const defaultCopyReject = [
 const categories = ['accept', 'aireject', 'copyreject'];
 const LABELS = { accept: 'Accept', aireject: 'AI Reject', copyreject: 'Copy Reject' };
 const DEFAULTS = { accept: defaultAccept, aireject: defaultAiReject, copyreject: defaultCopyReject };
+
+// Comments may contain personalisation placeholders like {name} or {unit},
+// which are substituted before copying. When a real value isn't available the
+// raw token is left in place. The popup substitutes from the current Student
+// Details; sample values are used only for the editor's live preview.
+const PLACEHOLDER_ALIASES = {
+    name: ['name', 'student', 'studentname'],
+    unit: ['unit', 'code', 'unitcode', 'assessment'],
+};
+const PLACEHOLDER_SAMPLE = { name: 'Student', unit: 'CPCCCA3019' };
+
+function placeholderTokens(text) {
+    const out = [];
+    const re = /\{([^}]+)\}/g;
+    let m;
+    while ((m = re.exec(text))) out.push(m[1]);
+    return out;
+}
+
+function resolvePlaceholder(token, values) {
+    const key = token.trim().toLowerCase();
+    const v = values || {};
+    if (v[key] !== undefined && v[key] !== '') return String(v[key]);
+    for (const alias of PLACEHOLDER_ALIASES.name) if (key === alias && v.name) return String(v.name);
+    for (const alias of PLACEHOLDER_ALIASES.unit) if (key === alias && v.unit) return String(v.unit);
+    return null;
+}
+
+function substitutePlaceholders(text, values) {
+    return text.replace(/\{([^}]+)\}/g, (whole, token) => {
+        const resolved = resolvePlaceholder(token, values);
+        return resolved === null ? whole : resolved;
+    });
+}
