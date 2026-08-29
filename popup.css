@@ -963,7 +963,10 @@ body.layout-stack .tab-panel + .tab-panel {
     color: var(--accent);
 }
 
-.organizer-head .link {
+.organizer-head-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
     flex-shrink: 0;
     margin-top: 2px;
 }
@@ -1170,19 +1173,6 @@ body.layout-stack .tab-panel + .tab-panel {
     font-size: 11px;
     cursor: pointer;
     transition: background-color 0.15s ease, color 0.15s ease;
-}
-
-#prompt-btn {
-    flex: 0 0 auto;
-    align-self: center;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 26px;
-    height: 26px;
-    padding: 0;
-    border: 1px solid #30363d;
-    border-radius: 50%;
 }
 
 #sheet-btn.action-primary {
