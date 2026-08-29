@@ -171,7 +171,6 @@ function createCard(key, index) {
     meta.className = 'card-meta';
     const count = document.createElement('span');
     count.className = 'card-charcount';
-    updateCardCount(card, list[index]);
     const badge = document.createElement('span');
     badge.className = 'card-badge';
     if (index === state[key].index) badge.textContent = 'In use';
@@ -180,6 +179,7 @@ function createCard(key, index) {
     foot.appendChild(meta);
 
     card.appendChild(foot);
+    updateCardCount(card, list[index]);
 
     tools.querySelector('[data-action="up"]').addEventListener('click', () => moveComment(key, index, -1));
     tools.querySelector('[data-action="down"]').addEventListener('click', () => moveComment(key, index, 1));

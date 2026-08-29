@@ -555,8 +555,8 @@ function createMainWindow() {
     mainWindow = new BrowserWindow({
         width: 900,
         height: 620,
-        minWidth: 720,
-        minHeight: 480,
+        minWidth: 520,
+        minHeight: 400,
         show: false,
         backgroundColor: '#0d1117',
         title: 'Comment Copier',

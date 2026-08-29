@@ -38,8 +38,8 @@ body {
 /* ---------- Sidebar ---------- */
 
 .side {
-    width: 200px;
-    flex: 0 0 200px;
+    width: clamp(56px, 22vw, 200px);
+    flex: 0 0 clamp(56px, 22vw, 200px);
     background: var(--card);
     border-right: 1px solid var(--border);
     display: flex;
@@ -134,11 +134,20 @@ body {
     flex: 1;
     min-width: 0;
     overflow-y: auto;
-    padding: 24px 28px;
+    display: flex;
+    flex-direction: column;
+    padding: clamp(16px, 3vw, 28px) clamp(16px, 3vw, 28px);
 }
 
 .view { display: none; }
 .view.active { display: block; }
+
+.view.active[data-view-panel="editor"] {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+}
 
 .view-head { margin-bottom: 18px; }
 .view-head h1 { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
@@ -151,6 +160,10 @@ body {
     border: 1px solid var(--border);
     border-radius: 12px;
     padding: 16px;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
 }
 
 .etabs {
@@ -182,27 +195,37 @@ body {
 }
 
 .edit-pane {
-    min-height: 360px;
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
 }
 
 .hidden { display: none !important; }
 
-.editor-list-wrap { display: block; }
+.editor-list-wrap {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
 
 .editor-list-head {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    flex: 0 0 auto;
     margin-bottom: 10px;
     color: var(--muted);
     font-size: 12px;
 }
 
 .comment-list {
+    flex: 1;
+    min-height: 0;
     display: flex;
     flex-direction: column;
     gap: 10px;
-    max-height: 380px;
     overflow-y: auto;
     padding: 2px;
 }
@@ -348,12 +371,16 @@ body {
 }
 
 .prompt-wrap {
-    display: block;
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
 }
 
 .prompt-wrap textarea {
+    flex: 1;
+    min-height: 0;
     width: 100%;
-    min-height: 320px;
     resize: vertical;
     background: #0d1117;
     color: var(--text);
@@ -370,6 +397,7 @@ body {
 .prompt-wrap textarea:focus { border-color: var(--accent); }
 
 .editor-add {
+    flex: 0 0 auto;
     display: flex;
     gap: 8px;
     margin-top: 12px;
@@ -413,6 +441,7 @@ body {
 .link:hover { text-decoration: underline; }
 
 .editor-actions {
+    flex: 0 0 auto;
     display: flex;
     align-items: center;
     justify-content: flex-end;
@@ -590,3 +619,57 @@ body {
 }
 
 .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 860px) {
+    .view-head h1 { font-size: 18px; }
+
+    .about-meta { grid-template-columns: 1fr; }
+
+    .editor-actions,
+    .card-foot,
+    .setting-row { flex-wrap: wrap; }
+
+    .card-foot {
+        gap: 6px 12px;
+        align-items: flex-start;
+    }
+
+    .card-tools { gap: 2px; }
+
+    .prompt-wrap textarea,
+    .card-body textarea { resize: vertical; }
+}
+
+/* Compact sidebar: hide brand title + nav labels, show icons only */
+@media (max-width: 640px) {
+    .side {
+        width: 56px;
+        flex-basis: 56px;
+        padding: 16px 10px;
+    }
+
+    .brand {
+        justify-content: center;
+        padding-left: 0;
+        padding-right: 0;
+    }
+
+    .brand-text { display: none; }
+
+    .nav-item {
+        justify-content: center;
+        padding: 9px 0;
+    }
+
+    .nav-item span { display: none; }
+
+    .btn-quit { font-size: 12px; }
+}
+
+/* Shorter windows: reclaim vertical space */
+@media (max-height: 580px) {
+    .editor { padding: 12px; }
+    .view-head h1 { font-size: 17px; }
+}
