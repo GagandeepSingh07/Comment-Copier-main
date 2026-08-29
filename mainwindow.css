@@ -370,7 +370,9 @@ body {
 .card-body textarea {
     width: 100%;
     min-height: 60px;
-    resize: vertical;
+    height: auto;
+    resize: none;
+    overflow: hidden;
     background: #010409;
     color: var(--text);
     border: 1px solid #30363d;
@@ -1188,8 +1190,7 @@ body.theme-light .comment-card .card-usage { color: #9a6700; background: rgba(15
 
     .card-tools { gap: 2px; }
 
-    .prompt-wrap textarea,
-    .card-body textarea { resize: vertical; }
+    .prompt-wrap textarea { resize: vertical; }
 }
 
 /* Compact sidebar: hide brand title + nav labels, show icons only */

@@ -195,6 +195,7 @@ function createCard(key, index) {
     ta.spellcheck = false;
     ta.value = list[index];
     ta.addEventListener('input', () => {
+        autosizeTextarea(ta);
         list[index] = ta.value;
         updateCardCount(card, ta.value);
         const hasTokens = placeholderTokens(ta.value).length > 0;
@@ -217,6 +218,7 @@ function createCard(key, index) {
         }
     });
     body.appendChild(ta);
+    autosizeTextarea(ta);
 
     const preview = document.createElement('div');
     preview.className = 'card-preview hidden';
@@ -279,6 +281,12 @@ function createCard(key, index) {
     tools.querySelector('[data-action="delete"]').addEventListener('click', () => deleteComment(key, index));
 
     return card;
+}
+
+function autosizeTextarea(ta) {
+    if (!ta) return;
+    ta.style.height = 'auto';
+    ta.style.height = ta.scrollHeight + 'px';
 }
 
 function updateCardCount(card, text) {
@@ -1393,3 +1401,11 @@ loadStartupSetting();
 loadHotkeySetting();
 refreshAboutInfo();
 syncHeight();
+
+// Re-fit auto-sized comment boxes when the window (and therefore the card
+// width and line-wrapping) changes.
+window.addEventListener('resize', () => {
+    requestAnimationFrame(() => {
+        document.querySelectorAll('#comment-list .card-body textarea').forEach((ta) => autosizeTextarea(ta));
+    });
+});
