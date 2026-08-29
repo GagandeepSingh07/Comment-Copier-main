@@ -150,10 +150,6 @@ body {
     min-height: 0;
 }
 
-.view-head { margin-bottom: 18px; }
-.view-head h1 { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
-.view-sub { color: var(--muted); font-size: 12.5px; }
-
 /* ---------- Editor ---------- */
 
 .editor {
@@ -823,8 +819,6 @@ body {
 /* ---------- Responsive ---------- */
 
 @media (max-width: 860px) {
-    .view-head h1 { font-size: 18px; }
-
     .editor-actions,
     .card-foot,
     .setting-row { flex-wrap: wrap; }
@@ -869,5 +863,4 @@ body {
 /* Shorter windows: reclaim vertical space */
 @media (max-height: 580px) {
     .editor { padding: 12px; }
-    .view-head h1 { font-size: 17px; }
 }

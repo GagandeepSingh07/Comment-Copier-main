@@ -1014,8 +1014,7 @@ rowsEl.addEventListener('click', (e) => {
         const row = actBtn.closest('.row');
         if (!row || row.classList.contains('disabled')) return;
         const act = actBtn.dataset.act;
-        if (act === 'copy') handleCopy(row.dataset.key);
-        else if (act === 'prev') prevComment(row.dataset.key);
+        if (act === 'prev') prevComment(row.dataset.key);
         else if (act === 'reset') resetComment(row.dataset.key);
         return;
     }
