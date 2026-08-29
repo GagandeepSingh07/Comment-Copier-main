@@ -359,13 +359,13 @@ function renderInfoMeta(info) {
 }
 
 function renderChangelog(changelog) {
-    const toggle = document.querySelector('.info-section-toggle[data-about-section="changelog"]');
+    const wrap = document.getElementById('mw-changelog-card');
     if (!Array.isArray(changelog) || !changelog.length) {
-        if (toggle) toggle.style.display = 'none';
+        if (wrap) wrap.style.display = 'none';
         return;
     }
-    if (toggle) toggle.style.display = '';
-    infoChangelog.innerHTML = changelog.map((entry) => {
+    if (wrap) wrap.style.display = '';
+    infoChangelog.innerHTML = changelog.slice(0, 1).map((entry) => {
         let body = '';
         if (Array.isArray(entry.categories) && entry.categories.length) {
             body = entry.categories.map((cat) =>
@@ -464,15 +464,6 @@ addInput.addEventListener('keydown', (e) => {
 });
 restoreBtn.addEventListener('click', restoreDefaults);
 promptBtn.addEventListener('click', copyPrompt);
-document.querySelectorAll('.info-section-toggle').forEach((btn) => {
-    btn.addEventListener('click', () => {
-        const body = document.querySelector('.about-section-body[data-about-body="' + btn.dataset.aboutSection + '"]');
-        const willOpen = !btn.classList.contains('open');
-        btn.classList.toggle('open', willOpen);
-        btn.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
-        if (body) body.classList.toggle('hidden', !willOpen);
-    });
-});
 resetBtn.addEventListener('click', handleReset);
 layoutPickerOptions.forEach((b) => {
     b.addEventListener('click', () => {

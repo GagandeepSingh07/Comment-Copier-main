@@ -71,10 +71,7 @@
         </section>
 
         <section class="view" data-view-panel="settings">
-            <div class="view-head">
-                <h1>Settings</h1>
-                <p class="view-sub">App-wide preferences and data management.</p>
-            </div>
+            
             <div class="settings-block">
                 <div class="setting-row">
                     <div class="setting-info">
@@ -107,26 +104,23 @@
         </section>
 
         <section class="view" data-view-panel="about">
-            <div class="view-head">
-                <h1>About</h1>
-                <p class="view-sub">Information about this app.</p>
-            </div>
-            <div class="about-card">
-                <div class="about-head">
-                    <img class="about-icon" src="build/icon.png" alt="">
-                    <div>
-                        <div class="about-name" id="mw-info-name">Comment Copier</div>
-                        <div class="about-version" id="mw-info-version"></div>
-                    </div>
+
+            <div class="about-hero">
+                <img class="about-hero-icon" src="build/icon.png" alt="">
+                <div class="about-hero-titles">
+                    <div class="about-hero-name" id="mw-info-name">Comment Copier</div>
+                    <span class="version-pill" id="mw-info-version"></span>
                 </div>
-                <div class="about-desc" id="mw-info-desc"></div>
-                <div class="about-meta" id="mw-info-meta"></div>
+                <div class="about-hero-desc" id="mw-info-desc"></div>
             </div>
-            <div class="about-section">
-                <button type="button" class="info-section-toggle" data-about-section="changelog" aria-expanded="false">
-                    <span>What&rsquo;s new</span><span class="chevron"></span>
-                </button>
-                <div class="about-section-body hidden" data-about-body="changelog">
+
+            <div class="about-cards">
+                <div class="about-card">
+                    <div class="about-card-title">Details</div>
+                    <div class="about-meta" id="mw-info-meta"></div>
+                </div>
+                <div class="about-card" id="mw-changelog-card">
+                    <div class="about-card-title">What&rsquo;s new</div>
                     <div class="info-changelog" id="mw-info-changelog"></div>
                 </div>
             </div>
