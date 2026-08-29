@@ -840,35 +840,10 @@ body.theme-light .theme-option.active { color: #ffffff; }
     gap: 4px;
 }
 
-.hotkey-control input {
-    width: 180px;
-    padding: 7px 10px;
-    background: #010409;
-    color: var(--text);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    font-size: 12.5px;
-    font-family: inherit;
-    outline: none;
+.hotkey-capture {
+    min-width: 180px;
+    justify-content: center;
 }
-
-body.theme-light .hotkey-control input { background: #f6f8fa; }
-
-.hotkey-control input:focus { border-color: var(--accent); }
-
-.hotkey-clear {
-    width: 24px;
-    height: 24px;
-    background: transparent;
-    color: var(--muted);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    font-size: 15px;
-    line-height: 1;
-    cursor: pointer;
-}
-
-.hotkey-clear:hover { color: var(--text); border-color: #484f58; }
 
 .backup-actions {
     flex: 0 0 auto;

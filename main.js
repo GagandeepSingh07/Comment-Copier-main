@@ -31,6 +31,7 @@ const CHANGELOG = [
                 heading: 'New',
                 notes: [
                     'Shortcuts are now editable: open the Shortcuts page, click a shortcut, and press the new key combination to rebind it (must include Ctrl, Shift, or Alt).',
+                    'The global hotkey works the same way: click it, then press the key combination to use (or click the \u00d7 to remove it).',
                     'Shortcuts persist between launches and are included in Backup/Restore.',
                     'You can reset any shortcut back to its default with its reset button.',
                 ],

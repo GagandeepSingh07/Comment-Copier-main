@@ -773,32 +773,76 @@ async function loadStartupSetting() {
 
 /* ---------- Global hotkey ---------- */
 
+let globalCapturing = false;
+
+function renderGlobalHotkey() {
+    if (globalCapturing) return;
+    hotkeyInput.className = 'shortcut-capture hotkey-capture';
+    const acc = hotkeyInput.dataset.acc || '';
+    hotkeyInput.textContent = acc ? displayAccel(acc) : 'Click to set';
+    hotkeyClear.disabled = !acc;
+}
+
 async function loadHotkeySetting() {
     if (!window.mainWindowAPI || typeof window.mainWindowAPI.getGlobalHotkey !== 'function') return;
     try {
         const acc = await window.mainWindowAPI.getGlobalHotkey();
-        hotkeyInput.value = acc || '';
+        hotkeyInput.dataset.acc = acc || '';
+        renderGlobalHotkey();
     } catch (e) {}
 }
 
-function normalizeAccelerator(acc) {
-    let a = String(acc || '').trim();
-    if (!a) return '';
-    a = a.replace(/\s*\+\s*/g, '+');
-    return a;
-}
-
-async function applyHotkey() {
-    if (!window.mainWindowAPI || typeof window.mainWindowAPI.setGlobalHotkey !== 'function') return;
-    const acc = normalizeAccelerator(hotkeyInput.value);
-    const result = await window.mainWindowAPI.setGlobalHotkey(acc);
+async function applyHotkey(acc) {
+    if (!window.mainWindowAPI || typeof window.mainWindowAPI.setGlobalHotkey !== 'function') return false;
+    const result = await window.mainWindowAPI.setGlobalHotkey(acc || '');
     if (result && result.ok) {
-        hotkeyInput.value = result.accelerator || acc;
-        showToast(result.registered ? `Hotkey set: ${result.accelerator}` : 'Hotkey removed.');
+        hotkeyInput.dataset.acc = result.accelerator || '';
+        renderGlobalHotkey();
+        if (result.registered) showToast(`Global hotkey set: ${displayAccel(result.accelerator)}`);
+        else if (!acc) showToast('Global hotkey removed.');
+        return true;
     } else if (result && result.error) {
         showToast(result.error);
-        hotkeyInput.value = result.current || acc;
+        if (result.current) hotkeyInput.dataset.acc = result.current;
+        renderGlobalHotkey();
+        return false;
     }
+    return false;
+}
+
+function startGlobalCapture() {
+    if (globalCapturing) return;
+    // End any in-window shortcut capture first so the two don't fight.
+    if (capturingAction) stopCapture();
+    globalCapturing = true;
+    hotkeyInput.classList.add('capturing');
+    hotkeyInput.textContent = 'Press keys\u2026';
+}
+
+function stopGlobalCapture() {
+    if (!globalCapturing) return;
+    globalCapturing = false;
+    renderGlobalHotkey();
+}
+
+function handleGlobalCaptureKey(e) {
+    if (!globalCapturing) return;
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.key === 'Escape') {
+        stopGlobalCapture();
+        hotkeyInput.focus();
+        return;
+    }
+    const hasMod = e.ctrlKey || e.metaKey || e.shiftKey || e.altKey;
+    if (!hasMod) {
+        showToast('Include Ctrl, Shift, or Alt.');
+        return;
+    }
+    const accel = eventToAccel(e);
+    if (!accel) return;
+    stopGlobalCapture();
+    applyHotkey(displayAccel(accel));
 }
 
 /* ---------- Backup / Restore ---------- */
@@ -882,9 +926,6 @@ async function importBackup() {
     loadThemeSetting();
     loadHotkeySetting();
     renderShortcutRows();
-    if (hotkeyInput.value && window.mainWindowAPI && typeof window.mainWindowAPI.setGlobalHotkey === 'function') {
-        await window.mainWindowAPI.setGlobalHotkey(normalizeAccelerator(hotkeyInput.value));
-    }
     showToast('Data restored.');
 }
 
@@ -1072,21 +1113,23 @@ startupToggle.addEventListener('click', async () => {
         }
     }
 });
-let hotkeyTimer = null;
-hotkeyInput.addEventListener('input', () => {
-    clearTimeout(hotkeyTimer);
-    hotkeyTimer = setTimeout(applyHotkey, 700);
-});
-hotkeyInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') {
-        e.preventDefault();
-        clearTimeout(hotkeyTimer);
-        applyHotkey();
+hotkeyInput.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (globalCapturing) {
+        stopGlobalCapture();
+    } else {
+        startGlobalCapture();
     }
 });
-hotkeyClear.addEventListener('click', () => {
-    hotkeyInput.value = '';
-    applyHotkey();
+hotkeyClear.addEventListener('click', (e) => {
+    e.stopPropagation();
+    stopGlobalCapture();
+    applyHotkey('');
+});
+document.addEventListener('click', (e) => {
+    if (globalCapturing && !hotkeyInput.contains(e.target)) {
+        stopGlobalCapture();
+    }
 });
 backupBtn.addEventListener('click', exportBackup);
 restoreBtn2.addEventListener('click', importBackup);
@@ -1235,6 +1278,8 @@ function shortcutIsDefault(action, current) {
 }
 
 function startCapture(action, captureEl) {
+    // Abandon an active global-hotkey capture so the two don't fight.
+    if (globalCapturing) stopGlobalCapture();
     // Abandon any other active capture without re-rendering (which would
     // detach the element we're about to capture into).
     if (capturingEl && capturingEl !== captureEl) {
@@ -1313,14 +1358,16 @@ function resetShortcut(action) {
 }
 
 document.addEventListener('keydown', (e) => {
-    // If we're capturing a new shortcut, consume the keystroke entirely.
+    // If we're capturing a new in-window shortcut, consume the keystroke entirely.
     if (capturingAction) {
         captureKeydown(e);
         return;
     }
-    // The global-hotkey field captures raw key combinations as text, so the
-    // app-wide shortcuts must not steal keystrokes from it.
-    if (e.target === hotkeyInput) return;
+    // If we're capturing the global hotkey, consume the keystroke entirely.
+    if (globalCapturing) {
+        handleGlobalCaptureKey(e);
+        return;
+    }
     const action = matchShortcut(e);
     if (action && runShortcut(action)) e.preventDefault();
 });
