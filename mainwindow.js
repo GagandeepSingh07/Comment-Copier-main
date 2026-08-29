@@ -27,6 +27,9 @@ const infoVersion = document.getElementById('mw-info-version');
 const infoDesc = document.getElementById('mw-info-desc');
 const infoMeta = document.getElementById('mw-info-meta');
 const infoChangelog = document.getElementById('mw-info-changelog');
+const githubLink = document.getElementById('mw-github-link');
+const developerEl = document.getElementById('mw-developer');
+const updateBtn = document.getElementById('mw-update-btn');
 const resetBtn = document.getElementById('mw-reset');
 const layoutPickerOptions = document.querySelectorAll('#mw-layout-picker .layout-picker-option');
 const dateFirstToggle = document.getElementById('mw-date-first');
@@ -339,14 +342,50 @@ async function copyPrompt() {
     showToast('Prompt copied to clipboard');
 }
 
+function commentCountsText() {
+    let data = null;
+    try {
+        data = JSON.parse(localStorage.getItem(STORAGE_KEY));
+    } catch (e) {
+        data = null;
+    }
+    const parts = [];
+    let total = 0;
+    categories.forEach((key) => {
+        const list = data && data[key] && Array.isArray(data[key].comments)
+            ? data[key].comments
+            : DEFAULTS[key];
+        parts.push(`${LABELS[key]} ${list.length}`);
+        total += list.length;
+    });
+    return `${parts.join(' \u00b7 ')} (${total} total)`;
+}
+
+function dataSizeText() {
+    let total = 0;
+    for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        const value = localStorage.getItem(key);
+        total += (key.length + (value ? value.length : 0)) * 2;
+    }
+    if (total < 1024) return `${total} B`;
+    if (total < 1024 * 1024) return `${(total / 1024).toFixed(1)} kB`;
+    return `${(total / (1024 * 1024)).toFixed(2)} MB`;
+}
+
 function renderInfoMeta(info) {
     const rows = [
         ['Author', info.author],
         ['License', info.license],
         ['OS', info.platform],
+        ['Resolution', info.resolution],
         ['Electron', info.electron],
         ['Chromium', info.chrome],
         ['Node', info.node],
+        ['Comments saved', commentCountsText()],
+        ['Data size', dataSizeText()],
+        ['Copies', info.copyCount],
+        ['Install path', info.exePath],
         ['Data', info.userData],
         ['Build', info.buildDate],
     ];
@@ -365,7 +404,7 @@ function renderChangelog(changelog) {
         return;
     }
     if (wrap) wrap.style.display = '';
-    infoChangelog.innerHTML = changelog.slice(0, 1).map((entry) => {
+    infoChangelog.innerHTML = changelog.slice(0, 3).map((entry) => {
         let body = '';
         if (Array.isArray(entry.categories) && entry.categories.length) {
             body = entry.categories.map((cat) =>
@@ -414,6 +453,47 @@ function loadDateFirstSetting() {
 function setView(name) {
     navItems.forEach((b) => b.classList.toggle('active', b.dataset.view === name));
     panels.forEach((p) => p.classList.toggle('active', p.dataset.viewPanel === name));
+    if (name === 'about') refreshAboutInfo();
+}
+
+async function refreshAboutInfo() {
+    if (!window.mainWindowAPI || typeof window.mainWindowAPI.getAppInfo !== 'function') return;
+    const info = await window.mainWindowAPI.getAppInfo();
+    if (!info) return;
+    aboutVersion.textContent = `v${info.version}`;
+    infoName.textContent = info.name;
+    infoVersion.textContent = `Version ${info.version}`;
+    infoDesc.textContent = info.description;
+    renderInfoMeta(info);
+    renderChangelog(info.changelog);
+    if (githubLink) githubLink.href = info.repository || githubLink.href;
+    if (developerEl) developerEl.textContent = info.author;
+}
+
+async function checkForUpdates() {
+    if (!window.mainWindowAPI || typeof window.mainWindowAPI.checkForUpdates !== 'function') {
+        showToast('Update check unavailable.');
+        return;
+    }
+    updateBtn.disabled = true;
+    updateBtn.textContent = 'Checking\u2026';
+    let result = null;
+    try {
+        result = await window.mainWindowAPI.checkForUpdates();
+    } catch (e) {
+        result = null;
+    }
+    updateBtn.disabled = false;
+    updateBtn.textContent = 'Check for updates';
+    if (!result || !result.ok) {
+        showToast(result && result.error ? result.error : 'Update check failed.');
+        return;
+    }
+    if (result.updateAvailable) {
+        showToast(`Update available: v${result.latest} (you have v${result.current}).`);
+    } else {
+        showToast(`Up to date \u2014 you\u2019re on v${result.current}.`);
+    }
 }
 
 let toastTimer = null;
@@ -465,6 +545,13 @@ addInput.addEventListener('keydown', (e) => {
 restoreBtn.addEventListener('click', restoreDefaults);
 promptBtn.addEventListener('click', copyPrompt);
 resetBtn.addEventListener('click', handleReset);
+updateBtn.addEventListener('click', checkForUpdates);
+githubLink.addEventListener('click', (e) => {
+    if (window.mainWindowAPI && typeof window.mainWindowAPI.openExternal === 'function') {
+        e.preventDefault();
+        window.mainWindowAPI.openExternal(githubLink.href);
+    }
+});
 layoutPickerOptions.forEach((b) => {
     b.addEventListener('click', () => {
         localStorage.setItem(LAYOUT_KEY, b.dataset.layout);
@@ -490,15 +577,5 @@ updateCounts();
 setDirty(false);
 loadLayoutSetting();
 loadDateFirstSetting();
-if (window.mainWindowAPI && typeof window.mainWindowAPI.getAppInfo === 'function') {
-    window.mainWindowAPI.getAppInfo().then((info) => {
-        if (!info) return;
-        aboutVersion.textContent = `v${info.version}`;
-        infoName.textContent = info.name;
-        infoVersion.textContent = `Version ${info.version}`;
-        infoDesc.textContent = info.description;
-        renderInfoMeta(info);
-        renderChangelog(info.changelog);
-    });
-}
+refreshAboutInfo();
 syncHeight();

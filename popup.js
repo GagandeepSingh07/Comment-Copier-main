@@ -228,10 +228,10 @@ function getDateFirstSetting() {
     return saved === null ? true : saved !== '0';
 }
 
-async function writeClipboard(text) {
+async function writeClipboard(text, count) {
     if (window.popupAPI && typeof window.popupAPI.copyText === 'function') {
         try {
-            return await window.popupAPI.copyText(text);
+            return await window.popupAPI.copyText(text, count !== false);
         } catch (e) {
             return false;
         }
@@ -268,7 +268,7 @@ async function handleCopy(key) {
         pushQuickState();
         return;
     }
-    const ok = await writeClipboard(buildDateLine());
+    const ok = await writeClipboard(buildDateLine(), false);
     if (!ok) {
         if (window.popupAPI && typeof window.popupAPI.reportCopyResult === 'function') {
             window.popupAPI.reportCopyResult({ ok: false, label });

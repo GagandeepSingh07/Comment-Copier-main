@@ -1,6 +1,7 @@
-const { app, BrowserWindow, ipcMain, clipboard, Tray, screen, dialog } = require('electron');
+const { app, BrowserWindow, ipcMain, clipboard, Tray, screen, dialog, shell } = require('electron');
 const path = require('path');
 const fs = require('fs');
+const https = require('https');
 
 app.commandLine.appendSwitch('disable-gpu-cache');
 app.commandLine.appendSwitch('disk-cache-size', '0');
@@ -209,6 +210,22 @@ let quickState = [];
 // Anything before or after this pattern in the filename is ignored.
 const UNIT_CODE_PATTERN = /[A-Za-z]{2,10}\d{2,6}/;
 
+let stats = { copyCount: 0 };
+const statsFile = () => path.join(app.getPath('userData'), 'stats.json');
+function loadStats() {
+    try {
+        stats = JSON.parse(fs.readFileSync(statsFile(), 'utf8'));
+    } catch (e) {
+        stats = { copyCount: 0 };
+    }
+    if (typeof stats.copyCount !== 'number') stats.copyCount = 0;
+}
+function saveStats() {
+    try {
+        fs.writeFileSync(statsFile(), JSON.stringify(stats));
+    } catch (e) {}
+}
+
 function deriveOrganizerFolderName(fileName) {
     const match = fileName.match(UNIT_CODE_PATTERN);
     if (match) {
@@ -241,27 +258,96 @@ function safeMoveSync(src, dest) {
     }
 }
 
-ipcMain.handle('comment-copier:copy', (event, text) => {
+ipcMain.handle('comment-copier:copy', (event, text, count) => {
     clipboard.writeText(text);
+    if (count !== false) {
+        stats.copyCount++;
+        saveStats();
+    }
     return true;
 });
 
 ipcMain.handle('comment-copier:app-info', () => {
     const platform = PLATFORM_NAMES[process.platform] || process.platform;
+    const display = screen.getPrimaryDisplay();
     return {
         name: 'Comment Copier',
         version: app.getVersion(),
         description: 'Comment Copier \u2014 Unique Every Time. Copy unique accept/reject comments for grading.',
         author: '@gagan.design.07',
         license: 'MIT',
+        repository: 'https://github.com/GagandeepSingh07/Comment-Copier-main',
         electron: process.versions.electron,
         chrome: process.versions.chrome,
         node: process.versions.node,
         platform: `${platform} ${process.arch === 'x64' ? 'x64' : process.arch}`,
+        resolution: `${display.size.width} x ${display.size.height}`,
+        exePath: app.getPath('exe'),
         userData: app.getPath('userData'),
         buildDate: appBuildDate(),
+        copyCount: stats.copyCount,
         changelog: CHANGELOG,
     };
+});
+
+ipcMain.handle('comment-copier:open-external', (event, url) => {
+    if (typeof url === 'string' && /^https?:\/\//i.test(url)) {
+        shell.openExternal(url);
+        return true;
+    }
+    return false;
+});
+
+function isNewerVersion(latest, current) {
+    const pa = String(latest).split('.').map(Number);
+    const pb = String(current).split('.').map(Number);
+    for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
+        const a = pa[i] || 0;
+        const b = pb[i] || 0;
+        if (a > b) return true;
+        if (a < b) return false;
+    }
+    return false;
+}
+
+ipcMain.handle('comment-copier:check-updates', () => {
+    return new Promise((resolve) => {
+        const url = 'https://api.github.com/repos/GagandeepSingh07/Comment-Copier-main/releases/latest';
+        const req = https.get(url, {
+            headers: { 'User-Agent': 'Comment Copier', Accept: 'application/vnd.github+json' },
+        }, (res) => {
+            let body = '';
+            res.on('data', (chunk) => { body += chunk; });
+            res.on('end', () => {
+                if (res.statusCode !== 200) {
+                    resolve({
+                        ok: false,
+                        error: res.statusCode === 404
+                            ? 'No releases on GitHub yet.'
+                            : 'Update check failed.',
+                    });
+                    return;
+                }
+                try {
+                    const data = JSON.parse(body);
+                    const latest = String(data.tag_name || '').replace(/^v/i, '');
+                    const current = app.getVersion();
+                    if (!latest) {
+                        resolve({ ok: false, error: 'Could not read the latest release.' });
+                        return;
+                    }
+                    resolve({ ok: true, latest, current, updateAvailable: isNewerVersion(latest, current) });
+                } catch (e) {
+                    resolve({ ok: false, error: 'Could not read the latest release.' });
+                }
+            });
+        });
+        req.on('error', () => resolve({ ok: false, error: 'Network error \u2014 check your connection.' }));
+        req.setTimeout(10000, () => {
+            req.destroy();
+            resolve({ ok: false, error: 'Update check timed out.' });
+        });
+    });
 });
 
 ipcMain.handle('comment-copier:copy-sheet', (event, html, text) => {
@@ -620,6 +706,7 @@ app.on('second-instance', () => {
 });
 
 app.whenReady().then(() => {
+    loadStats();
     createPopup();
     createTray();
 });
