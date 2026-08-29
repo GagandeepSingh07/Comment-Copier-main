@@ -24,6 +24,10 @@
                 <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 4.754a3.246 3.246 0 1 0 0 6.492 3.246 3.246 0 0 0 0-6.492zM5.754 8a2.246 2.246 0 1 1 4.492 0 2.246 2.246 0 0 1-4.492 0z"/><path d="M9.796 1.343c-.527-1.79-3.065-1.79-3.592 0l-.094.319a.873.873 0 0 1-1.255.52l-.292-.16c-1.64-.892-3.433.902-2.54 2.541l.159.292a.873.873 0 0 1-.52 1.255l-.319.094c-1.79.527-1.79 3.065 0 3.592l.319.094a.873.873 0 0 1 .52 1.255l-.16.292c-.892 1.64.901 3.434 2.541 2.54l.292-.159a.873.873 0 0 1 1.255.52l.094.319c.527 1.79 3.065 1.79 3.592 0l.094-.319a.873.873 0 0 1 1.255-.52l.292.16c1.64.893 3.434-.902 2.54-2.541l-.159-.292a.873.873 0 0 1 .52-1.255l.319-.094c1.79-.527 1.79-3.065 0-3.592l-.319-.094a.873.873 0 0 1-.52-1.255l.16-.292c.893-1.64-.902-3.433-2.541-2.54l-.292.159a.873.873 0 0 1-1.255-.52l-.094-.319zm-2.633.283c.246-.835 1.428-.835 1.674 0l.094.319a1.873 1.873 0 0 0 2.693 1.115l.291-.16c.764-.415 1.6.42 1.184 1.185l-.159.292a1.873 1.873 0 0 0 1.116 2.692l.318.094c.835.246.835 1.428 0 1.674l-.319.094a1.873 1.873 0 0 0-1.115 2.693l.16.291c.415.764-.42 1.6-1.185 1.184l-.291-.159a1.873 1.873 0 0 0-2.693 1.116l-.094.318c-.246.835-1.428.835-1.674 0l-.094-.319a1.873 1.873 0 0 0-2.692-1.115l-.292.16c-.764.415-1.6-.42-1.184-1.185l.159-.291A1.873 1.873 0 0 0 1.945 8.93l-.319-.094c-.835-.246-.835-1.428 0-1.674l.319-.094A1.873 1.873 0 0 0 3.06 4.377l-.16-.292c-.415-.764.42-1.6 1.185-1.184l.292.159a1.873 1.873 0 0 0 2.692-1.115l.094-.319z"/></svg>
                 <span>Settings</span>
             </button>
+            <button type="button" class="nav-item" data-view="shortcuts">
+                <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><rect x="1.5" y="3.5" width="13" height="9" rx="1.5"/><path d="M4 6.2h.01M6.4 6.2h.01M8.8 6.2h.01M11.2 6.2h.01M4 8.6h.01M6.4 8.6h.01M8.8 8.6h.01M11.2 8.6h.01" stroke-linecap="round"/><path d="M4.5 11h7" stroke-linecap="round"/></svg>
+                <span>Shortcuts</span>
+            </button>
             <button type="button" class="nav-item" data-view="about">
                 <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><circle cx="8" cy="8" r="6.2"/><path d="M8 7.5V11M8 5.2h.01"/></svg>
                 <span>About</span>
@@ -118,16 +122,6 @@
                 </div>
                 <div class="setting-row">
                     <div class="setting-info">
-                        <div class="setting-title">Global hotkey</div>
-                        <div class="setting-desc">A keyboard shortcut that opens the tray popup from anywhere. Leave blank to use the tray icon only.</div>
-                    </div>
-                    <div class="hotkey-control">
-                        <input id="mw-hotkey-input" placeholder="e.g. Ctrl+Shift+C" spellcheck="false" autocomplete="off">
-                        <button type="button" class="hotkey-clear" id="mw-hotkey-clear" title="Clear hotkey">&times;</button>
-                    </div>
-                </div>
-                <div class="setting-row">
-                    <div class="setting-info">
                         <div class="setting-title">Backup &amp; restore</div>
                         <div class="setting-desc">Export all comment lists, the prompt, student details, and settings to a JSON file, or load them back in.</div>
                     </div>
@@ -142,6 +136,35 @@
                         <div class="setting-desc">Clear all saved comment lists, prompt, and student details back to defaults.</div>
                     </div>
                     <button type="button" class="btn-reset" id="mw-reset">Reset app data</button>
+                </div>
+            </div>
+        </section>
+
+        <section class="view" data-view-panel="shortcuts">
+            <div class="settings-block">
+                <div class="setting-row">
+                    <div class="setting-info">
+                        <div class="setting-title">Global hotkey</div>
+                        <div class="setting-desc">A keyboard shortcut that opens the tray popup from anywhere. Leave blank to use the tray icon only.</div>
+                    </div>
+                    <div class="hotkey-control">
+                        <input id="mw-hotkey-input" placeholder="e.g. Ctrl+Shift+C" spellcheck="false" autocomplete="off">
+                        <button type="button" class="hotkey-clear" id="mw-hotkey-clear" title="Clear hotkey">&times;</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-block shortcuts-block">
+                <div class="shortcuts-title">Keyboard shortcuts</div>
+                <div class="shortcuts-subtitle">Click a shortcut, then press the new key combination. Each must include Ctrl, Shift, or Alt.</div>
+                <div id="shortcuts-editable"></div>
+                <div class="shortcut-row shortcut-static">
+                    <span class="shortcut-desc">Save changes while editing a comment</span>
+                    <span class="shortcut-keys"><kbd>Ctrl</kbd><kbd>Enter</kbd></span>
+                </div>
+                <div class="shortcut-row shortcut-static">
+                    <span class="shortcut-desc">Add the typed comment / apply the typed hotkey</span>
+                    <span class="shortcut-keys"><kbd>Enter</kbd></span>
                 </div>
             </div>
         </section>

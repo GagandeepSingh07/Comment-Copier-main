@@ -692,6 +692,113 @@ body {
 
 .btn-reset:hover { background: rgba(248, 81, 73, 0.12); }
 
+.shortcuts-block { margin-top: 16px; padding: 16px 20px; }
+
+.shortcuts-title {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--muted);
+    margin-bottom: 12px;
+}
+
+.shortcut-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 9px 0;
+    border-bottom: 1px solid var(--border);
+}
+
+.shortcut-row:last-child { border-bottom: none; }
+
+.shortcut-desc {
+    color: var(--text);
+    font-size: 13px;
+}
+
+.shortcut-keys {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.shortcut-keys kbd {
+    background: #010409;
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-bottom-width: 2px;
+    border-radius: 6px;
+    padding: 3px 8px;
+    font-family: inherit;
+    font-size: 11.5px;
+    font-weight: 600;
+    line-height: 1.4;
+}
+
+body.theme-light .shortcut-keys kbd { background: #f6f8fa; }
+
+.shortcuts-subtitle {
+    color: var(--muted);
+    font-size: 12px;
+    margin-bottom: 12px;
+    line-height: 1.5;
+}
+
+.shortcut-static .shortcut-desc { color: var(--muted); }
+
+.shortcut-edit { flex-direction: row; }
+
+.shortcut-control {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.shortcut-capture {
+    min-width: 120px;
+    padding: 6px 12px;
+    background: #010409;
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 12.5px;
+    font-weight: 600;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+body.theme-light .shortcut-capture { background: #f6f8fa; }
+
+.shortcut-capture:hover { border-color: var(--accent); }
+
+.shortcut-capture.capturing {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px rgba(88, 166, 255, 0.2);
+    color: var(--accent);
+}
+
+.shortcut-reset {
+    width: 28px;
+    height: 28px;
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    font-size: 14px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.shortcut-reset:hover:not(:disabled) { color: var(--text); border-color: #484f58; }
+.shortcut-reset:disabled { opacity: 0.35; cursor: default; }
+
 .theme-picker {
     flex: 0 0 auto;
     display: flex;

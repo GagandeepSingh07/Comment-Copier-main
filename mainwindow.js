@@ -823,6 +823,7 @@ function buildBackupPayload() {
     try {
         payload[USAGE_KEY] = JSON.parse(localStorage.getItem(USAGE_KEY));
     } catch (e) {}
+    payload[SHORTCUTS_KEY] = localStorage.getItem(SHORTCUTS_KEY);
     return payload;
 }
 
@@ -871,6 +872,7 @@ async function importBackup() {
     apply(THEME_KEY, data[THEME_KEY]);
     apply(HOTKEY_KEY, data[HOTKEY_KEY]);
     apply(USAGE_KEY, data[USAGE_KEY]);
+    apply(SHORTCUTS_KEY, data[SHORTCUTS_KEY]);
     load();
     loadPrompt();
     renderList();
@@ -879,6 +881,7 @@ async function importBackup() {
     loadDateFirstSetting();
     loadThemeSetting();
     loadHotkeySetting();
+    renderShortcutRows();
     if (hotkeyInput.value && window.mainWindowAPI && typeof window.mainWindowAPI.setGlobalHotkey === 'function') {
         await window.mainWindowAPI.setGlobalHotkey(normalizeAccelerator(hotkeyInput.value));
     }
@@ -1088,35 +1091,242 @@ hotkeyClear.addEventListener('click', () => {
 backupBtn.addEventListener('click', exportBackup);
 restoreBtn2.addEventListener('click', importBackup);
 
-document.addEventListener('keydown', (e) => {
-    // The hotkey field's whole purpose is to capture raw key combinations
-    // (including Ctrl+N/F/B) as text — don't let the app-wide shortcuts
-    // below steal that keystroke away from it.
-    if (e.target === hotkeyInput) return;
-    const mod = e.ctrlKey || e.metaKey;
-    if (!mod) return;
-    const k = e.key.toLowerCase();
-    if (k === 'f' && e.shiftKey) return;
-    if (k === 'n') {
-        if (activeTab === 'prompt') return;
-        e.preventDefault();
+/* ---------- Rebindable in-window shortcuts ---------- */
+
+const SHORTCUT_ORDER = ['addComment', 'search', 'backup'];
+const shortcutsWrap = document.getElementById('shortcuts-editable');
+
+function getShortcuts() {
+    const out = Object.assign({}, DEFAULT_SHORTCUTS);
+    try {
+        const saved = JSON.parse(localStorage.getItem(SHORTCUTS_KEY));
+        if (saved && typeof saved === 'object') {
+            SHORTCUT_ORDER.forEach((a) => {
+                if (typeof saved[a] === 'string' && saved[a].trim()) out[a] = saved[a].trim();
+            });
+        }
+    } catch (e) {}
+    return out;
+}
+
+function saveShortcuts(s) {
+    localStorage.setItem(SHORTCUTS_KEY, JSON.stringify(s));
+}
+
+function canonicalAccel(a) {
+    if (!a) return '';
+    const parts = String(a).trim().split(/\s*\+\s*/).map((p) => p.trim().toLowerCase()).filter(Boolean);
+    const mods = [...new Set(parts
+        .filter((p) => p === 'ctrl' || p === 'shift' || p === 'alt' || p === 'cmd' || p === 'meta')
+        .map((p) => (p === 'cmd' || p === 'meta' ? 'ctrl' : p)))].sort();
+    const key = parts.find((p) => p !== 'ctrl' && p !== 'shift' && p !== 'alt' && p !== 'cmd' && p !== 'meta');
+    const segs = mods.slice();
+    if (key) segs.push(key);
+    return segs.join('+');
+}
+
+function normalizeCaptureKey(key) {
+    const map = {
+        ' ': 'space',
+        ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right',
+        Escape: 'esc', Enter: 'enter', Tab: 'tab', Backspace: 'backspace',
+        Delete: 'delete', Insert: 'insert', Home: 'home', End: 'end',
+        PageUp: 'pageup', PageDown: 'pagedown',
+    };
+    if (key in map) return map[key];
+    if (/^F\d{1,2}$/i.test(key)) return key.toLowerCase();
+    if (key.length === 1) return key.toLowerCase();
+    return key.toLowerCase();
+}
+
+// Build the canonical form of a keyboard event's combination.
+function eventToAccel(e) {
+    const mods = [];
+    if (e.ctrlKey || e.metaKey) mods.push('ctrl');
+    if (e.shiftKey) mods.push('shift');
+    if (e.altKey) mods.push('alt');
+    const key = normalizeCaptureKey(String(e.key));
+    const bare = ['control', 'shift', 'alt', 'meta', 'cmd'];
+    if (bare.includes(key)) return ''; // a modifier alone isn't a full shortcut
+    return mods.sort().join('+') + (key ? '+' + key : '');
+}
+
+// Which shortcut action does this event match (or null)?
+function matchShortcut(e) {
+    const accel = eventToAccel(e);
+    if (!accel) return null;
+    const shortcuts = getShortcuts();
+    for (const action of SHORTCUT_ORDER) {
+        if (shortcuts[action] && canonicalAccel(shortcuts[action]) === accel) return action;
+    }
+    return null;
+}
+
+// Execute a shortcut action. Returns true if handled.
+function runShortcut(action) {
+    if (action === 'addComment') {
+        if (activeTab === 'prompt') return false;
         addInput.focus();
         addInput.select();
-        return;
+        return true;
     }
-    if (k === 'f') {
-        if (activeTab === 'prompt') return;
-        e.preventDefault();
+    if (action === 'search') {
+        if (activeTab === 'prompt') return false;
         searchInput.focus();
         searchInput.select();
-        return;
+        return true;
     }
-    if (k === 'b') {
-        e.preventDefault();
+    if (action === 'backup') {
         exportBackup();
+        return true;
+    }
+    return false;
+}
+
+let capturingAction = null; // action id currently waiting for a keypress
+let capturingEl = null;
+
+function renderShortcutRows() {
+    shortcutsWrap.innerHTML = '';
+    const shortcuts = getShortcuts();
+    SHORTCUT_ORDER.forEach((action) => {
+        const row = document.createElement('div');
+        row.className = 'shortcut-row shortcut-edit';
+
+        const desc = document.createElement('span');
+        desc.className = 'shortcut-desc';
+        desc.textContent = SHORTCUT_LABELS[action];
+        row.appendChild(desc);
+
+        const control = document.createElement('span');
+        control.className = 'shortcut-control';
+
+        const capture = document.createElement('button');
+        capture.type = 'button';
+        capture.className = 'shortcut-capture' + (capturingAction === action ? ' capturing' : '');
+        capture.dataset.action = action;
+        capture.title = 'Click, then press the new key combination';
+        capture.textContent = shortcuts[action];
+        capture.addEventListener('click', () => startCapture(action, capture));
+        capture.addEventListener('blur', () => {
+            if (capturingAction === action) stopCapture();
+        });
+        control.appendChild(capture);
+
+        const reset = document.createElement('button');
+        reset.type = 'button';
+        reset.className = 'shortcut-reset';
+        reset.title = 'Reset to default';
+        reset.textContent = '\u21ba';
+        reset.disabled = shortcutIsDefault(action, shortcuts[action]);
+        reset.addEventListener('click', (e) => {
+            e.stopPropagation();
+            resetShortcut(action);
+        });
+        control.appendChild(reset);
+
+        row.appendChild(control);
+        shortcutsWrap.appendChild(row);
+    });
+}
+
+function shortcutIsDefault(action, current) {
+    return canonicalAccel(current) === canonicalAccel(DEFAULT_SHORTCUTS[action]);
+}
+
+function startCapture(action, captureEl) {
+    // Abandon any other active capture without re-rendering (which would
+    // detach the element we're about to capture into).
+    if (capturingEl && capturingEl !== captureEl) {
+        capturingEl.classList.remove('capturing');
+        const s = getShortcuts();
+        if (s[capturingAction]) capturingEl.textContent = s[capturingAction];
+    }
+    capturingAction = action;
+    capturingEl = captureEl;
+    captureEl.classList.add('capturing');
+    captureEl.textContent = 'Press keys\u2026';
+}
+
+function stopCapture() {
+    if (!capturingAction) return;
+    if (capturingEl) {
+        capturingEl.classList.remove('capturing');
+        const s = getShortcuts();
+        if (s[capturingAction]) capturingEl.textContent = s[capturingAction];
+    }
+    capturingAction = null;
+    capturingEl = null;
+    renderShortcutRows();
+}
+
+function captureKeydown(e) {
+    if (!capturingAction) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const hasMod = e.ctrlKey || e.metaKey || e.shiftKey || e.altKey;
+    if (!hasMod) {
+        showToast('Include Ctrl, Shift, or Alt.');
         return;
     }
+    const accel = eventToAccel(e);
+    if (!accel) return; // wait for a full combination
+    const shortcuts = getShortcuts();
+
+    // Reject a combination that collides with another rebindable action.
+    let conflict = null;
+    for (const other of SHORTCUT_ORDER) {
+        if (other !== capturingAction && shortcuts[other] && canonicalAccel(shortcuts[other]) === accel) {
+            conflict = other;
+            break;
+        }
+    }
+    if (conflict) {
+        showToast(`That shortcut is already used for "${SHORTCUT_LABELS[conflict].toLowerCase()}".`);
+        stopCapture();
+        return;
+    }
+    shortcuts[capturingAction] = displayAccel(accel);
+    saveShortcuts(shortcuts);
+    showToast(`Shortcut updated to ${displayAccel(accel)}.`);
+    stopCapture();
+}
+
+function displayAccel(accel) {
+    const parts = canonicalAccel(accel).split('+');
+    const modNames = { ctrl: 'Ctrl', shift: 'Shift', alt: 'Alt' };
+    return parts.map((p) => (modNames[p] || uppercaseKey(p))).join('+');
+}
+
+function uppercaseKey(k) {
+    if (k === 'space') return 'Space';
+    if (k.length === 1) return k.toUpperCase();
+    return k.replace(/^./, (c) => c.toUpperCase());
+}
+
+function resetShortcut(action) {
+    const shortcuts = getShortcuts();
+    shortcuts[action] = DEFAULT_SHORTCUTS[action];
+    saveShortcuts(shortcuts);
+    renderShortcutRows();
+    showToast(`Shortcut for "${SHORTCUT_LABELS[action].toLowerCase()}" reset to ${DEFAULT_SHORTCUTS[action]}.`);
+}
+
+document.addEventListener('keydown', (e) => {
+    // If we're capturing a new shortcut, consume the keystroke entirely.
+    if (capturingAction) {
+        captureKeydown(e);
+        return;
+    }
+    // The global-hotkey field captures raw key combinations as text, so the
+    // app-wide shortcuts must not steal keystrokes from it.
+    if (e.target === hotkeyInput) return;
+    const action = matchShortcut(e);
+    if (action && runShortcut(action)) e.preventDefault();
 });
+
+renderShortcutRows();
+
 document.getElementById('mw-quit').addEventListener('click', () => {
     if (window.mainWindowAPI && typeof window.mainWindowAPI.quitApp === 'function') {
         window.mainWindowAPI.quitApp();

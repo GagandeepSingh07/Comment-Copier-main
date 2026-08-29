@@ -7,6 +7,23 @@ const DATE_FIRST_KEY = 'comment-copier-date-first-v1';
 const THEME_KEY = 'comment-copier-theme-v1';
 const HOTKEY_KEY = 'comment-copier-hotkey-v1';
 
+// The three app-wide, in-window keyboard shortcuts (Comment Editor's
+// add-comment/search focus, and the global backup action) are user-
+// rebindable; their current bindings live under this key. The Ctrl+Enter
+// (save) and Enter (add/confirm) shortcuts are contextual to specific
+// fields and aren't part of this rebindable set.
+const SHORTCUTS_KEY = 'comment-copier-shortcuts-v1';
+const DEFAULT_SHORTCUTS = {
+    addComment: 'Ctrl+N',
+    search: 'Ctrl+F',
+    backup: 'Ctrl+B',
+};
+const SHORTCUT_LABELS = {
+    addComment: 'Focus the add-comment box',
+    search: 'Focus the search box',
+    backup: 'Back up your data',
+};
+
 // Per-comment usage counters live under a separate storage key so a full
 // restore/backup of the editor data doesn't get tangled with them.
 const USAGE_KEY = 'comment-copier-usage-v1';
