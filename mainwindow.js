@@ -184,6 +184,11 @@ function createCard(key, index) {
 
     const body = document.createElement('div');
     body.className = 'card-body';
+    // Declared here (assigned once the button is created below) so the
+    // textarea's input handler can toggle its visibility live as the user
+    // types a placeholder in or out, instead of only picking it up on the
+    // next full re-render.
+    let previewBtn = null;
     const ta = document.createElement('textarea');
     ta.className = 'card-text';
     ta.spellcheck = false;
@@ -191,7 +196,13 @@ function createCard(key, index) {
     ta.addEventListener('input', () => {
         list[index] = ta.value;
         updateCardCount(card, ta.value);
-        if (!card.querySelector('.card-preview').classList.contains('hidden')) {
+        const hasTokens = placeholderTokens(ta.value).length > 0;
+        if (previewBtn) previewBtn.hidden = !hasTokens;
+        if (!hasTokens) {
+            preview.classList.add('hidden');
+            if (previewBtn) previewBtn.textContent = 'Preview';
+        }
+        if (!preview.classList.contains('hidden')) {
             card.querySelector('.card-preview-text').textContent =
                 substitutePlaceholders(ta.value, PLACEHOLDER_SAMPLE);
         }
@@ -230,18 +241,17 @@ function createCard(key, index) {
     current.addEventListener('click', () => setCurrent(key, index));
     foot.appendChild(current);
 
-    if (placeholderTokens(list[index]).length) {
-        const prev = document.createElement('button');
-        prev.type = 'button';
-        prev.className = 'card-preview-btn';
-        prev.textContent = 'Preview';
-        prev.addEventListener('click', () => {
-            const show = preview.classList.toggle('hidden');
-            prev.textContent = show ? 'Preview' : 'Hide preview';
-            previewText.textContent = substitutePlaceholders(list[index], PLACEHOLDER_SAMPLE);
-        });
-        foot.appendChild(prev);
-    }
+    previewBtn = document.createElement('button');
+    previewBtn.type = 'button';
+    previewBtn.className = 'card-preview-btn';
+    previewBtn.textContent = 'Preview';
+    previewBtn.hidden = !placeholderTokens(list[index]).length;
+    previewBtn.addEventListener('click', () => {
+        const show = preview.classList.toggle('hidden');
+        previewBtn.textContent = show ? 'Preview' : 'Hide preview';
+        previewText.textContent = substitutePlaceholders(list[index], PLACEHOLDER_SAMPLE);
+    });
+    foot.appendChild(previewBtn);
 
     const meta = document.createElement('div');
     meta.className = 'card-meta';
@@ -448,7 +458,13 @@ function popUndo() {
     if (entry.action === 'delete') {
         state[activeTab].comments.splice(entry.index, 0, entry.text);
     } else if (entry.action === 'bulk-delete') {
-        state[activeTab].comments.splice(entry.index, 0, ...entry.removed.map((r) => r.text));
+        // Each removed comment must go back at its own original index (in
+        // ascending order) rather than all together at one spot, or a
+        // non-contiguous selection (e.g. rows 2, 5, 7) comes back bunched
+        // up and reversed instead of restored to its original positions.
+        entry.removed.slice().sort((a, b) => a.index - b.index).forEach((r) => {
+            state[activeTab].comments.splice(r.index, 0, r.text);
+        });
     }
     save();
     renderList();
@@ -1073,6 +1089,10 @@ backupBtn.addEventListener('click', exportBackup);
 restoreBtn2.addEventListener('click', importBackup);
 
 document.addEventListener('keydown', (e) => {
+    // The hotkey field's whole purpose is to capture raw key combinations
+    // (including Ctrl+N/F/B) as text — don't let the app-wide shortcuts
+    // below steal that keystroke away from it.
+    if (e.target === hotkeyInput) return;
     const mod = e.ctrlKey || e.metaKey;
     if (!mod) return;
     const k = e.key.toLowerCase();
@@ -1094,9 +1114,6 @@ document.addEventListener('keydown', (e) => {
     if (k === 'b') {
         e.preventDefault();
         exportBackup();
-        return;
-    }
-    if (k === 's') {
         return;
     }
 });

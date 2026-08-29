@@ -590,25 +590,38 @@ function saveConfig(partial) {
 }
 
 function registerHotkey(accelerator) {
-    if (registeredHotkey) {
-        try {
-            if (globalShortcut.isRegistered(registeredHotkey)) globalShortcut.unregister(registeredHotkey);
-        } catch (e) {}
+    const previous = registeredHotkey;
+    if (!accelerator) {
+        if (previous) {
+            try {
+                if (globalShortcut.isRegistered(previous)) globalShortcut.unregister(previous);
+            } catch (e) {}
+        }
+        registeredHotkey = null;
+        return { ok: true, registered: false, accelerator: '' };
     }
-    registeredHotkey = null;
-    if (!accelerator) return { ok: true, registered: false, accelerator: '' };
     try {
         const ok = globalShortcut.register(String(accelerator), () => {
             if (popupWindow && !popupWindow.isDestroyed()) {
                 togglePopup();
             }
         });
-        if (!ok) return { ok: false, error: 'That shortcut is already in use or not available.', current: registeredHotkey || '' };
+        if (!ok) {
+            // Registration failed — leave the previously-working hotkey (if any)
+            // registered and untouched rather than leaving the app with none.
+            return { ok: false, error: 'That shortcut is already in use or not available.', current: previous || '' };
+        }
+        // New accelerator registered successfully — now it's safe to release the old one.
+        if (previous && previous !== String(accelerator)) {
+            try {
+                if (globalShortcut.isRegistered(previous)) globalShortcut.unregister(previous);
+            } catch (e) {}
+        }
         registeredHotkey = String(accelerator);
         saveConfig({ globalHotkey: String(accelerator) });
         return { ok: true, registered: true, accelerator: String(accelerator) };
     } catch (e) {
-        return { ok: false, error: 'That shortcut is not valid.', current: registeredHotkey || '' };
+        return { ok: false, error: 'That shortcut is not valid.', current: previous || '' };
     }
 }
 
