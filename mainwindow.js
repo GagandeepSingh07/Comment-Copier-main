@@ -1871,7 +1871,7 @@ searchInput.addEventListener('input', () => {
 });
 promptBtn.addEventListener('click', copyPrompt);
 resetBtn.addEventListener('click', handleReset);
-updateBtn.addEventListener('click', checkForUpdates);
+updateBtn.addEventListener('click', () => checkForUpdates());
 diagnosticsBtn.addEventListener('click', exportDiagnostics);
 githubLink.addEventListener('click', (e) => {
     if (window.mainWindowAPI && typeof window.mainWindowAPI.openExternal === 'function') {
