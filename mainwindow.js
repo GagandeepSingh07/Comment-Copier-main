@@ -11,8 +11,7 @@ function catLabel(key) {
 
 const languageSelect = document.getElementById('mw-language');
 
-const navItems = document.querySelectorAll('.nav-item');
-const panels = document.querySelectorAll('[data-view-panel]');
+const navItems = document.querySelectorAll('.nav-item');const panels = document.querySelectorAll('[data-view-panel]');
 const etabs = document.querySelectorAll('.etab');
 const toastEl = document.getElementById('toast');
 const editorCount = document.getElementById('editor-count');
@@ -818,26 +817,74 @@ function getLanguage() {
     return getLang();
 }
 
+const langTrigger = document.getElementById('mw-language-trigger');
+const langMenu = document.getElementById('mw-language-menu');
+const langValue = document.getElementById('mw-language-value');
+
+function languageLabel(lang) {
+    const native = I18N_NAMES[lang];
+    const en = I18N_NAMES_EN[lang];
+    return native === en ? native : `${native} (${en})`;
+}
+
 function buildLanguageOptions() {
-    if (!languageSelect) return;
+    if (!langMenu) return;
     const current = getLang();
-    languageSelect.innerHTML = '';
+    langMenu.innerHTML = '';
     for (const lang of SUPPORTED_LANGS) {
-        const opt = document.createElement('option');
-        opt.value = lang;
         const native = I18N_NAMES[lang];
-        let label = native;
-        if (native !== I18N_NAMES_EN[lang]) {
-            label = `${native} (${I18N_NAMES_EN[lang]})`;
-        }
-        opt.textContent = label;
-        languageSelect.appendChild(opt);
+        const en = I18N_NAMES_EN[lang];
+        const opt = document.createElement('button');
+        opt.type = 'button';
+        opt.className = 'lang-select-option';
+        opt.dataset.value = lang;
+        opt.setAttribute('role', 'option');
+        opt.setAttribute('aria-selected', lang === current ? 'true' : 'false');
+        opt.innerHTML =
+            `<span class="lang-select-name">` +
+            `<span class="lang-select-native">${native}</span>` +
+            (native !== en ? `<span class="lang-select-en">${en}</span>` : '') +
+            `</span>` +
+            `<svg class="lang-select-check" width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M2 8.5 6 12.5 14 3.5"/></svg>`;
+        opt.addEventListener('click', () => {
+            setLanguage(lang);
+            closeLanguageMenu();
+        });
+        langMenu.appendChild(opt);
     }
-    languageSelect.value = current;
+    syncLanguagePicker();
 }
 
 function syncLanguagePicker() {
-    if (languageSelect) languageSelect.value = getLanguage();
+    const current = getLang();
+    if (langValue) langValue.textContent = languageLabel(current);
+    if (langMenu) {
+        langMenu.querySelectorAll('.lang-select-option').forEach((opt) => {
+            const sel = opt.dataset.value === current;
+            opt.classList.toggle('selected', sel);
+            opt.setAttribute('aria-selected', sel ? 'true' : 'false');
+        });
+    }
+}
+
+function openLanguageMenu() {
+    if (!langMenu || langMenu.classList.contains('hidden')) {
+        buildLanguageOptions();
+    }
+    langMenu.classList.remove('hidden');
+    if (langTrigger) langTrigger.setAttribute('aria-expanded', 'true');
+    if (langTrigger) langTrigger.classList.add('open');
+}
+
+function closeLanguageMenu() {
+    if (langMenu) langMenu.classList.add('hidden');
+    if (langTrigger) langTrigger.setAttribute('aria-expanded', 'false');
+    if (langTrigger) langTrigger.classList.remove('open');
+}
+
+function toggleLanguageMenu() {
+    if (langMenu && langMenu.classList.contains('hidden')) openLanguageMenu();
+    else closeLanguageMenu();
 }
 
 function setLanguage(lang) {
@@ -1840,8 +1887,15 @@ layoutPickerOptions.forEach((b) => {
         showToast(t('toast.layoutSet', { name: t('layout.' + b.dataset.layout) }));
     });
 });
-languageSelect.addEventListener('change', () => {
-    setLanguage(languageSelect.value);
+if (langTrigger) langTrigger.addEventListener('click', (e) => {
+    e.stopPropagation();
+    toggleLanguageMenu();
+});
+document.addEventListener('click', (e) => {
+    if (languageSelect && !languageSelect.contains(e.target)) closeLanguageMenu();
+});
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeLanguageMenu();
 });
 dateFirstToggle.addEventListener('click', () => {
     const enabled = dateFirstToggle.getAttribute('aria-checked') !== 'true';
