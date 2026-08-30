@@ -33,7 +33,6 @@ const infoName = document.getElementById('mw-info-name');
 const infoVersion = document.getElementById('mw-info-version');
 const infoDesc = document.getElementById('mw-info-desc');
 const infoMeta = document.getElementById('mw-info-meta');
-const infoChangelog = document.getElementById('mw-info-changelog');
 const githubLink = document.getElementById('mw-github-link');
 const developerEl = document.getElementById('mw-developer');
 const helperEl = document.getElementById('mw-helper');
@@ -711,19 +710,17 @@ function dataSizeText() {
 
 function renderInfoMeta(info) {
     const meta = (key, value) => [t('meta.' + key), value];
+    // Sensitive machine paths (install + data location) and internal engine
+    // versions (electron/chromium/node) are deliberately omitted from the
+    // Details view. They're still included in Export diagnostics for bug reports.
     const rows = [
         meta('author', info.author),
         meta('license', info.license),
         meta('os', info.platform),
         meta('resolution', info.resolution),
-        meta('electron', info.electron),
-        meta('chromium', info.chrome),
-        meta('node', info.node),
         meta('commentsSaved', commentCountsText()),
         meta('dataSize', dataSizeText()),
         meta('copies', info.copyCount),
-        meta('installPath', info.exePath),
-        meta('data', info.userData),
         meta('build', info.buildDate),
     ];
     infoMeta.innerHTML = rows.map(([label, value]) =>
@@ -750,22 +747,24 @@ function changelogEntryHtml(entry) {
     '</div>';
 }
 
-function renderChangelog(changelog) {
-    const wrap = document.getElementById('mw-changelog-card');
-    if (!Array.isArray(changelog) || !changelog.length) {
-        if (wrap) wrap.style.display = 'none';
-        const latest = document.getElementById('mw-latest-update');
-        if (latest) latest.hidden = true;
+function changelogEntryByVersion(changelog, version) {
+    if (!Array.isArray(changelog)) return null;
+    return version ? changelog.find((e) => e && String(e.version) === String(version)) || changelog[0] : changelog[0];
+}
+
+function renderChangelog(changelog, version) {
+    const latest = document.getElementById('mw-latest-update');
+    if (!latest) return;
+    const entry = changelogEntryByVersion(changelog, version);
+    if (!entry) {
+        latest.hidden = true;
         return;
     }
-    if (wrap) wrap.style.display = '';
-    const latest = document.getElementById('mw-latest-update');
+    latest.hidden = false;
     const latestVersion = document.getElementById('mw-latest-update-version');
     const latestNotes = document.getElementById('mw-latest-update-notes');
-    if (latest) latest.hidden = false;
-    if (latestVersion) latestVersion.textContent = changelog[0].version || '';
-    if (latestNotes) latestNotes.innerHTML = changelogEntryHtml(changelog[0]);
-    infoChangelog.innerHTML = changelog.slice(1, 5).map(changelogEntryHtml).join('');
+    if (latestVersion) latestVersion.textContent = entry.version || '';
+    if (latestNotes) latestNotes.innerHTML = changelogEntryHtml(entry);
 }
 
 let resetArmed = false;
@@ -1721,7 +1720,7 @@ async function refreshAboutInfo() {
     infoVersion.textContent = t('about.version', { version: info.version });
     infoDesc.textContent = info.description;
     renderInfoMeta(info);
-    renderChangelog(info.changelog);
+    renderChangelog(info.changelog, info.version);
     if (githubLink) githubLink.href = info.repository || githubLink.href;
     if (developerEl) developerEl.textContent = info.author;
     if (helperEl) helperEl.textContent = info.helper;

@@ -73,6 +73,19 @@ const PLATFORM_NAMES = { win32: 'Windows', darwin: 'macOS', linux: 'Linux' };
 
 const CHANGELOG = [
     {
+        version: '1.15.8',
+        categories: [
+            {
+                heading: 'Improved',
+                notes: [
+                    'The language selector is now a custom, themed dropdown showing each language in its native name and English, and defaults to English.',
+                    'The About page now shows just the details that matter: the "Latest update" reflects the current app version automatically, and sensitive install/data paths plus engine version numbers are hidden from view (still available in Export diagnostics).',
+                    'The About section is fully responsive and the Comment Editor navigation icon was refreshed.',
+                ],
+            },
+        ],
+    },
+    {
         version: '1.15.5',
         categories: [
             {

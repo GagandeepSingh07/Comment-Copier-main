@@ -1668,6 +1668,21 @@ body.reduce-motion *::after {
     .card-tools { gap: 2px; }
 
     .prompt-wrap textarea { resize: vertical; }
+
+    .about-hero { padding: 22px 18px; }
+    .about-hero-icon { width: 56px; height: 56px; }
+    .about-hero-name { font-size: 18px; }
+    .about-highlight { padding: 14px 16px; }
+}
+
+@media (max-width: 560px) {
+    .about-cards { grid-template-columns: 1fr; }
+    .about-actions { flex-direction: row; flex-wrap: wrap; }
+    .about-actions .btn-update { flex: 1 1 140px; }
+    .about-highlight-head { flex-wrap: wrap; row-gap: 6px; }
+    .about-meta .info-meta-row { flex-direction: column; align-items: flex-start; gap: 2px; }
+    .about-meta .info-meta-value { text-align: left; }
+    .about-link { width: 100%; }
 }
 
 /* Compact sidebar: hide brand title + nav labels, show icons only */

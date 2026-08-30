@@ -161,7 +161,6 @@ I18N.en = {
     about: {
         latestUpdate: 'Latest update',
         details: 'Details',
-        whatsNew: 'What\u2019s new',
         supportCredits: 'Support & credits',
         github: 'GitHub repository',
         developer: 'Developer: {name}',
@@ -173,9 +172,8 @@ I18N.en = {
     },
     meta: {
         author: 'Author', license: 'License', os: 'OS', resolution: 'Resolution',
-        electron: 'Electron', chromium: 'Chromium', node: 'Node',
         commentsSaved: 'Comments saved', dataSize: 'Data size', copies: 'Copies',
-        installPath: 'Install path', data: 'Data', build: 'Build',
+        build: 'Build',
     },
     popup: {
         student: 'Student Details',
@@ -425,7 +423,6 @@ I18N.es = {
     about: {
         latestUpdate: '\u00daltima actualizaci\u00f3n',
         details: 'Detalles',
-        whatsNew: 'Novedades',
         supportCredits: 'Soporte y cr\u00e9ditos',
         github: 'Repositorio de GitHub',
         developer: 'Desarrollador: {name}',
@@ -437,9 +434,8 @@ I18N.es = {
     },
     meta: {
         author: 'Autor', license: 'Licencia', os: 'SO', resolution: 'Resoluci\u00f3n',
-        electron: 'Electron', chromium: 'Chromium', node: 'Node',
         commentsSaved: 'Comentarios guardados', dataSize: 'Tama\u00f1o de datos', copies: 'Copias',
-        installPath: 'Ruta de instalaci\u00f3n', data: 'Datos', build: 'Compilaci\u00f3n',
+        build: 'Compilaci\u00f3n',
     },
     popup: {
         student: 'Datos del alumno',
@@ -682,7 +678,6 @@ I18N.fr = {
     about: {
         latestUpdate: 'Derni\u00e8re mise \u00e0 jour',
         details: 'D\u00e9tails',
-        whatsNew: 'Nouveaut\u00e9s',
         supportCredits: 'Assistance et cr\u00e9dits',
         github: 'D\u00e9p\u00f4t GitHub',
         developer: 'D\u00e9veloppeur\u00a0: {name}',
@@ -694,9 +689,8 @@ I18N.fr = {
     },
     meta: {
         author: 'Auteur', license: 'Licence', os: 'OS', resolution: 'R\u00e9solution',
-        electron: 'Electron', chromium: 'Chromium', node: 'Node',
         commentsSaved: 'Commentaires enregistr\u00e9s', dataSize: 'Taille des donn\u00e9es', copies: 'Copies',
-        installPath: 'Chemin d\u2019installation', data: 'Donn\u00e9es', build: 'Build',
+        build: 'Build',
     },
     popup: {
         student: 'Donn\u00e9es \u00e9l\u00e8ve',
@@ -939,7 +933,6 @@ I18N.de = {
     about: {
         latestUpdate: 'Letztes Update',
         details: 'Details',
-        whatsNew: 'Neuigkeiten',
         supportCredits: 'Support & Danksagungen',
         github: 'GitHub-Repository',
         developer: 'Entwickler: {name}',
@@ -951,9 +944,8 @@ I18N.de = {
     },
     meta: {
         author: 'Autor', license: 'Lizenz', os: 'Betriebssystem', resolution: 'Aufl\u00f6sung',
-        electron: 'Electron', chromium: 'Chromium', node: 'Node',
         commentsSaved: 'Gespeicherte Kommentare', dataSize: 'Datengr\u00f6\u00dfe', copies: 'Kopien',
-        installPath: 'Installationspfad', data: 'Daten', build: 'Build',
+        build: 'Build',
     },
     popup: {
         student: 'Sch\u00fclerdaten',
@@ -1196,7 +1188,6 @@ I18N.ar = {
     about: {
         latestUpdate: '\u0622\u062e\u0631 \u062a\u062d\u062f\u064a\u062b',
         details: '\u0627\u0644\u062a\u0641\u0627\u0635\u064a\u0644',
-        whatsNew: '\u0627\u0644\u0645\u0633\u062a\u062c\u062f\u0627\u062a',
         supportCredits: '\u0627\u0644\u062f\u0639\u0645 \u0648\u0627\u0644\u0625\u0643\u0631\u0627\u0645\u0627\u062a',
         github: '\u0645\u0633\u062a\u0648\u062f\u0639 GitHub',
         developer: '\u0627\u0644\u0645\u0637\u0648\u0631: {name}',
@@ -1208,9 +1199,8 @@ I18N.ar = {
     },
     meta: {
         author: '\u0627\u0644\u0645\u0624\u0644\u0641', license: '\u0627\u0644\u0631\u062e\u0635\u0629', os: '\u0646\u0638\u0627\u0645 \u0627\u0644\u062a\u0634\u063a\u064a\u0644', resolution: '\u0627\u0644\u062f\u0642\u0629',
-        electron: 'Electron', chromium: 'Chromium', node: 'Node',
         commentsSaved: '\u0627\u0644\u062a\u0639\u0644\u064a\u0642\u0627\u062a \u0627\u0644\u0645\u062d\u0641\u0648\u0638\u0629', dataSize: '\u062d\u062c\u0645 \u0627\u0644\u0628\u064a\u0627\u0646\u0627\u062a', copies: '\u0627\u0644\u0646\u0633\u062e',
-        installPath: '\u0645\u0633\u0627\u0631 \u0627\u0644\u062a\u062b\u0628\u064a\u062a', data: '\u0627\u0644\u0628\u064a\u0627\u0646\u0627\u062a', build: '\u0627\u0644\u0628\u0646\u0627\u0621',
+        build: '\u0627\u0644\u0628\u0646\u0627\u0621',
     },
     popup: {
         student: '\u0628\u064a\u0627\u0646\u0627\u062a \u0627\u0644\u0637\u0627\u0644\u0628',
