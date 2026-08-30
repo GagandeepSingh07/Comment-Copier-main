@@ -4,6 +4,18 @@ categories.forEach((key) => {
     state[key] = { comments: [], index: 0 };
 });
 
+function catLabel(key) {
+    return t('etab.' + key);
+}
+
+function markLabel(value) {
+    if (value === '__custom__') return t('popup.typeOwn');
+    if (value === 'Checked') return t('popup.markChecked');
+    if (value === 'AI Detected') return t('popup.markAi');
+    if (value === 'Copied') return t('popup.markCopied');
+    return value;
+}
+
 const rowsEl = document.getElementById('rows');
 const toastEl = document.getElementById('toast');
 const cardTooltip = document.getElementById('card-tooltip');
@@ -77,7 +89,7 @@ function toggleMarkMenu() {
 
 function selectMark(value) {
     selectedMark = value;
-    markSelectValue.textContent = value === '__custom__' ? 'Type your own' : value;
+    markSelectValue.textContent = markLabel(value);
     markSelectDot.className = 'mark-select-dot ' + markDotClass(value);
     markSelectOptions.forEach((opt) => {
         const match = opt.dataset.value === value;
@@ -201,14 +213,14 @@ function renderRows() {
         row.innerHTML =
             '<span class="row-icon" aria-hidden="true">' + ROW_ICONS[key] + '</span>' +
             '<div class="row-line">' +
-                '<span class="name">' + LABELS[key] + '</span>' +
+                '<span class="name">' + catLabel(key) + '</span>' +
                 '<span class="row-actions">' +
-                    '<button type="button" class="mini" data-act="prev" title="Previous comment"><span class="mini-icon" aria-hidden="true">' + MINI_ICONS.prev + '</span><span class="mini-label">Prev</span></button>' +
-                    '<button type="button" class="mini" data-act="reset" title="Reset to first comment"><span class="mini-icon" aria-hidden="true">' + MINI_ICONS.reset + '</span><span class="mini-label">Reset</span></button>' +
+                    '<button type="button" class="mini" data-act="prev" title="' + t('popup.prevTitle') + '"><span class="mini-icon" aria-hidden="true">' + MINI_ICONS.prev + '</span><span class="mini-label">' + t('popup.prev') + '</span></button>' +
+                    '<button type="button" class="mini" data-act="reset" title="' + t('popup.resetTitle') + '"><span class="mini-icon" aria-hidden="true">' + MINI_ICONS.reset + '</span><span class="mini-label">' + t('popup.reset') + '</span></button>' +
                 '</span>' +
                 '<span class="pos">' + posLabel + '</span>' +
             '</div>' +
-            '<div class="preview">' + escapeHtml(s.comments.length ? substitutePlaceholders(s.comments[s.index], placeholderValues()) : '(no comments yet)') + '</div>';
+            '<div class="preview">' + escapeHtml(s.comments.length ? substitutePlaceholders(s.comments[s.index], placeholderValues()) : t('popup.noCommentsYet')) + '</div>';
         rowsEl.appendChild(row);
     });
 }
@@ -216,7 +228,7 @@ function renderRows() {
 function buildDateLine() {
     const d = new Date();
     const day = d.getDate();
-    const month = d.toLocaleString('en', { month: 'long' });
+    const month = d.toLocaleString(getLang(), { month: 'long' });
     const year = d.getFullYear();
     return `___${day}____(day)/ ___${month} ____(month)/ _______${year}_____(year)`;
 }
@@ -275,9 +287,9 @@ function closePopupAfterCopy() {
 
 async function handleCopy(key) {
     const s = state[key];
-    const label = LABELS[key];
+    const label = catLabel(key);
     if (!s.comments.length) {
-        showToast('Nothing to copy yet \u2014 add comments first.');
+        showToast(t('toast.nothing'));
         return;
     }
     if (copyCommentTimer) {
@@ -299,10 +311,10 @@ async function handleCopy(key) {
             if (window.popupAPI && typeof window.popupAPI.reportCopyResult === 'function') {
                 window.popupAPI.reportCopyResult({ ok: false, label });
             }
-            showToast('Copy failed \u2014 please copy manually.');
+            showToast(t('toast.copyFail'));
             return;
         }
-        showToast(`Copied ${label} comment ${copiedNumber}`);
+        showToast(t('toast.copied', { label, n: copiedNumber }));
         advance();
         closePopupAfterCopy();
         return;
@@ -312,10 +324,10 @@ async function handleCopy(key) {
         if (window.popupAPI && typeof window.popupAPI.reportCopyResult === 'function') {
             window.popupAPI.reportCopyResult({ ok: false, label });
         }
-        showToast('Copy failed \u2014 please copy manually.');
+        showToast(t('toast.copyFail'));
         return;
     }
-    showToast('Date copied \u2014 paste it, comment follows');
+    showToast(t('toast.dateCopied'));
     copyCommentTimer = setTimeout(async () => {
         copyCommentTimer = null;
         const ok2 = await writeClipboard(comment);
@@ -323,10 +335,10 @@ async function handleCopy(key) {
             if (window.popupAPI && typeof window.popupAPI.reportCopyResult === 'function') {
                 window.popupAPI.reportCopyResult({ ok: false, label });
             }
-            showToast('Comment copy failed \u2014 please copy manually.');
+            showToast(t('toast.copyFail'));
             return;
         }
-        showToast(`Copied ${label} comment ${copiedNumber}`);
+        showToast(t('toast.copied', { label, n: copiedNumber }));
         advance();
         closePopupAfterCopy();
     }, 500);
@@ -355,7 +367,7 @@ function updateCounts() {
     categories.forEach((key) => {
         total += state[key].comments.length;
     });
-    totalEl.textContent = total === 1 ? '1 comment' : `${total} comments`;
+    totalEl.textContent = tN('count.comment', total, { n: total });
 }
 
 function setMainTab(name) {
@@ -404,6 +416,10 @@ function applyPopupAccent() {
     }
 }
 
+function applyReduceMotion() {
+    document.body.classList.toggle('reduce-motion', localStorage.getItem(REDUCE_MOTION_KEY) === '1');
+}
+
 function getSavedPrompt() {
     const saved = localStorage.getItem(PROMPT_KEY);
     return saved === null ? defaultPrompt : saved;
@@ -412,7 +428,7 @@ function getSavedPrompt() {
 async function copyPrompt() {
     const text = getSavedPrompt().trim();
     if (!text) {
-        showToast('Prompt is empty \u2014 add prompt text first.');
+        showToast(t('toast.promptEmpty'));
         return;
     }
     let ok = false;
@@ -424,10 +440,10 @@ async function copyPrompt() {
         }
     }
     if (!ok) {
-        showToast('Copy failed \u2014 please copy manually.');
+        showToast(t('toast.copyFail'));
         return;
     }
-    showToast('Prompt copied to clipboard');
+    showToast(t('toast.promptCopied'));
 }
 
 function sheetCodeCell(code) {
@@ -539,7 +555,7 @@ function updateSheetActionButton() {
 
 function updateSheetCount() {
     const total = sheetEntries.length;
-    sheetCount.textContent = total === 1 ? '1 entry' : `${total} entries`;
+    sheetCount.textContent = tN('count.entry', total, { n: total });
 }
 
 function renderSheetPreview() {
@@ -549,14 +565,14 @@ function renderSheetPreview() {
     if (!sheetEntries.length) {
         const empty = document.createElement('div');
         empty.className = 'sheet-preview-empty';
-        empty.textContent = 'No unit codes yet \u2014 add unit code and mark above.';
+        empty.textContent = t('popup.sheetEmpty');
         sheetPreviewList.appendChild(empty);
         return;
     }
     sheetEntries.forEach((cell, i) => {
         const item = document.createElement('div');
         item.className = 'sheet-preview-item';
-        item.title = cell.status || 'No mark';
+        item.title = cell.status || t('popup.noMark');
         const codeSpan = document.createElement('span');
         codeSpan.className = 'sheet-preview-code';
         codeSpan.textContent = cell.code;
@@ -579,7 +595,7 @@ function renderSheetPreview() {
         const del = document.createElement('button');
         del.type = 'button';
         del.className = 'sheet-preview-del';
-        del.title = 'Remove';
+        del.title = t('popup.remove');
         del.textContent = '\u00d7';
         del.addEventListener('click', () => removeSheetEntry(i));
         right.appendChild(del);
@@ -591,12 +607,12 @@ function renderSheetPreview() {
 function addSheetEntry() {
     const code = sheetAddCode.value.trim();
     if (!code) {
-        showToast('Type a code first.');
+        showToast(t('toast.codeFirst'));
         return;
     }
     const isDuplicate = sheetEntries.some((e) => e.code.toLowerCase() === code.toLowerCase());
     if (isDuplicate) {
-        showToast(`${code} is already added â€” unit codes must be unique.`);
+        showToast(t('toast.dupCode', { code }));
         sheetAddCode.focus();
         sheetAddCode.select();
         return;
@@ -604,7 +620,7 @@ function addSheetEntry() {
     const isCustom = selectedMark === '__custom__';
     const mark = isCustom ? sheetAddMarkCustom.value.trim() : selectedMark;
     if (isCustom && !mark) {
-        showToast('Type a mark first.');
+        showToast(t('toast.markFirst'));
         sheetAddMarkCustom.focus();
         return;
     }
@@ -657,7 +673,7 @@ function resetSheetData() {
     persistSheetData();
     renderSheetPreview();
     syncHeight();
-    showToast('Sheet data cleared.');
+    showToast(t('toast.sheetCleared'));
 }
 
 function normalizeCell(v) {
@@ -835,7 +851,7 @@ function parsePastedText(text) {
 function importRowsIntoSheet(rows) {
     const blocks = parseStudentBlocksFromRows(rows);
     if (!blocks.length) {
-        showToast('No student data found in that paste.');
+        showToast(t('toast.noStudentData'));
         return;
     }
 
@@ -848,15 +864,15 @@ function importRowsIntoSheet(rows) {
 
     const { added, updated } = applyImportedBlock(target);
     const who = target.studentId || target.name || 'student';
-    let msg = `Imported ${who} \u2014 ${added} code${added === 1 ? '' : 's'} added`;
-    if (updated) msg += `, ${updated} updated`;
-    if (blocks.length > 1) msg += ` (${blocks.length} students found)`;
+    let msg = (added === 1 ? t('toast.importedOne', { who }) : t('toast.importedMany', { who, added })).replace(/\.$/, '');
+    if (updated) msg += t('toast.importedUpdated', { updated });
+    if (blocks.length > 1) msg += t('toast.importedStudents', { students: blocks.length });
     showToast(msg + '.');
 }
 
 async function pasteFromClipboard() {
     if (!window.popupAPI || typeof window.popupAPI.readClipboardText !== 'function') {
-        showToast('Clipboard paste unavailable.');
+        showToast(t('toast.clipboardUnavailable'));
         return;
     }
     let result;
@@ -866,7 +882,7 @@ async function pasteFromClipboard() {
         result = { ok: false, error: 'Could not read the clipboard.' };
     }
     if (!result || !result.ok) {
-        showToast((result && result.error) || 'Clipboard is empty \u2014 copy cells from Excel first.');
+        showToast((result && result.error) || t('toast.clipboardEmpty'));
         return;
     }
     importRowsIntoSheet(parsePastedText(result.text));
@@ -886,7 +902,7 @@ function toggleSheetPastePanel(forceOpen) {
 function importFromPasteTextarea() {
     const text = sheetPasteTextarea.value;
     if (!text.trim()) {
-        showToast('Paste some cells first.');
+        showToast(t('toast.pasteCellsFirst'));
         return;
     }
     importRowsIntoSheet(parsePastedText(text));
@@ -972,10 +988,10 @@ async function copySheet() {
         }
     }
     if (!ok) {
-        showToast('Copy failed \u2014 please copy manually.');
+        showToast(t('toast.copyFail'));
         return;
     }
-    showToast('Sheet copied \u2014 paste into Excel');
+    showToast(t('toast.sheetCopied'));
 }
 
 function loadOrganizerPath() {
@@ -990,19 +1006,18 @@ function loadOrganizerPath() {
 
 function renderOrganizerResult(result) {
     if (!result || !result.ok) {
-        organizerSummary.textContent = result && result.error ? result.error : 'Something went wrong.';
+        organizerSummary.textContent = result && result.error ? result.error : t('org.somethingWrong');
         organizerList.innerHTML = '';
         return;
     }
-    organizerSummary.textContent =
-        `${result.moved} file${result.moved === 1 ? '' : 's'} moved, ${result.skipped.length} skipped`;
+    organizerSummary.textContent = t('org.summary', { moved: result.moved, skipped: result.skipped.length });
     organizerList.innerHTML = '';
     if (!result.skipped.length) {
         const empty = document.createElement('div');
         empty.className = 'organizer-empty';
         empty.textContent = result.total
-            ? 'All files organized \u2014 nothing skipped.'
-            : 'No files found in that folder.';
+            ? t('org.emptyDone')
+            : t('org.emptyNone');
         organizerList.appendChild(empty);
         return;
     }
@@ -1018,7 +1033,7 @@ function renderOrganizerResult(result) {
 
 async function pickOrganizerFolder() {
     if (!window.popupAPI || typeof window.popupAPI.pickOrganizeFolder !== 'function') {
-        showToast('Folder picker unavailable.');
+        showToast(t('org.folderPickUnavailable'));
         return;
     }
     let picked = null;
@@ -1052,31 +1067,31 @@ function clearOrganizerFolder() {
 async function runOrganizer() {
     if (organizerBusy || !organizerFolder) return;
     if (!window.popupAPI || typeof window.popupAPI.organizeFolder !== 'function') {
-        showToast('File organizer unavailable.');
+        showToast(t('org.organizerUnavailable'));
         return;
     }
     organizerBusy = true;
     organizerRunBtn.disabled = true;
-    organizerRunBtn.textContent = 'Organizing\u2026';
+    organizerRunBtn.querySelector('span').textContent = t('org.running');
     let result = null;
     try {
         result = await window.popupAPI.organizeFolder(organizerFolder);
     } catch (e) {
-        result = { ok: false, error: 'Organize failed \u2014 ' + e.message };
+        result = { ok: false, error: t('org.failed') + ' ' + e.message };
     }
     organizerBusy = false;
     organizerRunBtn.disabled = false;
-    organizerRunBtn.textContent = 'Organize Files';
+    organizerRunBtn.querySelector('span').textContent = t('org.run');
     renderOrganizerResult(result);
     syncHeight();
     if (result && result.ok) {
-        showToast(`Organized \u2014 ${result.moved} moved, ${result.skipped.length} skipped`);
+        showToast(t('org.organized', { moved: result.moved, skipped: result.skipped.length }));
         organizerFolder = '';
         organizerPathInput.value = '';
         localStorage.removeItem(ORGANIZER_KEY);
         organizerRunBtn.disabled = true;
     } else {
-        showToast(result && result.error ? result.error : 'Organize failed.');
+        showToast(result && result.error ? result.error : t('org.failed'));
     }
 }
 
@@ -1097,14 +1112,28 @@ rowsEl.addEventListener('click', (e) => {
 
 let hoveredRow = null;
 
+function popupTooltipDensity() {
+    const d = localStorage.getItem(TOOLTIP_DENSITY_KEY);
+    return d === 'off' || d === 'compact' || d === 'detailed' ? d : 'detailed';
+}
+
+function popupTooltipText(comment) {
+    if (popupTooltipDensity() === 'compact') {
+        const t = comment.length > 96 ? comment.slice(0, 96) + '\u2026' : comment;
+        return t;
+    }
+    return comment;
+}
+
 rowsEl.addEventListener('mouseover', (e) => {
     if (layoutMode !== 'cards') return;
     const row = e.target.closest('.row');
     if (!row || row.classList.contains('disabled') || row === hoveredRow) return;
     const s = state[row.dataset.key];
     if (!s || !s.comments.length) return;
+    if (popupTooltipDensity() === 'off') return;
     hoveredRow = row;
-    cardTooltip.textContent = substitutePlaceholders(s.comments[s.index], placeholderValues());
+    cardTooltip.textContent = substitutePlaceholders(popupTooltipText(s.comments[s.index]), placeholderValues());
     const rect = row.getBoundingClientRect();
     let top = rect.bottom + 8;
     let left = rect.left;
@@ -1194,7 +1223,6 @@ function popupMatchLayoutShortcut(e) {
 }
 
 function popupSwitchLayout(action) {
-    const layoutName = { cards: 'Cards', tabs: 'Tabs', stack: 'Side by side' };
     const order = ['cards', 'tabs', 'stack'];
     let mode;
     if (action === 'tabPrompt') {
@@ -1206,7 +1234,7 @@ function popupSwitchLayout(action) {
     localStorage.setItem(LAYOUT_KEY, mode);
     layoutMode = mode;
     applyLayout();
-    showToast(`Popup layout set to ${layoutName[mode]}.`);
+    showToast(t('toast.layoutSet', { name: t('layout.' + mode) }));
 }
 
 document.addEventListener('keydown', (e) => {
@@ -1291,6 +1319,17 @@ organizerFolderRow.addEventListener('click', pickOrganizerFolder);
 organizerRunBtn.addEventListener('click', runOrganizer);
 organizerClearBtn.addEventListener('click', clearOrganizerFolder);
 
+function applyI18n() {
+    i18nApply(document);
+    renderRows();
+    updateCounts();
+    renderSheetPreview();
+    selectMark(selectedMark);
+    if (organizerRunBtn.querySelector('span')) {
+        organizerRunBtn.querySelector('span').textContent = organizerBusy ? t('org.running') : t('org.run');
+    }
+}
+
 load();
 loadSheetInputs();
 loadOrganizerPath();
@@ -1299,15 +1338,24 @@ selectMark('Checked');
 renderRows();
 loadLayout();
 applyPopupAccent();
+applyReduceMotion();
 updateCounts();
+applyI18n();
 pushQuickState();
 
 // Keep in sync with comment-list edits and the popup layout chosen in the main window.
 window.addEventListener('storage', (e) => {
-    if (e.key === LAYOUT_KEY) {
+    if (e.key === LANG_KEY) {
+        applyI18n();
+    } else if (e.key === LAYOUT_KEY) {
         loadLayout();
     } else if (e.key === ACCENT_KEY) {
         applyPopupAccent();
+    } else if (e.key === REDUCE_MOTION_KEY) {
+        applyReduceMotion();
+    } else if (e.key === TOOLTIP_DENSITY_KEY) {
+        hoveredRow = null;
+        cardTooltip.classList.remove('active');
     }
     load();
     renderRows();

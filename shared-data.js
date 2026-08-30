@@ -13,6 +13,10 @@ const CLOSE_AFTER_COPY_KEY = 'comment-copier-close-after-copy-v1';
 const AUTO_CHECK_UPDATES_KEY = 'comment-copier-auto-check-updates-v1';
 const ROLLBACK_KEY = 'comment-copier-rollback-v1';
 const RESTORE_MODE_KEY = 'comment-copier-restore-mode-v1';
+const REDUCE_MOTION_KEY = 'comment-copier-reduce-motion-v1';
+const TOOLTIP_DENSITY_KEY = 'comment-copier-tooltip-density-v1';
+const UPDATE_CHANNEL_KEY = 'comment-copier-update-channel-v1';
+const LANG_KEY = 'comment-copier-lang-v1';
 
 // The three app-wide, in-window keyboard shortcuts (Comment Editor's
 // add-comment/search focus, and the global backup action) are user-

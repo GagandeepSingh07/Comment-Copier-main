@@ -18,23 +18,23 @@
         <nav class="nav">
             <button type="button" class="nav-item active" data-view="editor">
                 <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><path d="M2.5 2h11a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-6a.5.5 0 0 1 .5-.5Z"/><path d="M4 9l-.5 5h9l-.5-5"/></svg>
-                <span>Comment Editor</span>
+                <span data-i18n="nav.editor">Comment Editor</span>
             </button>
             <button type="button" class="nav-item" data-view="settings">
                 <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 4.754a3.246 3.246 0 1 0 0 6.492 3.246 3.246 0 0 0 0-6.492zM5.754 8a2.246 2.246 0 1 1 4.492 0 2.246 2.246 0 0 1-4.492 0z"/><path d="M9.796 1.343c-.527-1.79-3.065-1.79-3.592 0l-.094.319a.873.873 0 0 1-1.255.52l-.292-.16c-1.64-.892-3.433.902-2.54 2.541l.159.292a.873.873 0 0 1-.52 1.255l-.319.094c-1.79.527-1.79 3.065 0 3.592l.319.094a.873.873 0 0 1 .52 1.255l-.16.292c-.892 1.64.901 3.434 2.541 2.54l.292-.159a.873.873 0 0 1 1.255.52l.094.319c.527 1.79 3.065 1.79 3.592 0l.094-.319a.873.873 0 0 1 1.255-.52l.292.16c1.64.893 3.434-.902 2.54-2.541l-.159-.292a.873.873 0 0 1 .52-1.255l.319-.094c1.79-.527 1.79-3.065 0-3.592l-.319-.094a.873.873 0 0 1-.52-1.255l.16-.292c.893-1.64-.902-3.433-2.541-2.54l-.292.159a.873.873 0 0 1-1.255-.52l-.094-.319zm-2.633.283c.246-.835 1.428-.835 1.674 0l.094.319a1.873 1.873 0 0 0 2.693 1.115l.291-.16c.764-.415 1.6.42 1.184 1.185l-.159.292a1.873 1.873 0 0 0 1.116 2.692l.318.094c.835.246.835 1.428 0 1.674l-.319.094a1.873 1.873 0 0 0-1.115 2.693l.16.291c.415.764-.42 1.6-1.185 1.184l-.291-.159a1.873 1.873 0 0 0-2.693 1.116l-.094.318c-.246.835-1.428.835-1.674 0l-.094-.319a1.873 1.873 0 0 0-2.692-1.115l-.292.16c-.764.415-1.6-.42-1.184-1.185l.159-.291A1.873 1.873 0 0 0 1.945 8.93l-.319-.094c-.835-.246-.835-1.428 0-1.674l.319-.094A1.873 1.873 0 0 0 3.06 4.377l-.16-.292c-.415-.764.42-1.6 1.185-1.184l.292.159a1.873 1.873 0 0 0 2.692-1.115l.094-.319z"/></svg>
-                <span>Settings</span>
+                <span data-i18n="nav.settings">Settings</span>
             </button>
             <button type="button" class="nav-item" data-view="shortcuts">
                 <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><rect x="1.5" y="3.5" width="13" height="9" rx="1.5"/><path d="M4 6.2h.01M6.4 6.2h.01M8.8 6.2h.01M11.2 6.2h.01M4 8.6h.01M6.4 8.6h.01M8.8 8.6h.01M11.2 8.6h.01" stroke-linecap="round"/><path d="M4.5 11h7" stroke-linecap="round"/></svg>
-                <span>Shortcuts</span>
+                <span data-i18n="nav.shortcuts">Shortcuts</span>
             </button>
             <button type="button" class="nav-item" data-view="about">
                 <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><circle cx="8" cy="8" r="6.2"/><path d="M8 7.5V11M8 5.2h.01"/></svg>
-                <span>About</span>
+                <span data-i18n="nav.about">About</span>
             </button>
         </nav>
         <div class="side-footer">
-            <button type="button" class="btn-quit" id="mw-quit">Quit</button>
+            <button type="button" class="btn-quit" id="mw-quit" data-i18n="quit">Quit</button>
         </div>
     </aside>
 
@@ -42,38 +42,38 @@
         <section class="view active" data-view-panel="editor">
             <div class="editor">
                 <div class="etabs">
-                    <button class="etab active" data-key="accept">Accept</button>
-                    <button class="etab" data-key="aireject">AI Reject</button>
-                    <button class="etab" data-key="copyreject">Copy Reject</button>
-                    <button class="etab" data-key="prompt">Prompt</button>
+                    <button class="etab active" data-key="accept" data-i18n="etab.accept">Accept</button>
+                    <button class="etab" data-key="aireject" data-i18n="etab.aireject">AI Reject</button>
+                    <button class="etab" data-key="copyreject" data-i18n="etab.copyreject">Copy Reject</button>
+                    <button class="etab" data-key="prompt" data-i18n="etab.prompt">Prompt</button>
                 </div>
 
                 <div class="edit-pane">
                     <div class="editor-list-wrap" id="editor-list-wrap">
                         <div class="editor-list-head">
                             <span class="editor-count" id="editor-count"></span>
-                            <input id="editor-search" type="search" placeholder="Search comments\u2026" spellcheck="false" autocomplete="off">
+                            <input id="editor-search" type="search" placeholder="Search comments\u2026" data-i18n-placeholder="search.placeholder" spellcheck="false" autocomplete="off">
                             <span class="editor-tools">
-                                <button class="link" id="editor-bulk-del" disabled>Delete selected</button>
-                                <button class="link" id="editor-restore">Restore defaults</button>
+                                <button class="link" id="editor-bulk-del" disabled data-i18n="editor.deleteSelected">Delete selected</button>
+                                <button class="link" id="editor-restore" data-i18n="editor.restoreDefaults">Restore defaults</button>
                             </span>
                         </div>
                         <div class="comment-list" id="comment-list"></div>
                         <div class="editor-add">
-                            <input id="editor-add-input" placeholder="Add a comment and press Enter" spellcheck="false">
-                            <button class="btn-add" id="editor-add-btn">Add</button>
+                            <input id="editor-add-input" placeholder="Add a comment and press Enter" data-i18n-placeholder="editor.addPlaceholder" spellcheck="false">
+                            <button class="btn-add" id="editor-add-btn" data-i18n="editor.add">Add</button>
                         </div>
                     </div>
 
                     <div class="prompt-wrap hidden" id="prompt-wrap">
-                        <textarea id="prompt-text" placeholder="Type the prompt to copy with the Prompt button" spellcheck="false"></textarea>
+                        <textarea id="prompt-text" placeholder="Type the prompt to copy with the Prompt button" data-i18n-placeholder="editor.promptPlaceholder" spellcheck="false"></textarea>
                     </div>
                 </div>
 
                 <div class="editor-actions">
-                    <span class="save-status" id="save-status">All changes saved</span>
-                    <button class="btn-copy" id="prompt-btn" title="Copy the prompt to the clipboard">Copy prompt</button>
-                    <button class="btn-save" id="save-btn">Save</button>
+                    <span class="save-status" id="save-status" data-i18n="saveStatus.saved">All changes saved</span>
+                    <button class="btn-copy" id="prompt-btn" title="Copy the prompt to the clipboard" data-i18n-title="editor.copyPromptTitle" data-i18n="editor.copyPrompt">Copy prompt</button>
+                    <button class="btn-save" id="save-btn" data-i18n="editor.save">Save</button>
                 </div>
             </div>
         </section>
@@ -83,37 +83,61 @@
             <div class="settings-block">
                 <div class="setting-row">
                     <div class="setting-info">
-                        <div class="setting-title">Popup layout</div>
-                        <div class="setting-desc">How the tray popup arranges Comment Copier and Student Details.</div>
+                        <div class="setting-title" data-i18n="settings.popupLayout">Popup layout</div>
+                        <div class="setting-desc" data-i18n="settings.popupLayoutDesc">How the tray popup arranges Comment Copier and Student Details.</div>
                     </div>
-                    <div class="layout-picker" id="mw-layout-picker" role="group" aria-label="Popup layout">
-                        <button type="button" class="layout-picker-option" data-layout="cards">Cards</button>
-                        <button type="button" class="layout-picker-option" data-layout="tabs">Tabs</button>
-                        <button type="button" class="layout-picker-option" data-layout="stack">Side by side</button>
+                    <div class="layout-picker" id="mw-layout-picker" role="group" aria-label="Popup layout" data-i18n-aria="settings.popupLayout">
+                        <button type="button" class="layout-picker-option" data-layout="cards" data-i18n="layout.cards">Cards</button>
+                        <button type="button" class="layout-picker-option" data-layout="tabs" data-i18n="layout.tabs">Tabs</button>
+                        <button type="button" class="layout-picker-option" data-layout="stack" data-i18n="layout.stack">Side by side</button>
                     </div>
                 </div>
                 <div class="setting-row">
                     <div class="setting-info">
-                        <div class="setting-title">Accent color</div>
-                        <div class="setting-desc">Highlight color used for buttons, focus rings and links.</div>
+                        <div class="setting-title" data-i18n="settings.language">Language</div>
+                        <div class="setting-desc" data-i18n="settings.languageDesc">Choose the language used throughout the app.</div>
                     </div>
-                    <div class="accent-picker" id="mw-accent-picker" role="group" aria-label="Accent color">
-                        <button type="button" class="accent-swatch" data-accent="#58a6ff" data-label="Blue" title="Blue"></button>
-                        <button type="button" class="accent-swatch" data-accent="#a371f7" data-label="Purple" title="Purple"></button>
-                        <button type="button" class="accent-swatch" data-accent="#3fb950" data-label="Green" title="Green"></button>
-                        <button type="button" class="accent-swatch" data-accent="#f0883e" data-label="Orange" title="Orange"></button>
-                        <button type="button" class="accent-swatch" data-accent="#f85149" data-label="Red" title="Red"></button>
-                        <button type="button" class="accent-swatch" data-accent="#39c5cf" data-label="Teal" title="Teal"></button>
-                        <button type="button" class="accent-swatch" data-accent="#f778ba" data-label="Pink" title="Pink"></button>
-                        <button type="button" class="accent-custom" id="mw-accent-custom-btn" title="Custom color" aria-haspopup="true" aria-expanded="false"></button>
+                    <select class="lang-select" id="mw-language" aria-label="Language">
+                        <option value="en">English</option>
+                        <option value="es">Espa\u00f1ol</option>
+                        <option value="fr">Fran\u00e7ais</option>
+                        <option value="de">Deutsch</option>
+                        <option value="ar">\u0627\u0644\u0639\u0631\u0628\u064a\u0629</option>
+                    </select>
+                </div>
+                <div class="setting-row">
+                    <div class="setting-info">
+                        <div class="setting-title" data-i18n="settings.tooltipDensity">Tooltip density</div>
+                        <div class="setting-desc" data-i18n="settings.tooltipDensityDesc">How much of a comment the hover tooltip shows.</div>
+                    </div>
+                    <div class="layout-picker" id="mw-tooltip-density" role="group" aria-label="Tooltip density" data-i18n-aria="settings.tooltipDensity">
+                        <button type="button" class="layout-picker-option" data-density="off" data-i18n="tooltip.off">Off</button>
+                        <button type="button" class="layout-picker-option" data-density="compact" data-i18n="tooltip.compact">Compact</button>
+                        <button type="button" class="layout-picker-option" data-density="detailed" data-i18n="tooltip.detailed">Detailed</button>
+                    </div>
+                </div>
+                <div class="setting-row">
+                    <div class="setting-info">
+                        <div class="setting-title" data-i18n="settings.accent">Accent color</div>
+                        <div class="setting-desc" data-i18n="settings.accentDesc">Highlight color used for buttons, focus rings and links.</div>
+                    </div>
+                    <div class="accent-picker" id="mw-accent-picker" role="group" aria-label="Accent color" data-i18n-aria="settings.accent">
+                        <button type="button" class="accent-swatch" data-accent="#58a6ff" data-label="Blue" title="Blue" data-i18n-title="accent.blue"></button>
+                        <button type="button" class="accent-swatch" data-accent="#a371f7" data-label="Purple" title="Purple" data-i18n-title="accent.purple"></button>
+                        <button type="button" class="accent-swatch" data-accent="#3fb950" data-label="Green" title="Green" data-i18n-title="accent.green"></button>
+                        <button type="button" class="accent-swatch" data-accent="#f0883e" data-label="Orange" title="Orange" data-i18n-title="accent.orange"></button>
+                        <button type="button" class="accent-swatch" data-accent="#f85149" data-label="Red" title="Red" data-i18n-title="accent.red"></button>
+                        <button type="button" class="accent-swatch" data-accent="#39c5cf" data-label="Teal" title="Teal" data-i18n-title="accent.teal"></button>
+                        <button type="button" class="accent-swatch" data-accent="#f778ba" data-label="Pink" title="Pink" data-i18n-title="accent.pink"></button>
+                        <button type="button" class="accent-custom" id="mw-accent-custom-btn" title="Custom color" data-i18n-title="accent.custom" aria-haspopup="true" aria-expanded="false"></button>
                     </div>
 
-                    <div class="color-popover hidden" id="mw-color-popover" role="dialog" aria-label="Custom color picker">
+                    <div class="color-popover hidden" id="mw-color-popover" role="dialog" aria-label="Custom color picker" data-i18n-aria="accent.popover">
                         <div class="color-sv" id="cp-sv">
                             <div class="color-sv-handle" id="cp-sv-handle"></div>
                         </div>
                         <div class="color-controls-row">
-                            <button type="button" class="color-eyedrop" id="cp-eyedrop" title="Pick a color from your screen" hidden>
+                            <button type="button" class="color-eyedrop" id="cp-eyedrop" title="Pick a color from your screen" data-i18n-title="accent.eyedrop" hidden>
                                 <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><path d="M11.2 2.3a1.8 1.8 0 0 1 2.5 2.5l-1 1-2.5-2.5 1-1Z"/><path d="M9.3 4.2 3 10.5 2 14l3.5-1L11.8 6.5"/></svg>
                             </button>
                             <div class="color-preview" id="cp-preview"></div>
@@ -139,88 +163,125 @@
                 </div>
                 <div class="setting-row">
                     <div class="setting-info">
-                        <div class="setting-title">Appearance</div>
-                        <div class="setting-desc">Choose between the dark, light, midnight and sepia color themes.</div>
+                        <div class="setting-title" data-i18n="settings.appearance">Appearance</div>
+                        <div class="setting-desc" data-i18n="settings.appearanceDesc">Choose between the dark, light, midnight and sepia color themes.</div>
                     </div>
-                    <div class="theme-picker" id="mw-theme-picker" role="group" aria-label="Theme">
-                        <button type="button" class="theme-option" data-theme="dark">Dark</button>
-                        <button type="button" class="theme-option" data-theme="light">Light</button>
-                        <button type="button" class="theme-option" data-theme="midnight">Midnight</button>
-                        <button type="button" class="theme-option" data-theme="sepia">Sepia</button>
+                    <div class="theme-picker" id="mw-theme-picker" role="group" aria-label="Theme" data-i18n-aria="settings.appearance">
+                        <button type="button" class="theme-option" data-theme="dark" data-i18n="theme.dark">Dark</button>
+                        <button type="button" class="theme-option" data-theme="light" data-i18n="theme.light">Light</button>
+                        <button type="button" class="theme-option" data-theme="midnight" data-i18n="theme.midnight">Midnight</button>
+                        <button type="button" class="theme-option" data-theme="sepia" data-i18n="theme.sepia">Sepia</button>
                     </div>
                 </div>
                 <div class="setting-row">
                     <div class="setting-info">
-                        <div class="setting-title">Date before comment</div>
-                        <div class="setting-desc">When copying a comment, put today's date on the clipboard first, then the comment.</div>
+                        <div class="setting-title" data-i18n="settings.reduceMotion">Reduce motion</div>
+                        <div class="setting-desc" data-i18n="settings.reduceMotionDesc">Minimize animations and transitions across the app.</div>
                     </div>
-                    <button type="button" class="toggle" id="mw-date-first" role="switch" aria-checked="true" title="Toggle date-first copying">
+                    <button type="button" class="toggle" id="mw-reduce-motion" role="switch" aria-checked="false" title="Toggle reduced motion" data-i18n-title="settings.titles.reduceMotionTitle">
                         <span class="toggle-thumb"></span>
                     </button>
                 </div>
                 <div class="setting-row">
                     <div class="setting-info">
-                        <div class="setting-title">Launch at startup</div>
-                        <div class="setting-desc">Start Comment Copier automatically when you sign in to Windows.</div>
+                        <div class="setting-title" data-i18n="settings.dateFirst">Date before comment</div>
+                        <div class="setting-desc" data-i18n="settings.dateFirstDesc">When copying a comment, put today's date on the clipboard first, then the comment.</div>
                     </div>
-                    <button type="button" class="toggle" id="mw-startup" role="switch" aria-checked="false" title="Toggle start-at-login">
+                    <button type="button" class="toggle" id="mw-date-first" role="switch" aria-checked="true" title="Toggle date-first copying" data-i18n-title="settings.titles.dateFirstTitle">
                         <span class="toggle-thumb"></span>
                     </button>
                 </div>
                 <div class="setting-row">
                     <div class="setting-info">
-                        <div class="setting-title">Confirm before delete</div>
-                        <div class="setting-desc">Ask for confirmation before deleting a comment or a bulk selection.</div>
+                        <div class="setting-title" data-i18n="settings.startup">Launch at startup</div>
+                        <div class="setting-desc" data-i18n="settings.startupDesc">Start Comment Copier automatically when you sign in to Windows.</div>
                     </div>
-                    <button type="button" class="toggle" id="mw-confirm-delete" role="switch" aria-checked="true" title="Toggle delete confirmation">
+                    <button type="button" class="toggle" id="mw-startup" role="switch" aria-checked="false" title="Toggle start-at-login" data-i18n-title="settings.titles.startLoginTitle">
                         <span class="toggle-thumb"></span>
                     </button>
                 </div>
                 <div class="setting-row">
                     <div class="setting-info">
-                        <div class="setting-title">Close popup after copy</div>
-                        <div class="setting-desc">Automatically close the tray popup after you copy a comment. Turn off to keep it open.</div>
+                        <div class="setting-title" data-i18n="settings.startInTray">Start minimized to tray</div>
+                        <div class="setting-desc" data-i18n="settings.startInTrayDesc">Start quietly in the system tray. Turn off to open the editor when Comment Copier starts.</div>
                     </div>
-                    <button type="button" class="toggle" id="mw-close-after-copy" role="switch" aria-checked="false" title="Toggle close-after-copy">
+                    <button type="button" class="toggle" id="mw-start-in-tray" role="switch" aria-checked="true" title="Toggle start minimized to tray" data-i18n-title="settings.titles.startTrayTitle">
                         <span class="toggle-thumb"></span>
                     </button>
                 </div>
                 <div class="setting-row">
                     <div class="setting-info">
-                        <div class="setting-title">Check for updates on launch</div>
-                        <div class="setting-desc">Automatically check for a new version when the app starts, and surface the latest release notes here.</div>
+                        <div class="setting-title" data-i18n="portable.title">Portable mode</div>
+                        <div class="setting-desc" data-i18n="portable.desc">Store your data beside the app (e.g. on a USB drive) instead of the temporary folder.</div>
                     </div>
-                    <button type="button" class="toggle" id="mw-auto-check-updates" role="switch" aria-checked="true" title="Toggle auto-update-check">
+                    <button type="button" class="toggle" id="mw-portable-mode" role="switch" aria-checked="false" title="Toggle portable mode" data-i18n-title="settings.titles.portableToggleTitle">
                         <span class="toggle-thumb"></span>
                     </button>
                 </div>
                 <div class="setting-row">
                     <div class="setting-info">
-                        <div class="setting-title">Backup &amp; restore</div>
-                        <div class="setting-desc">Export all comment lists, the prompt, student details, and settings to a JSON file, or load them back in.</div>
+                        <div class="setting-title" data-i18n="settings.confirmDelete">Confirm before delete</div>
+                        <div class="setting-desc" data-i18n="settings.confirmDeleteDesc">Ask for confirmation before deleting a comment or a bulk selection.</div>
+                    </div>
+                    <button type="button" class="toggle" id="mw-confirm-delete" role="switch" aria-checked="true" title="Toggle delete confirmation" data-i18n-title="settings.titles.confirmDeleteTitle">
+                        <span class="toggle-thumb"></span>
+                    </button>
+                </div>
+                <div class="setting-row">
+                    <div class="setting-info">
+                        <div class="setting-title" data-i18n="settings.closeAfterCopy">Close popup after copy</div>
+                        <div class="setting-desc" data-i18n="settings.closeAfterCopyDesc">Automatically close the tray popup after you copy a comment. Turn off to keep it open.</div>
+                    </div>
+                    <button type="button" class="toggle" id="mw-close-after-copy" role="switch" aria-checked="false" title="Toggle close-after-copy" data-i18n-title="settings.titles.closeAfterTitle">
+                        <span class="toggle-thumb"></span>
+                    </button>
+                </div>
+                <div class="setting-row">
+                    <div class="setting-info">
+                        <div class="setting-title" data-i18n="settings.autoUpdate">Check for updates on launch</div>
+                        <div class="setting-desc" data-i18n="settings.autoUpdateDesc">Automatically check for a new version when the app starts, and surface the latest release notes here.</div>
+                    </div>
+                    <button type="button" class="toggle" id="mw-auto-check-updates" role="switch" aria-checked="true" title="Toggle auto-update-check" data-i18n-title="settings.titles.autoUpdateTitle">
+                        <span class="toggle-thumb"></span>
+                    </button>
+                </div>
+                <div class="setting-row">
+                    <div class="setting-info">
+                        <div class="setting-title" data-i18n="settings.updateChannel">Update channel</div>
+                        <div class="setting-desc" data-i18n="settings.updateChannelDesc">Pick which releases the update check looks at. Beta includes pre-releases.</div>
+                    </div>
+                    <div class="layout-picker" id="mw-update-channel" role="group" aria-label="Update channel" data-i18n-aria="settings.updateChannel">
+                        <button type="button" class="layout-picker-option" data-channel="stable" data-i18n="channel.stable">Stable</button>
+                        <button type="button" class="layout-picker-option" data-channel="beta" data-i18n="channel.beta">Beta</button>
+                    </div>
+                </div>
+                <div class="setting-row">
+                    <div class="setting-info">
+                        <div class="setting-title" data-i18n="settings.backup">Backup &amp; restore</div>
+                        <div class="setting-desc" data-i18n="settings.backupDesc">Export all comment lists, the prompt, student details, and settings to a JSON file, or load them back in.</div>
                     </div>
                     <div class="backup-actions">
-                        <div class="restore-mode" id="mw-restore-mode" role="group" aria-label="Restore mode">
-                            <button type="button" class="restore-mode-option" data-mode="replace" title="Replace all current data with the backup">Replace</button>
-                            <button type="button" class="restore-mode-option" data-mode="merge" title="Keep current data and add anything missing from the backup">Merge</button>
+                        <div class="restore-mode" id="mw-restore-mode" role="group" aria-label="Restore mode" data-i18n-aria="settings.backup">
+                            <button type="button" class="restore-mode-option" data-mode="replace" title="Replace all current data with the backup" data-i18n-title="mode.replaceTitle" data-i18n="mode.replace">Replace</button>
+                            <button type="button" class="restore-mode-option" data-mode="merge" title="Keep current data and add anything missing from the backup" data-i18n-title="mode.mergeTitle" data-i18n="mode.merge">Merge</button>
                         </div>
-                        <button type="button" class="btn-backup" id="mw-backup">Backup</button>
-                        <button type="button" class="btn-backup" id="mw-restore">Restore</button>
+                        <button type="button" class="btn-backup" id="mw-backup" data-i18n="btn.backup">Backup</button>
+                        <button type="button" class="btn-backup" id="mw-restore" data-i18n="btn.restore">Restore</button>
                     </div>
                 </div>
                 <div class="setting-row">
                     <div class="setting-info">
-                        <div class="setting-title">Undo last restore</div>
-                        <div class="setting-desc">Restore the data you had right before the most recent restore.</div>
+                        <div class="setting-title" data-i18n="settings.rollback">Undo last restore</div>
+                        <div class="setting-desc" data-i18n="settings.rollbackDesc">Restore the data you had right before the most recent restore.</div>
                     </div>
-                    <button type="button" class="btn-backup" id="mw-rollback" disabled>Roll back</button>
+                    <button type="button" class="btn-backup" id="mw-rollback" disabled data-i18n="btn.rollback">Roll back</button>
                 </div>
                 <div class="setting-row">
                     <div class="setting-info">
-                        <div class="setting-title">Reset app data</div>
-                        <div class="setting-desc">Clear all saved comment lists, prompt, and student details back to defaults.</div>
+                        <div class="setting-title" data-i18n="settings.reset">Reset app data</div>
+                        <div class="setting-desc" data-i18n="settings.resetDesc">Clear all saved comment lists, prompt, and student details back to defaults.</div>
                     </div>
-                    <button type="button" class="btn-reset" id="mw-reset">Reset app data</button>
+                    <button type="button" class="btn-reset" id="mw-reset" data-i18n="btn.resetApp">Reset app data</button>
                 </div>
             </div>
         </section>
@@ -229,26 +290,26 @@
             <div class="settings-block">
                 <div class="setting-row">
                     <div class="setting-info">
-                        <div class="setting-title">Global hotkey</div>
-                        <div class="setting-desc">A keyboard shortcut that opens the tray popup from anywhere. Leave blank to use the tray icon only.</div>
+                        <div class="setting-title" data-i18n="sc.globalHotkey">Global hotkey</div>
+                        <div class="setting-desc" data-i18n="sc.globalHotkeyDesc">A keyboard shortcut that opens the tray popup from anywhere. Leave blank to use the tray icon only.</div>
                     </div>
                     <div class="hotkey-control">
-                        <button type="button" class="shortcut-capture hotkey-capture" id="mw-hotkey-input" title="Click, then press the new key combination">Click to set</button>
-                        <button type="button" class="shortcut-reset" id="mw-hotkey-clear" title="Clear hotkey" disabled>&times;</button>
+                        <button type="button" class="shortcut-capture hotkey-capture" id="mw-hotkey-input" title="Click, then press the new key combination" data-i18n-title="sc.captureTitle" data-i18n="sc.clickToSet">Click to set</button>
+                        <button type="button" class="shortcut-reset" id="mw-hotkey-clear" title="Clear hotkey" data-i18n-title="sc.clearHotkey" disabled>&times;</button>
                     </div>
                 </div>
             </div>
 
             <div class="settings-block shortcuts-block">
-                <div class="shortcuts-title">Keyboard shortcuts</div>
-                <div class="shortcuts-subtitle">Click a shortcut, then press the new key combination. Each must include Ctrl, Shift, or Alt.</div>
+                <div class="shortcuts-title" data-i18n="sc.title">Keyboard shortcuts</div>
+                <div class="shortcuts-subtitle" data-i18n="sc.subtitle">Click a shortcut, then press the new key combination. Each must include Ctrl, Shift, or Alt.</div>
                 <div id="shortcuts-editable"></div>
                 <div class="shortcut-row shortcut-static">
-                    <span class="shortcut-desc">Save changes while editing a comment</span>
+                    <span class="shortcut-desc" data-i18n="sc.saveChanges">Save changes while editing a comment</span>
                     <span class="shortcut-keys"><kbd>Ctrl</kbd><kbd>Enter</kbd></span>
                 </div>
                 <div class="shortcut-row shortcut-static">
-                    <span class="shortcut-desc">Add the typed comment / apply the typed hotkey</span>
+                    <span class="shortcut-desc" data-i18n="sc.addCommentOrKey">Add the typed comment / apply the typed hotkey</span>
                     <span class="shortcut-keys"><kbd>Enter</kbd></span>
                 </div>
             </div>
@@ -267,7 +328,7 @@
 
             <div class="about-highlight" id="mw-latest-update" hidden>
                 <div class="about-highlight-head">
-                    <span class="about-highlight-badge">Latest update</span>
+                    <span class="about-highlight-badge" data-i18n="about.latestUpdate">Latest update</span>
                     <span class="version-pill" id="mw-latest-update-version"></span>
                 </div>
                 <div class="info-changelog" id="mw-latest-update-notes"></div>
@@ -275,29 +336,29 @@
 
             <div class="about-cards">
                 <div class="about-card">
-                    <div class="about-card-title">Details</div>
+                    <div class="about-card-title" data-i18n="about.details">Details</div>
                     <div class="about-meta" id="mw-info-meta"></div>
                 </div>
                 <div class="about-card" id="mw-changelog-card">
-                    <div class="about-card-title">What&rsquo;s new</div>
+                    <div class="about-card-title" data-i18n="about.whatsNew">What&rsquo;s new</div>
                     <div class="info-changelog" id="mw-info-changelog"></div>
                 </div>
                 <div class="about-card" id="mw-support-card">
-                    <div class="about-card-title">Support &amp; credits</div>
+                    <div class="about-card-title" data-i18n="about.supportCredits">Support &amp; credits</div>
                     <div class="about-links">
                         <a class="about-link" id="mw-github-link" href="https://github.com/GagandeepSingh07/Comment-Copier-main" target="_blank" rel="noopener">
                             <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 1.5a6.5 6.5 0 0 0-2.06 12.66c.33.06.45-.14.45-.31v-1.1c-1.84.4-2.23-.89-2.23-.89-.3-.77-.73-.97-.73-.97-.6-.41.05-.4.05-.4.66.05 1 .68 1 .68.59 1.01 1.55.72 1.93.55.06-.43.23-.72.42-.89-1.47-.17-3.01-.74-3.01-3.28 0-.73.26-1.32.68-1.79-.07-.17-.3-.85.06-1.77 0 0 .55-.18 1.82.68a6.3 6.3 0 0 1 3.31 0c1.27-.86 1.82-.68 1.82-.68.36.92.13 1.6.06 1.77.42.47.68 1.06.68 1.79 0 2.55-1.55 3.11-3.03 3.27.24.21.45.61.45 1.24v1.84c0 .18.12.38.46.31A6.5 6.5 0 0 0 8 1.5Z"/></svg>
-                            GitHub repository
+                            <span data-i18n="about.github">GitHub repository</span>
                         </a>
                     </div>
                     <div class="about-credits">
-                        <div class="about-credit">Developer: <span id="mw-developer"></span></div>
-                        <div class="about-credit">Helper: <span id="mw-helper"></span></div>
-                        <div class="about-credit">Icons &amp; logo: custom SVG design</div>
+                        <div class="about-credit"><span data-i18n="about.developerLabel">Developer:</span> <span id="mw-developer"></span></div>
+                        <div class="about-credit"><span data-i18n="about.helperLabel">Helper:</span> <span id="mw-helper"></span></div>
+                        <div class="about-credit" data-i18n="about.icons">Icons &amp; logo: custom SVG design</div>
                     </div>
                     <div class="about-actions">
-                        <button type="button" class="btn-update" id="mw-update-btn">Check for updates</button>
-                        <button type="button" class="btn-update" id="mw-diagnostics-btn">Export diagnostics</button>
+                        <button type="button" class="btn-update" id="mw-update-btn" data-i18n="about.checkUpdates">Check for updates</button>
+                        <button type="button" class="btn-update" id="mw-diagnostics-btn" data-i18n="about.exportDiagnostics">Export diagnostics</button>
                     </div>
                 </div>
             </div>
@@ -306,6 +367,7 @@
 </div>
 <div class="toast" id="toast"></div>
 <script src="shared-data.js"></script>
+<script src="i18n.js"></script>
 <script src="mainwindow.js"></script>
 </body>
 </html>

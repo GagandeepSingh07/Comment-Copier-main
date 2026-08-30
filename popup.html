@@ -10,7 +10,7 @@
     <div class="topbar">
         <div class="tabs" id="main-tabs">
             <button class="tab active" data-tab="comments">Comment Copier</button>
-            <button class="tab" data-tab="student">Student Details</button>
+            <button class="tab" data-tab="student" data-i18n="popup.student">Student Details</button>
         </div>
     </div>
 
@@ -25,65 +25,65 @@
 
     <div class="tab-panel" data-panel="student">
         <div class="sheet-head">
-            <span class="sheet-label">Student details</span>
+            <span class="sheet-label" data-i18n="popup.student">Student details</span>
             <div class="sheet-head-actions">
-                <button class="link" id="sheet-paste-btn" title="Copy a range of cells in Excel (Ctrl+C), then click here to import from the clipboard">Paste</button>
-                <button class="link" id="sheet-paste-toggle" title="Paste into a text box instead">Paste box</button>
-                <button class="link" id="sheet-reset">Clear</button>
+                <button class="link" id="sheet-paste-btn" data-i18n="popup.paste" data-i18n-title="popup.pasteTitle" title="Copy a range of cells in Excel (Ctrl+C), then click here to import from the clipboard">Paste</button>
+                <button class="link" id="sheet-paste-toggle" data-i18n="popup.pasteBox" data-i18n-title="popup.pasteBoxTitle" title="Paste into a text box instead">Paste box</button>
+                <button class="link" id="sheet-reset" data-i18n="popup.clear">Clear</button>
             </div>
         </div>
         <div class="sheet-fields">
-            <input id="sheet-id" placeholder="Student Id">
-            <input id="sheet-name" placeholder="Name">
-            <button class="action action-primary" id="sheet-btn" title="Copy the Excel tracking sheet, then paste into Excel">Copy Sheet</button>
+            <input id="sheet-id" data-i18n-placeholder="popup.studentId" placeholder="Student Id">
+            <input id="sheet-name" data-i18n-placeholder="popup.name" placeholder="Name">
+            <button class="action action-primary" id="sheet-btn" data-i18n="popup.copySheet" data-i18n-title="popup.copySheetTitle" title="Copy the Excel tracking sheet, then paste into Excel">Copy Sheet</button>
         </div>
         <div class="sheet-paste-panel hidden" id="sheet-paste-panel">
-            <textarea id="sheet-paste-textarea" placeholder="Paste an Excel table here, or type one code + mark per line, e.g.&#10;CPCCCA3002, Checked&#10;CPCCWHS2001, AI Detected"></textarea>
+            <textarea id="sheet-paste-textarea" data-i18n-placeholder="popup.pastePlaceholder" placeholder="Paste an Excel table here, or type one code + mark per line, e.g.&#10;CPCCCA3002, Checked&#10;CPCCWHS2001, AI Detected"></textarea>
             <div class="sheet-paste-actions">
-                <button class="link" id="sheet-paste-cancel">Cancel</button>
-                <button class="btn-add" id="sheet-paste-import-btn">Import</button>
+                <button class="link" id="sheet-paste-cancel" data-i18n="popup.cancel">Cancel</button>
+                <button class="btn-add" id="sheet-paste-import-btn" data-i18n="popup.import">Import</button>
             </div>
         </div>
         <div class="sheet-preview">
             <div class="sheet-preview-head">
-                <span class="sheet-label">Unit Code &amp; Mark</span>
+                <span class="sheet-label" data-i18n="popup.unitMark">Unit Code &amp; Mark</span>
                 <span class="sheet-count" id="sheet-count"></span>
             </div>
             <div class="sheet-add">
-                <input id="sheet-add-code" placeholder="Code (e.g. CPCCPD2011)">
+                <input id="sheet-add-code" data-i18n-placeholder="popup.codePlaceholder" placeholder="Code (e.g. CPCCPD2011)">
                 <div class="mark-select" id="mark-select">
                     <button type="button" class="mark-select-trigger" id="mark-select-trigger" aria-haspopup="listbox" aria-expanded="false">
                         <span class="mark-select-dot dot-checked" id="mark-select-dot"></span>
-                        <span class="mark-select-value" id="mark-select-value">Checked</span>
+                        <span class="mark-select-value" id="mark-select-value" data-i18n="popup.markChecked">Checked</span>
                         <svg class="mark-select-chevron" width="10" height="6" viewBox="0 0 10 6" aria-hidden="true"><path d="M0 0l5 6 5-6z"></path></svg>
                     </button>
                     <div class="mark-select-menu hidden" id="mark-select-menu" role="listbox">
                         <button type="button" class="mark-select-option selected" data-value="Checked" role="option" aria-selected="true">
-                            <span class="mark-select-dot dot-checked"></span>Checked
+                            <span class="mark-select-dot dot-checked"></span><span data-i18n="popup.markChecked">Checked</span>
                         </button>
                         <button type="button" class="mark-select-option" data-value="AI Detected" role="option" aria-selected="false">
-                            <span class="mark-select-dot dot-ai"></span>AI Detected
+                            <span class="mark-select-dot dot-ai"></span><span data-i18n="popup.markAi">AI Detected</span>
                         </button>
                         <button type="button" class="mark-select-option" data-value="Copied" role="option" aria-selected="false">
-                            <span class="mark-select-dot dot-copied"></span>Copied
+                            <span class="mark-select-dot dot-copied"></span><span data-i18n="popup.markCopied">Copied</span>
                         </button>
                         <div class="mark-select-sep"></div>
                         <button type="button" class="mark-select-option" data-value="__custom__" role="option" aria-selected="false">
-                            <span class="mark-select-dot dot-custom"></span>Type your own
+                            <span class="mark-select-dot dot-custom"></span><span data-i18n="popup.typeOwn">Type your own</span>
                         </button>
                     </div>
                 </div>
-                <input id="sheet-add-mark-custom" class="hidden" placeholder="Type a mark">
-                <button class="btn-add" id="sheet-add-btn">Add</button>
+                <input id="sheet-add-mark-custom" class="hidden" data-i18n-placeholder="popup.typeMark" placeholder="Type a mark">
+                <button class="btn-add" id="sheet-add-btn" data-i18n="popup.add">Add</button>
             </div>
             <div class="sheet-preview-list" id="sheet-preview-list"></div>
         </div>
     </div>
 
     <div class="actions">
-        <button class="action" id="quit">Quit</button>
+        <button class="action" id="quit" data-i18n="quit">Quit</button>
         <div class="organizer-wrap">
-            <button type="button" class="organizer-btn" id="organizer-btn" aria-label="File organizer" aria-haspopup="true" aria-expanded="false" title="Organize files into folders">
+            <button type="button" class="organizer-btn" id="organizer-btn" data-i18n-aria="org.aria" data-i18n-title="org.btnTitle" aria-label="File organizer" aria-haspopup="true" aria-expanded="false" title="Organize files into folders">
                 <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><path d="M2 4.25A1 1 0 0 1 3 3.25h3l1.2 1.5h5.8a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1h-10a1 1 0 0 1-1-1v-7.5Z"/></svg>
             </button>
             <div class="organizer-popover" id="organizer-popover">
@@ -93,41 +93,43 @@
                             <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M2 4.25A1 1 0 0 1 3 3.25h3l1.2 1.5h5.8a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1h-10a1 1 0 0 1-1-1v-7.5Z"/></svg>
                         </span>
                         <div>
-                            <div class="organizer-popover-head">File Organizer</div>
-                            <div class="organizer-popover-sub">Sort files into folders by code</div>
+                            <div class="organizer-popover-head" data-i18n="org.title">File Organizer</div>
+                            <div class="organizer-popover-sub" data-i18n="org.subtitle">Sort files into folders by code</div>
                         </div>
                     </div>
                     <div class="organizer-head-actions">
-                        <button type="button" class="link" id="prompt-btn" title="Copy the File Organization prompt">Copy Prompt</button>
-                        <button type="button" class="link" id="organizer-clear-btn" title="Clear the selected folder">Clear</button>
+                        <button type="button" class="link" id="prompt-btn" data-i18n="org.copyPrompt" data-i18n-title="org.copyPromptTitle" title="Copy the File Organization prompt">Copy Prompt</button>
+                        <button type="button" class="link" id="organizer-clear-btn" data-i18n="org.clear" data-i18n-title="org.clearTitle" title="Clear the selected folder">Clear</button>
                     </div>
                 </div>
                 <div class="organizer-steps">
                     <span class="organizer-step">
                         <span class="organizer-step-num">1</span>
-                        <strong>Browse</strong> a folder
+                        <strong data-i18n="org.browse">Browse</strong>
+                        <span data-i18n="org.aFolder">a folder</span>
                     </span>
                     <svg class="organizer-step-arrow" width="10" height="8" viewBox="0 0 10 8" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M1 4h8M6 1l3 3-3 3"/></svg>
                     <span class="organizer-step">
                         <span class="organizer-step-num">2</span>
-                        <strong>Organize</strong> the files
+                        <strong data-i18n="org.organizeWord">Organize</strong>
+                        <span data-i18n="org.files">the files</span>
                     </span>
                 </div>
                 <div class="organizer-folder-row" id="organizer-folder-row">
                     <svg class="organizer-folder-icon" width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><path d="M2 4.25A1 1 0 0 1 3 3.25h3l1.2 1.5h5.8a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1h-10a1 1 0 0 1-1-1v-7.5Z"/></svg>
-                    <input id="organizer-path" placeholder="No folder selected" readonly>
-                    <button type="button" class="btn-add organizer-browse" id="organizer-browse-btn">Browse</button>
+                    <input id="organizer-path" data-i18n-placeholder="org.noFolder" placeholder="No folder selected" readonly>
+                    <button type="button" class="btn-add organizer-browse" id="organizer-browse-btn" data-i18n="org.browse">Browse</button>
                 </div>
-                <button type="button" class="btn-organize" id="organizer-run-btn" disabled title="Group files into folders named after the code/identifier before the first '-' or space">
+                <button type="button" class="btn-organize" id="organizer-run-btn" disabled data-i18n-title="org.runTitle" title="Group files into folders named after the code/identifier before the first '-' or space">
                     <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M2 4.25A1 1 0 0 1 3 3.25h3l1.2 1.5h5.8a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1h-10a1 1 0 0 1-1-1v-7.5Z"/><path d="M5.5 9.5h5M8 7v5"/></svg>
-                    <span>Organize Files</span>
+                    <span data-i18n="org.run">Organize Files</span>
                 </button>
                 <div class="organizer-summary" id="organizer-summary"></div>
                 <div class="organizer-list" id="organizer-list"></div>
             </div>
         </div>
         
-        <button type="button" class="main-btn" id="open-main-btn" title="Open the Comment Copier main window" aria-label="Open main window">
+        <button type="button" class="main-btn" id="open-main-btn" data-i18n-title="popup.mainOpenTitle" title="Open the Comment Copier main window" aria-label="Open main window">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
         </button>
     </div>
@@ -135,6 +137,7 @@
 <div class="toast" id="toast"></div>
 <div class="card-tooltip" id="card-tooltip"></div>
 <script src="shared-data.js"></script>
+<script src="i18n.js"></script>
 <script src="popup.js"></script>
 </body>
 </html>

@@ -1206,3 +1206,25 @@ body.layout-cards .card-tooltip.active {
     visibility: visible;
     transform: translateY(0);
 }
+
+body.reduce-motion *,
+body.reduce-motion *::before,
+body.reduce-motion *::after {
+    animation-duration: 0.001s !important;
+    animation-delay: 0s !important;
+    transition-duration: 0.001s !important;
+    transition-delay: 0s !important;
+    scroll-behavior: auto !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.001s !important;
+        animation-delay: 0s !important;
+        transition-duration: 0.001s !important;
+        transition-delay: 0s !important;
+        scroll-behavior: auto !important;
+    }
+}

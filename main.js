@@ -6,7 +6,55 @@ const https = require('https');
 app.commandLine.appendSwitch('disable-gpu-cache');
 app.commandLine.appendSwitch('disk-cache-size', '0');
 app.disableHardwareAcceleration();
-app.setPath('userData', path.join(app.getPath('temp'), 'comment-copier'));
+
+function portablePointerFile() {
+    return path.join(app.getPath('appData'), 'comment-copier', 'portable.json');
+}
+function readPortablePointer() {
+    try {
+        const p = JSON.parse(fs.readFileSync(portablePointerFile(), 'utf8'));
+        if (p && typeof p.dir === 'string' && p.dir && fs.existsSync(p.dir) && fs.statSync(p.dir).isDirectory()) {
+            return { enabled: true, dir: p.dir };
+        }
+    } catch (e) { /* ignore */ }
+    return { enabled: false, dir: '' };
+}
+function defaultDataRoot() {
+    return path.join(app.getPath('temp'), 'comment-copier');
+}
+function writePortablePointer(dir) {
+    if (dir) {
+        fs.mkdirSync(path.dirname(portablePointerFile()), { recursive: true });
+        fs.writeFileSync(portablePointerFile(), JSON.stringify({ enabled: true, dir }, null, 2), 'utf8');
+    } else {
+        try { fs.unlinkSync(portablePointerFile()); } catch (e) { /* ignore */ }
+    }
+}
+function copyDirSync(src, dst) {
+    if (!fs.existsSync(src)) return;
+    fs.mkdirSync(dst, { recursive: true });
+    for (const entry of fs.readdirSync(src, { withFileTypes: true })) {
+        const s = path.join(src, entry.name);
+        const d = path.join(dst, entry.name);
+        if (entry.isDirectory()) copyDirSync(s, d);
+        else if (entry.isFile()) { try { fs.copyFileSync(s, d); } catch (e) { /* skip locked files */ } }
+    }
+}
+function migrateData(from, to) {
+    if (from === to || !fs.existsSync(from)) return true;
+    fs.mkdirSync(to, { recursive: true });
+    for (const entry of fs.readdirSync(from, { withFileTypes: true })) {
+        if (entry.name === 'portable.json') continue;
+        const s = path.join(from, entry.name);
+        const d = path.join(to, entry.name);
+        if (entry.isDirectory()) copyDirSync(s, d);
+        else if (entry.isFile()) { try { fs.copyFileSync(s, d); } catch (e) { /* skip locked files */ } }
+    }
+    return true;
+}
+
+const portableMode = readPortablePointer();
+app.setPath('userData', portableMode.enabled ? portableMode.dir : defaultDataRoot());
 
 if (!app.requestSingleInstanceLock()) {
     app.quit();
@@ -364,9 +412,20 @@ function isNewerVersion(latest, current) {
     return false;
 }
 
-ipcMain.handle('comment-copier:check-updates', () => {
+function latestFromReleases(list) {
+    let best = null;
+    for (const item of list || []) {
+        if (!item || item.draft) continue;
+        const v = String(item.tag_name || '').replace(/^v/i, '');
+        if (v && (!best || isNewerVersion(v, best))) best = v;
+    }
+    return best;
+}
+
+ipcMain.handle('comment-copier:check-updates', (event, channel) => {
     return new Promise((resolve) => {
-        const url = 'https://api.github.com/repos/GagandeepSingh07/Comment-Copier-main/releases/latest';
+        const beta = channel === 'beta';
+        const url = 'https://api.github.com/repos/GagandeepSingh07/Comment-Copier-main/releases';
         const req = https.get(url, {
             headers: { 'User-Agent': 'Comment Copier', Accept: 'application/vnd.github+json' },
         }, (res) => {
@@ -384,7 +443,8 @@ ipcMain.handle('comment-copier:check-updates', () => {
                 }
                 try {
                     const data = JSON.parse(body);
-                    const latest = String(data.tag_name || '').replace(/^v/i, '');
+                    const list = Array.isArray(data) ? data : [data];
+                    const latest = latestFromReleases(beta ? list : list.filter((r) => !r.prerelease));
                     const current = app.getVersion();
                     if (!latest) {
                         resolve({ ok: false, error: 'Could not read the latest release.' });
@@ -402,6 +462,54 @@ ipcMain.handle('comment-copier:check-updates', () => {
             resolve({ ok: false, error: 'Update check timed out.' });
         });
     });
+});
+
+ipcMain.handle('comment-copier:choose-portable-dir', async (event, title) => {
+    const win = mainWindow && !mainWindow.isDestroyed() ? mainWindow : null;
+    const opts = {
+        title: typeof title === 'string' && title ? title : 'Choose a folder for Comment Copier data',
+        properties: ['openDirectory', 'createDirectory'],
+    };
+    if (process.env.PORTABLE_EXECUTABLE_DIR) opts.defaultPath = process.env.PORTABLE_EXECUTABLE_DIR;
+    else opts.defaultPath = path.join(app.getPath('documents'), 'Comment Copier Data');
+    const result = win
+        ? await dialog.showOpenDialog(win, opts)
+        : await dialog.showOpenDialog(opts);
+    if (result.canceled || !result.filePaths.length) return null;
+    return result.filePaths[0];
+});
+
+ipcMain.handle('comment-copier:get-portable-mode', () => {
+    const p = readPortablePointer();
+    return { enabled: p.enabled, dir: p.dir, root: app.getPath('userData') };
+});
+
+ipcMain.handle('comment-copier:enable-portable-mode', (event, dir) => {
+    try {
+        if (typeof dir !== 'string' || !dir.trim()) return { ok: false };
+        const target = dir.trim();
+        fs.mkdirSync(target, { recursive: true });
+        if (app.getPath('userData') !== target) {
+            migrateData(app.getPath('userData'), target);
+        }
+        writePortablePointer(target);
+        return { ok: true, dir: target };
+    } catch (e) {
+        return { ok: false, error: e.message };
+    }
+});
+
+ipcMain.handle('comment-copier:disable-portable-mode', () => {
+    try {
+        const p = readPortablePointer();
+        if (p.enabled && app.getPath('userData') === p.dir) {
+            migrateData(p.dir, defaultDataRoot());
+        }
+        writePortablePointer('');
+        return { ok: true };
+    } catch (e) {
+        return { ok: false, error: e.message };
+    }
 });
 
 ipcMain.handle('comment-copier:copy-sheet', (event, html, text) => {

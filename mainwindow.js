@@ -5,6 +5,12 @@ categories.forEach((key) => {
     state[key] = { comments: [], index: 0 };
 });
 
+function catLabel(key) {
+    return t('etab.' + key);
+}
+
+const languageSelect = document.getElementById('mw-language');
+
 const navItems = document.querySelectorAll('.nav-item');
 const panels = document.querySelectorAll('[data-view-panel]');
 const etabs = document.querySelectorAll('.etab');
@@ -54,9 +60,14 @@ const cpR = document.getElementById('cp-r');
 const cpG = document.getElementById('cp-g');
 const cpB = document.getElementById('cp-b');
 const startupToggle = document.getElementById('mw-startup');
+const startInTrayToggle = document.getElementById('mw-start-in-tray');
+const reduceMotionToggle = document.getElementById('mw-reduce-motion');
+const tooltipDensityOptions = document.querySelectorAll('#mw-tooltip-density .layout-picker-option');
 const confirmDeleteToggle = document.getElementById('mw-confirm-delete');
 const closeAfterCopyToggle = document.getElementById('mw-close-after-copy');
 const autoCheckUpdatesToggle = document.getElementById('mw-auto-check-updates');
+const updateChannelOptions = document.querySelectorAll('#mw-update-channel .layout-picker-option');
+const portableToggle = document.getElementById('mw-portable-mode');
 const hotkeyInput = document.getElementById('mw-hotkey-input');
 const hotkeyClear = document.getElementById('mw-hotkey-clear');
 const backupBtn = document.getElementById('mw-backup');
@@ -114,7 +125,7 @@ function save() {
 
 function setDirty(value) {
     dirty = value;
-    saveStatus.textContent = value ? 'Unsaved changes' : 'All changes saved';
+    saveStatus.textContent = value ? t('saveStatus.unsaved') : t('saveStatus.saved');
     saveStatus.classList.toggle('dirty', value);
     saveBtn.classList.toggle('attention', value);
 }
@@ -122,14 +133,14 @@ function setDirty(value) {
 function updateCounts() {
     if (activeTab === 'prompt') {
         const n = linesFrom(promptText.value).length;
-        editorCount.textContent = n === 1 ? '1 line' : `${n} lines`;
+        editorCount.textContent = tN('count.line', n, { n });
         return;
     }
     const n = state[activeTab].comments.length;
     const shown = activeTab === 'prompt' ? n : filteredIndices().length;
-    const base = n === 1 ? '1 comment' : `${n} comments`;
+    const base = tN('count.comment', n, { n });
     if (activeTab !== 'prompt' && searchQuery.trim() && shown !== n) {
-        editorCount.textContent = `${shown} of ${base}`;
+        editorCount.textContent = t('count.of', { shown, base });
     } else {
         editorCount.textContent = base;
     }
@@ -161,8 +172,9 @@ function createCard(key, index) {
     const check = document.createElement('input');
     check.type = 'checkbox';
     check.className = 'card-check';
-    check.title = selectedIndices.has(index) ? 'Deselect' : 'Select for bulk action';
-    check.setAttribute('aria-label', check.title);
+    const checkTitle = selectedIndices.has(index) ? t('editor.deselect') : t('editor.selectForBulk');
+    check.title = checkTitle;
+    check.setAttribute('aria-label', checkTitle);
     check.checked = selectedIndices.has(index);
     check.addEventListener('change', () => {
         if (check.checked) selectedIndices.add(index);
@@ -193,9 +205,9 @@ function createCard(key, index) {
         return b;
     };
 
-    tools.appendChild(mkBtn('up', '\u2191', 'Move up'));
-    tools.appendChild(mkBtn('down', '\u2193', 'Move down'));
-    tools.appendChild(mkBtn('delete', '\u2715', 'Delete comment'));
+    tools.appendChild(mkBtn('up', '\u2191', t('editor.moveUp')));
+    tools.appendChild(mkBtn('down', '\u2193', t('editor.moveDown')));
+    tools.appendChild(mkBtn('delete', '\u2715', t('editor.deleteComment')));
 
     top.appendChild(tools);
     card.appendChild(top);
@@ -222,7 +234,7 @@ function createCard(key, index) {
         if (previewBtn) previewBtn.hidden = !hasTokens;
         if (!hasTokens) {
             preview.classList.add('hidden');
-            if (previewBtn) previewBtn.textContent = 'Preview';
+            if (previewBtn) previewBtn.textContent = t('editor.preview');
         }
         if (!preview.classList.contains('hidden')) {
             card.querySelector('.card-preview-text').textContent =
@@ -244,7 +256,7 @@ function createCard(key, index) {
     preview.className = 'card-preview hidden';
     const previewTitle = document.createElement('div');
     previewTitle.className = 'card-preview-title';
-    previewTitle.textContent = 'Preview \u2014 placeholders substituted:';
+    previewTitle.textContent = t('editor.previewTitle');
     preview.appendChild(previewTitle);
     const previewText = document.createElement('div');
     previewText.className = 'card-preview-text';
@@ -260,18 +272,18 @@ function createCard(key, index) {
     const current = document.createElement('button');
     current.type = 'button';
     current.className = 'card-current';
-    current.textContent = 'Set as current';
+    current.textContent = t('editor.setAsCurrent');
     current.addEventListener('click', () => setCurrent(key, index));
     foot.appendChild(current);
 
     previewBtn = document.createElement('button');
     previewBtn.type = 'button';
     previewBtn.className = 'card-preview-btn';
-    previewBtn.textContent = 'Preview';
+    previewBtn.textContent = t('editor.preview');
     previewBtn.hidden = !placeholderTokens(list[index]).length;
     previewBtn.addEventListener('click', () => {
         const show = preview.classList.toggle('hidden');
-        previewBtn.textContent = show ? 'Preview' : 'Hide preview';
+        previewBtn.textContent = show ? t('editor.preview') : t('editor.hidePreview');
         previewText.textContent = substitutePlaceholders(list[index], PLACEHOLDER_SAMPLE);
     });
     foot.appendChild(previewBtn);
@@ -283,11 +295,11 @@ function createCard(key, index) {
     const usage = document.createElement('span');
     usage.className = 'card-usage';
     const used = usageCount(key, index);
-    usage.textContent = used === 1 ? 'used 1x' : used > 1 ? `used ${used}x` : '';
-    usage.title = 'Times this comment has been copied';
+    usage.textContent = used === 1 ? t('editor.usedOnce') : used > 1 ? t('editor.usedMany', { n: used }) : '';
+    usage.title = t('editor.usageTitle');
     const badge = document.createElement('span');
     badge.className = 'card-badge';
-    if (index === state[key].index) badge.textContent = 'In use';
+    if (index === state[key].index) badge.textContent = t('editor.inUse');
     meta.appendChild(count);
     meta.appendChild(usage);
     meta.appendChild(badge);
@@ -314,7 +326,7 @@ function updateCardCount(card, text) {
     if (!count) return;
     const chars = text.length;
     const lines = text ? text.split('\n').length : 0;
-    count.textContent = `${chars} chars \u00b7 ${lines} line${lines === 1 ? '' : 's'}`;
+    count.textContent = `${chars} chars \u00b7 ${tN('count.line', lines, { n: lines })}`;
 }
 
 function filteredIndices() {
@@ -339,8 +351,8 @@ function renderList() {
         const empty = document.createElement('div');
         empty.className = 'comment-list-empty';
         empty.textContent = searchQuery.trim()
-            ? 'No comments match your search.'
-            : 'No comments yet \u2014 add one below.';
+            ? t('editor.emptySearch', { query: searchQuery.trim() })
+            : t('editor.emptyNone');
         commentList.appendChild(empty);
         return;
     }
@@ -354,13 +366,13 @@ function setCurrent(key, index) {
     state[key].index = index;
     save();
     renderList();
-    showToast(`${LABELS[key]}: comment ${index + 1} set as current.`);
+    showToast(t('editor.currentSet', { label: catLabel(key), index: index + 1 }));
 }
 
 function deleteComment(key, index) {
     const list = state[key].comments;
     if (!list.length) return;
-    if (confirmDeleteEnabled() && !window.confirm('Delete this comment? You can still use Undo right after.')) {
+    if (confirmDeleteEnabled() && !window.confirm(t('confirm.deleteOne'))) {
         return;
     }
     const [removed] = list.splice(index, 1);
@@ -371,7 +383,7 @@ function deleteComment(key, index) {
     renderList();
     setDirty(false);
     pushUndo({ key, action: 'delete', index, text: removed });
-    showUndoToast('Comment deleted.', {});
+    showUndoToast(t('editor.deletedOne'), {});
     syncHeight();
 }
 
@@ -387,7 +399,7 @@ function moveComment(key, index, dir) {
     save();
     renderList();
     setDirty(false);
-    showToast('Order changed.');
+    showToast(t('editor.orderChanged'));
 }
 
 /* ---------- Usage tracking ---------- */
@@ -413,8 +425,8 @@ function usageCount(key, index) {
 function updateBulkBtn() {
     bulkDelBtn.disabled = selectedIndices.size === 0;
     bulkDelBtn.textContent = selectedIndices.size
-        ? `Delete selected (${selectedIndices.size})`
-        : 'Delete selected';
+        ? `${t('editor.deleteSelected')} (${selectedIndices.size})`
+        : t('editor.deleteSelected');
 }
 
 function clearSelection() {
@@ -424,7 +436,7 @@ function clearSelection() {
 
 function bulkDelete() {
     if (!selectedIndices.size) return;
-    if (confirmDeleteEnabled() && !window.confirm(`Delete ${selectedIndices.size} selected comment${selectedIndices.size === 1 ? '' : 's'}?`)) {
+    if (confirmDeleteEnabled() && !window.confirm(t('confirm.deleteMany', { n: selectedIndices.size }))) {
         return;
     }
     const list = state[activeTab].comments;
@@ -445,7 +457,7 @@ function bulkDelete() {
     renderList();
     setDirty(false);
     pushUndo({ key: activeTab, action: 'bulk-delete', index: insertAt, removed });
-    showToast(`Deleted ${removed.length} comment${removed.length === 1 ? '' : 's'}.`);
+    showToast(removed.length === 1 ? t('editor.deletedOne') : t('editor.deletedMany', { n: removed.length }));
     syncHeight();
 }
 
@@ -467,7 +479,7 @@ function showUndoToast(message, entry) {
     const undo = document.createElement('button');
     undo.type = 'button';
     undo.className = 'toast-undo';
-    undo.textContent = 'Undo';
+    undo.textContent = t('editor.undo');
     undo.addEventListener('click', () => {
         popUndo();
         clearTimeout(undoToastTimer);
@@ -487,7 +499,7 @@ function popUndo() {
     if (!entry) return;
     undoStack = [];
     if (entry.key !== activeTab) {
-        showToast('Undo only works in the same tab.');
+        showToast(t('hotkey.undoOnlySameTab'));
         return;
     }
     if (entry.action === 'delete') {
@@ -504,7 +516,7 @@ function popUndo() {
     save();
     renderList();
     setDirty(false);
-    showToast('Undid deletion.');
+    showToast(t('hotkey.undid'));
     syncHeight();
 }
 
@@ -560,7 +572,7 @@ function reorderComment(key, from, to) {
     save();
     renderList();
     setDirty(false);
-    showToast('Order changed.');
+    showToast(t('editor.orderChanged'));
 }
 
 function setTab(key) {
@@ -586,7 +598,7 @@ function addComment() {
     if (!value) return;
     const dupIndex = state[activeTab].comments.findIndex((c) => c.trim().toLowerCase() === value.toLowerCase());
     if (dupIndex !== -1) {
-        showToast('That comment already exists \u2014 not adding a duplicate.');
+        showToast(t('editor.duplicate'));
         addInput.classList.add('duplicate');
         setTimeout(() => addInput.classList.remove('duplicate'), 1200);
         addInput.select();
@@ -601,7 +613,7 @@ function addComment() {
     }
     renderList();
     setDirty(false);
-    showToast('Comment added.');
+    showToast(t('editor.added'));
     updateCounts();
     const cards = commentList.querySelectorAll('.comment-card');
     if (cards.length) cards[cards.length - 1].querySelector('.card-text').focus();
@@ -617,7 +629,7 @@ function saveAll() {
     save();
     renderList();
     setDirty(false);
-    showToast('Saved all changes.');
+    showToast(t('editor.saved'));
 }
 
 function restoreDefaults() {
@@ -628,7 +640,7 @@ function restoreDefaults() {
     clearSelection();
     renderList();
     setDirty(false);
-    showToast(`${LABELS[activeTab]} list reset to defaults.`);
+    showToast(t('editor.reset', { label: catLabel(activeTab) }));
 }
 
 function loadPrompt() {
@@ -649,7 +661,7 @@ promptText.addEventListener('input', () => {
 async function copyPrompt() {
     const text = promptText.value.trim();
     if (!text) {
-        showToast('Prompt is empty \u2014 add prompt text first.');
+        showToast(t('toast.promptEmpty'));
         return;
     }
     let ok = false;
@@ -661,10 +673,10 @@ async function copyPrompt() {
         }
     }
     if (!ok) {
-        showToast('Copy failed \u2014 please copy manually.');
+        showToast(t('toast.copyFail'));
         return;
     }
-    showToast('Prompt copied to clipboard');
+    showToast(t('toast.promptCopied'));
 }
 
 function commentCountsText() {
@@ -680,10 +692,10 @@ function commentCountsText() {
         const list = data && data[key] && Array.isArray(data[key].comments)
             ? data[key].comments
             : DEFAULTS[key];
-        parts.push(`${LABELS[key]} ${list.length}`);
+        parts.push(`${catLabel(key)} ${list.length}`);
         total += list.length;
     });
-    return `${parts.join(' \u00b7 ')} (${total} total)`;
+    return `${parts.join(' \u00b7 ')} (${t('about.total', { total })})`;
 }
 
 function dataSizeText() {
@@ -699,20 +711,21 @@ function dataSizeText() {
 }
 
 function renderInfoMeta(info) {
+    const meta = (key, value) => [t('meta.' + key), value];
     const rows = [
-        ['Author', info.author],
-        ['License', info.license],
-        ['OS', info.platform],
-        ['Resolution', info.resolution],
-        ['Electron', info.electron],
-        ['Chromium', info.chrome],
-        ['Node', info.node],
-        ['Comments saved', commentCountsText()],
-        ['Data size', dataSizeText()],
-        ['Copies', info.copyCount],
-        ['Install path', info.exePath],
-        ['Data', info.userData],
-        ['Build', info.buildDate],
+        meta('author', info.author),
+        meta('license', info.license),
+        meta('os', info.platform),
+        meta('resolution', info.resolution),
+        meta('electron', info.electron),
+        meta('chromium', info.chrome),
+        meta('node', info.node),
+        meta('commentsSaved', commentCountsText()),
+        meta('dataSize', dataSizeText()),
+        meta('copies', info.copyCount),
+        meta('installPath', info.exePath),
+        meta('data', info.userData),
+        meta('build', info.buildDate),
     ];
     infoMeta.innerHTML = rows.map(([label, value]) =>
         '<div class="info-meta-row">' +
@@ -761,11 +774,11 @@ let resetTimer = null;
 function handleReset() {
     if (!resetArmed) {
         resetArmed = true;
-        resetBtn.textContent = 'Click again to confirm';
+        resetBtn.textContent = t('btn.clickAgain');
         clearTimeout(resetTimer);
         resetTimer = setTimeout(() => {
             resetArmed = false;
-            resetBtn.textContent = 'Reset app data';
+            resetBtn.textContent = t('btn.resetApp');
         }, 3000);
         return;
     }
@@ -797,6 +810,38 @@ function cycleLayout() {
     const next = LAYOUT_ORDER[(idx + 1) % LAYOUT_ORDER.length];
     setLayout(next);
     return next;
+}
+
+/* ---------- Language ---------- */
+
+function getLanguage() {
+    return getLang();
+}
+
+function syncLanguagePicker() {
+    if (languageSelect) languageSelect.value = getLanguage();
+}
+
+function setLanguage(lang) {
+    if (!SUPPORTED_LANGS.includes(lang)) return;
+    localStorage.setItem(LANG_KEY, lang);
+    applyI18n();
+    showToast(t('toast.languageSet', { name: I18N_NAMES[lang] }));
+}
+
+function applyI18n() {
+    i18nApply(document);
+    syncLanguagePicker();
+    syncTooltipDensityPicker();
+    if (!capturingAction) renderShortcutRows();
+    renderList();
+    updateCounts();
+    setDirty(dirty);
+    updateBulkBtn();
+    renderGlobalHotkey();
+    resetBtn.textContent = resetArmed ? t('btn.clickAgain') : t('btn.resetApp');
+    updateBtn.textContent = t('update.check');
+    refreshAboutInfo();
 }
 
 function loadDateFirstSetting() {
@@ -839,6 +884,23 @@ function autoCheckUpdatesEnabled() {
     return saved === null ? true : saved !== '0';
 }
 
+/* ---------- Update channel ---------- */
+
+function getUpdateChannel() {
+    const saved = localStorage.getItem(UPDATE_CHANNEL_KEY);
+    return saved === 'beta' ? 'beta' : 'stable';
+}
+
+function setUpdateChannel(channel) {
+    localStorage.setItem(UPDATE_CHANNEL_KEY, channel);
+    syncUpdateChannelPicker();
+    showToast(channel === 'beta' ? t('toggles.channelBeta') : t('toggles.channelStable'));
+}
+
+function syncUpdateChannelPicker() {
+    updateChannelOptions.forEach((b) => b.classList.toggle('active', b.dataset.channel === getUpdateChannel()));
+}
+
 function runAutoUpdateCheck() {
     if (!autoCheckUpdatesEnabled()) return;
     // Wait for the window to settle, then quietly check. Updates surface a
@@ -851,6 +913,56 @@ function setView(name) {
     panels.forEach((p) => p.classList.toggle('active', p.dataset.viewPanel === name));
     if (name === 'about') refreshAboutInfo();
 }
+
+/* ---------- Portable mode ---------- */
+
+async function loadPortableModeSetting() {
+    if (!window.mainWindowAPI || typeof window.mainWindowAPI.getPortableMode !== 'function') return;
+    try {
+        const info = await window.mainWindowAPI.getPortableMode();
+        portableToggle.setAttribute('aria-checked', info && info.enabled ? 'true' : 'false');
+    } catch (e) { /* leave the toggle as-is */ }
+}
+
+function syncPortablePicker() {
+    loadPortableModeSetting();
+}
+
+portableToggle.addEventListener('click', async () => {
+    if (!window.mainWindowAPI || typeof window.mainWindowAPI.enablePortableMode !== 'function' || typeof window.mainWindowAPI.disablePortableMode !== 'function') {
+        showToast(t('portable.unavailable'));
+        return;
+    }
+    const enabled = portableToggle.getAttribute('aria-checked') !== 'true';
+    if (enabled) {
+        try {
+            const title = t('portable.pickTitle');
+            const chosen = await window.mainWindowAPI.choosePortableDir(title);
+            if (!chosen) return;
+            const res = await window.mainWindowAPI.enablePortableMode(chosen);
+            if (res && res.ok) {
+                portableToggle.setAttribute('aria-checked', 'true');
+                showToast(t('portable.on'));
+            } else {
+                showToast(t('portable.failEnable'));
+            }
+        } catch (e) {
+            showToast(t('portable.failEnable'));
+        }
+    } else {
+        try {
+            const res = await window.mainWindowAPI.disablePortableMode();
+            if (res && res.ok) {
+                portableToggle.setAttribute('aria-checked', 'false');
+                showToast(t('portable.off'));
+            } else {
+                showToast(t('portable.failDisable'));
+            }
+        } catch (e) {
+            showToast(t('portable.failDisable'));
+        }
+    }
+});
 
 /* ---------- Theme ---------- */
 
@@ -894,7 +1006,7 @@ function loadAccentSetting() {
     syncAccentPicker(saved);
 }
 
-function setAccent(color, label) {
+function setAccent(color, labelKey) {
     if (color) {
         localStorage.setItem(ACCENT_KEY, color);
     } else {
@@ -902,7 +1014,8 @@ function setAccent(color, label) {
     }
     applyAccent(color);
     syncAccentPicker(color);
-    showToast(`${label || 'Accent'} applied.`);
+    const key = labelKey && I18N[getLang()].accent[labelKey] ? labelKey : 'custom';
+    showToast(t('accent.applied', { label: t('accent.' + key) }));
 }
 
 /* ---------- Custom color popover (replaces the native <input type="color">
@@ -991,7 +1104,7 @@ function setColorPickerState(hex) {
 function commitColorPicker() {
     const hex = renderColorPopover();
     suppressPickerSync = true;
-    setAccent(hex, 'Custom accent');
+    setAccent(hex, 'custom');
     suppressPickerSync = false;
 }
 
@@ -1140,6 +1253,48 @@ async function loadStartupSetting() {
     } catch (e) {}
 }
 
+/* ---------- Start minimized to tray ---------- */
+
+async function loadStartInTraySetting() {
+    if (!window.mainWindowAPI || typeof window.mainWindowAPI.getStartInTray !== 'function') return;
+    try {
+        const state = await window.mainWindowAPI.getStartInTray();
+        if (state && typeof state.startInTray === 'boolean') {
+            startInTrayToggle.setAttribute('aria-checked', state.startInTray ? 'true' : 'false');
+        }
+    } catch (e) {}
+}
+
+/* ---------- Reduce motion ---------- */
+
+function loadReduceMotionSetting() {
+    const enabled = localStorage.getItem(REDUCE_MOTION_KEY) === '1';
+    reduceMotionToggle.setAttribute('aria-checked', enabled ? 'true' : 'false');
+    document.body.classList.toggle('reduce-motion', enabled);
+}
+
+function setReduceMotion(enabled) {
+    localStorage.setItem(REDUCE_MOTION_KEY, enabled ? '1' : '0');
+    reduceMotionToggle.setAttribute('aria-checked', enabled ? 'true' : 'false');
+    document.body.classList.toggle('reduce-motion', enabled);
+}
+
+/* ---------- Tooltip density ---------- */
+
+function getTooltipDensity() {
+    const d = localStorage.getItem(TOOLTIP_DENSITY_KEY);
+    return d === 'off' || d === 'compact' || d === 'detailed' ? d : 'detailed';
+}
+
+function setTooltipDensity(density) {
+    localStorage.setItem(TOOLTIP_DENSITY_KEY, density);
+    syncTooltipDensityPicker();
+}
+
+function syncTooltipDensityPicker() {
+    tooltipDensityOptions.forEach((b) => b.classList.toggle('active', b.dataset.density === getTooltipDensity()));
+}
+
 /* ---------- Global hotkey ---------- */
 
 let globalCapturing = false;
@@ -1148,7 +1303,7 @@ function renderGlobalHotkey() {
     if (globalCapturing) return;
     hotkeyInput.className = 'shortcut-capture hotkey-capture';
     const acc = hotkeyInput.dataset.acc || '';
-    hotkeyInput.textContent = acc ? displayAccel(acc) : 'Click to set';
+    hotkeyInput.textContent = acc ? displayAccel(acc) : t('sc.clickToSet');
     hotkeyClear.disabled = !acc;
 }
 
@@ -1167,8 +1322,8 @@ async function applyHotkey(acc) {
     if (result && result.ok) {
         hotkeyInput.dataset.acc = result.accelerator || '';
         renderGlobalHotkey();
-        if (result.registered) showToast(`Global hotkey set: ${displayAccel(result.accelerator)}`);
-        else if (!acc) showToast('Global hotkey removed.');
+        if (result.registered) showToast(t('sc.set', { acc: displayAccel(result.accelerator) }));
+        else if (!acc) showToast(t('sc.removed'));
         return true;
     } else if (result && result.error) {
         showToast(result.error);
@@ -1185,7 +1340,7 @@ function startGlobalCapture() {
     if (capturingAction) stopCapture();
     globalCapturing = true;
     hotkeyInput.classList.add('capturing');
-    hotkeyInput.textContent = 'Press keys\u2026';
+    hotkeyInput.textContent = t('sc.pressKeys');
 }
 
 function stopGlobalCapture() {
@@ -1205,7 +1360,7 @@ function handleGlobalCaptureKey(e) {
     }
     const hasMod = e.ctrlKey || e.metaKey || e.shiftKey || e.altKey;
     if (!hasMod) {
-        showToast('Include Ctrl, Shift, or Alt.');
+        showToast(t('sc.includeModifier'));
         return;
     }
     const accel = eventToAccel(e);
@@ -1230,9 +1385,11 @@ function buildBackupPayload() {
         payload[SHEET_KEY] = JSON.parse(localStorage.getItem(SHEET_KEY));
     } catch (e) {}
     payload[LAYOUT_KEY] = localStorage.getItem(LAYOUT_KEY);
+    payload[TOOLTIP_DENSITY_KEY] = localStorage.getItem(TOOLTIP_DENSITY_KEY);
     payload[DATE_FIRST_KEY] = localStorage.getItem(DATE_FIRST_KEY);
     payload[THEME_KEY] = localStorage.getItem(THEME_KEY);
     payload[ACCENT_KEY] = localStorage.getItem(ACCENT_KEY);
+    payload[REDUCE_MOTION_KEY] = localStorage.getItem(REDUCE_MOTION_KEY);
     payload[HOTKEY_KEY] = localStorage.getItem(HOTKEY_KEY);
     try {
         payload[USAGE_KEY] = JSON.parse(localStorage.getItem(USAGE_KEY));
@@ -1241,22 +1398,24 @@ function buildBackupPayload() {
     payload[CONFIRM_DELETE_KEY] = localStorage.getItem(CONFIRM_DELETE_KEY);
     payload[CLOSE_AFTER_COPY_KEY] = localStorage.getItem(CLOSE_AFTER_COPY_KEY);
     payload[AUTO_CHECK_UPDATES_KEY] = localStorage.getItem(AUTO_CHECK_UPDATES_KEY);
+    payload[UPDATE_CHANNEL_KEY] = localStorage.getItem(UPDATE_CHANNEL_KEY);
+    payload[LANG_KEY] = localStorage.getItem(LANG_KEY);
     return payload;
 }
 
 async function exportBackup() {
     if (!window.mainWindowAPI || typeof window.mainWindowAPI.exportBackup !== 'function') {
-        showToast('Backup unavailable.');
+        showToast(t('backup.unavailable'));
         return;
     }
     const payload = buildBackupPayload();
     const result = await window.mainWindowAPI.exportBackup(payload);
     if (result && result.ok) {
-        showToast('Backup saved.');
+        showToast(t('backup.saved'));
     } else if (result && result.canceled) {
         return;
     } else {
-        showToast((result && result.error) || 'Backup failed.');
+        showToast((result && result.error) || t('backup.failed'));
     }
 }
 
@@ -1394,30 +1553,38 @@ function applyBackupData(data, mode) {
         replace(PROMPT_KEY, data[PROMPT_KEY]);
         replace(SHEET_KEY, data[SHEET_KEY]);
         replace(LAYOUT_KEY, data[LAYOUT_KEY]);
+        replace(TOOLTIP_DENSITY_KEY, data[TOOLTIP_DENSITY_KEY]);
         replace(DATE_FIRST_KEY, data[DATE_FIRST_KEY]);
         replace(THEME_KEY, data[THEME_KEY]);
         replace(ACCENT_KEY, data[ACCENT_KEY]);
+        replace(REDUCE_MOTION_KEY, data[REDUCE_MOTION_KEY]);
         replace(HOTKEY_KEY, data[HOTKEY_KEY]);
         replace(USAGE_KEY, data[USAGE_KEY]);
         replace(SHORTCUTS_KEY, data[SHORTCUTS_KEY]);
         replace(CONFIRM_DELETE_KEY, data[CONFIRM_DELETE_KEY]);
         replace(CLOSE_AFTER_COPY_KEY, data[CLOSE_AFTER_COPY_KEY]);
         replace(AUTO_CHECK_UPDATES_KEY, data[AUTO_CHECK_UPDATES_KEY]);
+        replace(UPDATE_CHANNEL_KEY, data[UPDATE_CHANNEL_KEY]);
+        replace(LANG_KEY, data[LANG_KEY]);
         return false;
     }
     mergeComments(data[STORAGE_KEY]);
     mergeFill(PROMPT_KEY, data[PROMPT_KEY]);
     mergeFill(SHEET_KEY, data[SHEET_KEY]);
     mergeFill(LAYOUT_KEY, data[LAYOUT_KEY]);
+    mergeFill(TOOLTIP_DENSITY_KEY, data[TOOLTIP_DENSITY_KEY]);
     mergeFill(DATE_FIRST_KEY, data[DATE_FIRST_KEY]);
     mergeFill(THEME_KEY, data[THEME_KEY]);
     mergeFill(ACCENT_KEY, data[ACCENT_KEY]);
+    mergeFill(REDUCE_MOTION_KEY, data[REDUCE_MOTION_KEY]);
     mergeFill(HOTKEY_KEY, data[HOTKEY_KEY]);
     mergeUsage(data[USAGE_KEY]);
     mergeFill(SHORTCUTS_KEY, data[SHORTCUTS_KEY]);
     mergeFill(CONFIRM_DELETE_KEY, data[CONFIRM_DELETE_KEY]);
     mergeFill(CLOSE_AFTER_COPY_KEY, data[CLOSE_AFTER_COPY_KEY]);
     mergeFill(AUTO_CHECK_UPDATES_KEY, data[AUTO_CHECK_UPDATES_KEY]);
+    mergeFill(UPDATE_CHANNEL_KEY, data[UPDATE_CHANNEL_KEY]);
+    mergeFill(LANG_KEY, data[LANG_KEY]);
     return true;
 }
 
@@ -1428,30 +1595,35 @@ function reloadAfterRestore() {
     updateCounts();
     loadLayoutSetting();
     loadDateFirstSetting();
+    syncTooltipDensityPicker();
     loadThemeSetting();
     loadAccentSetting();
     loadConfirmDeleteSetting();
     loadCloseAfterCopySetting();
     loadAutoCheckUpdatesSetting();
+    syncUpdateChannelPicker();
     loadHotkeySetting();
+    loadStartInTraySetting();
+    loadReduceMotionSetting();
     syncRestoreModePicker();
     renderShortcutRows();
+    applyI18n();
 }
 
 async function importBackup() {
     if (!window.mainWindowAPI || typeof window.mainWindowAPI.importBackup !== 'function') {
-        showToast('Restore unavailable.');
+        showToast(t('restore.unavailable'));
         return;
     }
     const result = await window.mainWindowAPI.importBackup();
     if (!result || result.canceled) return;
     if (!result.ok || !result.data) {
-        showToast((result && result.error) || 'Restore failed.');
+        showToast((result && result.error) || t('restore.failed'));
         return;
     }
     const data = result.data;
     if (!data || typeof data !== 'object') {
-        showToast('Restore failed.');
+        showToast(t('restore.failed'));
         return;
     }
     const mode = getRestoreMode();
@@ -1459,7 +1631,7 @@ async function importBackup() {
     applyBackupData(data, mode);
     reloadAfterRestore();
     renderRollbackState();
-    showToast(mode === 'merge' ? 'Backup merged with current data.' : 'Data restored.');
+    showToast(mode === 'merge' ? t('restore.merged') : t('restore.restored'));
 }
 
 function rollbackRestore() {
@@ -1472,7 +1644,7 @@ function rollbackRestore() {
     localStorage.removeItem(ROLLBACK_KEY);
     reloadAfterRestore();
     renderRollbackState();
-    showToast('Rolled back to the data from before the last restore.');
+    showToast(t('restore.rolledBack'));
 }
 
 async function refreshAboutInfo() {
@@ -1481,7 +1653,7 @@ async function refreshAboutInfo() {
     if (!info) return;
     aboutVersion.textContent = `v${info.version}`;
     infoName.textContent = info.name;
-    infoVersion.textContent = `Version ${info.version}`;
+    infoVersion.textContent = t('about.version', { version: info.version });
     infoDesc.textContent = info.description;
     renderInfoMeta(info);
     renderChangelog(info.changelog);
@@ -1492,31 +1664,31 @@ async function refreshAboutInfo() {
 
 async function checkForUpdates(silent) {
     if (!window.mainWindowAPI || typeof window.mainWindowAPI.checkForUpdates !== 'function') {
-        if (!silent) showToast('Update check unavailable.');
+        if (!silent) showToast(t('update.unavailable'));
         return false;
     }
     if (!silent) {
         updateBtn.disabled = true;
-        updateBtn.textContent = 'Checking\u2026';
+        updateBtn.textContent = t('update.checking');
     }
     let result = null;
     try {
-        result = await window.mainWindowAPI.checkForUpdates();
+        result = await window.mainWindowAPI.checkForUpdates(getUpdateChannel());
     } catch (e) {
         result = null;
     }
     if (!silent) {
         updateBtn.disabled = false;
-        updateBtn.textContent = 'Check for updates';
+        updateBtn.textContent = t('update.check');
     }
     if (!result || !result.ok) {
-        if (!silent) showToast(result && result.error ? result.error : 'Update check failed.');
+        if (!silent) showToast(result && result.error ? result.error : t('update.failed'));
         return false;
     }
     if (result.updateAvailable) {
-        showToast(`Update available: v${result.latest} (you have v${result.current}). Check What\u2019s new for the latest notes.`);
+        showToast(t('update.available', { latest: result.latest, current: result.current }));
     } else if (!silent) {
-        showToast(`Up to date \u2014 you\u2019re on v${result.current}.`);
+        showToast(t('update.upToDate', { current: result.current }));
     }
     return result.updateAvailable;
 }
@@ -1542,12 +1714,12 @@ function diagnosticsText(info) {
 
 async function exportDiagnostics() {
     if (!window.mainWindowAPI || typeof window.mainWindowAPI.getAppInfo !== 'function') {
-        showToast('Diagnostics unavailable.');
+        showToast(t('diag.unavailable'));
         return;
     }
     const info = await window.mainWindowAPI.getAppInfo();
     if (!info) {
-        showToast('Diagnostics unavailable.');
+        showToast(t('diag.unavailable'));
         return;
     }
     const text = diagnosticsText(info);
@@ -1560,10 +1732,10 @@ async function exportDiagnostics() {
         }
     }
     if (!ok) {
-        showToast('Failed to copy diagnostics.');
+        showToast(t('diag.failed'));
         return;
     }
-    showToast('Diagnostics copied \u2014 paste into your bug report.');
+    showToast(t('diag.done'));
 }
 
 let toastTimer = null;
@@ -1589,7 +1761,9 @@ function syncHeight() {
 
 // Keep in sync with data edited in the tray popup.
 window.addEventListener('storage', (e) => {
-    if (e.key === STORAGE_KEY) {
+    if (e.key === LANG_KEY) {
+        applyI18n();
+    } else if (e.key === STORAGE_KEY) {
         const wasPrompt = activeTab === 'prompt';
         load();
         if (wasPrompt) loadPrompt();
@@ -1645,24 +1819,36 @@ layoutPickerOptions.forEach((b) => {
     b.addEventListener('click', () => {
         localStorage.setItem(LAYOUT_KEY, b.dataset.layout);
         layoutPickerOptions.forEach((x) => x.classList.toggle('active', x === b));
-        showToast(`Popup layout set to ${b.textContent}.`);
+        showToast(t('toast.layoutSet', { name: t('layout.' + b.dataset.layout) }));
     });
+});
+languageSelect.addEventListener('change', () => {
+    setLanguage(languageSelect.value);
 });
 dateFirstToggle.addEventListener('click', () => {
     const enabled = dateFirstToggle.getAttribute('aria-checked') !== 'true';
     localStorage.setItem(DATE_FIRST_KEY, enabled ? '1' : '0');
     dateFirstToggle.setAttribute('aria-checked', enabled ? 'true' : 'false');
-    showToast(enabled ? 'Date-first copy on.' : 'Date-first copy off.');
+    showToast(enabled ? t('toggles.dateFirstOn') : t('toggles.dateFirstOff'));
 });
 themePickerOptions.forEach((b) => {
     b.addEventListener('click', () => {
         setTheme(b.dataset.theme);
-        showToast(`${b.textContent} theme applied.`);
+        showToast(t('theme.applied', { label: t('theme.' + b.dataset.theme) }));
     });
 });
+const ACCENT_KEY_BY_COLOR = {
+    '#58a6ff': 'blue',
+    '#a371f7': 'purple',
+    '#3fb950': 'green',
+    '#f0883e': 'orange',
+    '#f85149': 'red',
+    '#39c5cf': 'teal',
+    '#f778ba': 'pink',
+};
 accentSwatches.forEach((b) => {
     b.addEventListener('click', () => {
-        setAccent(b.dataset.accent, b.dataset.label);
+        setAccent(b.dataset.accent, ACCENT_KEY_BY_COLOR[b.dataset.accent] || 'custom');
     });
 });
 startupToggle.addEventListener('click', async () => {
@@ -1671,30 +1857,57 @@ startupToggle.addEventListener('click', async () => {
     if (window.mainWindowAPI && typeof window.mainWindowAPI.setLoginItem === 'function') {
         try {
             await window.mainWindowAPI.setLoginItem(enabled);
-            showToast(enabled ? 'Will launch at startup.' : 'Won\u2019t launch at startup.');
+            showToast(enabled ? t('toggles.startupOn') : t('toggles.startupOff'));
         } catch (e) {
             startupToggle.setAttribute('aria-checked', enabled ? 'false' : 'true');
-            showToast('Couldn\u2019t update startup setting.');
+            showToast(t('toggles.startupFail'));
         }
     }
+});
+startInTrayToggle.addEventListener('click', async () => {
+    const enabled = startInTrayToggle.getAttribute('aria-checked') !== 'true';
+    startInTrayToggle.setAttribute('aria-checked', enabled ? 'true' : 'false');
+    if (window.mainWindowAPI && typeof window.mainWindowAPI.setStartInTray === 'function') {
+        try {
+            await window.mainWindowAPI.setStartInTray(enabled);
+            showToast(enabled ? t('toggles.trayOn') : t('toggles.trayOff'));
+        } catch (e) {
+            startInTrayToggle.setAttribute('aria-checked', enabled ? 'false' : 'true');
+            showToast(t('toggles.trayFail'));
+        }
+    }
+});
+reduceMotionToggle.addEventListener('click', () => {
+    const enabled = reduceMotionToggle.getAttribute('aria-checked') !== 'true';
+    setReduceMotion(enabled);
+    showToast(enabled ? t('toggles.motionOn') : t('toggles.motionOff'));
+});
+tooltipDensityOptions.forEach((b) => {
+    b.addEventListener('click', () => {
+        setTooltipDensity(b.dataset.density);
+        showToast(b.dataset.density === 'off' ? t('toggles.densityOff') : b.dataset.density === 'compact' ? t('toggles.densityCompact') : t('toggles.densityDetailed'));
+    });
 });
 confirmDeleteToggle.addEventListener('click', () => {
     const enabled = confirmDeleteToggle.getAttribute('aria-checked') !== 'true';
     localStorage.setItem(CONFIRM_DELETE_KEY, enabled ? '1' : '0');
     confirmDeleteToggle.setAttribute('aria-checked', enabled ? 'true' : 'false');
-    showToast(enabled ? 'Confirmations on before deleting.' : 'Confirmations off \u2014 delete instantly.');
+    showToast(enabled ? t('toggles.confirmOn') : t('toggles.confirmOff'));
 });
 closeAfterCopyToggle.addEventListener('click', () => {
     const enabled = closeAfterCopyToggle.getAttribute('aria-checked') !== 'true';
     localStorage.setItem(CLOSE_AFTER_COPY_KEY, enabled ? '1' : '0');
     closeAfterCopyToggle.setAttribute('aria-checked', enabled ? 'true' : 'false');
-    showToast(enabled ? 'Popup will close after you copy.' : 'Popup stays open after copying.');
+    showToast(enabled ? t('toggles.closeOn') : t('toggles.closeOff'));
 });
 autoCheckUpdatesToggle.addEventListener('click', () => {
     const enabled = autoCheckUpdatesToggle.getAttribute('aria-checked') !== 'true';
     localStorage.setItem(AUTO_CHECK_UPDATES_KEY, enabled ? '1' : '0');
     autoCheckUpdatesToggle.setAttribute('aria-checked', enabled ? 'true' : 'false');
-    showToast(enabled ? 'Check for updates on launch is on.' : 'Updates are checked manually only.');
+    showToast(enabled ? t('toggles.autoUpdateOn') : t('toggles.autoUpdateOff'));
+});
+updateChannelOptions.forEach((b) => {
+    b.addEventListener('click', () => setUpdateChannel(b.dataset.channel));
 });
 hotkeyInput.addEventListener('click', (e) => {
     e.stopPropagation();
@@ -1720,7 +1933,7 @@ restoreModeOptions.forEach((b) => {
     b.addEventListener('click', () => {
         localStorage.setItem(RESTORE_MODE_KEY, b.dataset.mode);
         syncRestoreModePicker();
-        showToast(b.dataset.mode === 'merge' ? 'Restores will merge with current data.' : 'Restores will replace current data.');
+        showToast(b.dataset.mode === 'merge' ? t('toggles.restoreModeMerge') : t('toggles.restoreModeReplace'));
     });
 });
 rollbackBtn.addEventListener('click', rollbackRestore);
@@ -1814,7 +2027,6 @@ function runShortcut(action) {
         exportBackup();
         return true;
     }
-    const layoutName = { cards: 'Cards', tabs: 'Tabs', stack: 'Side by side' };
     const layoutByAction = {
         tabAccept: 'cards',
         tabAireject: 'tabs',
@@ -1823,7 +2035,7 @@ function runShortcut(action) {
     };
     if (layoutByAction[action] !== undefined) {
         const mode = layoutByAction[action] === '' ? cycleLayout() : (setLayout(layoutByAction[action]), layoutByAction[action]);
-        showToast(`Popup layout set to ${layoutName[mode]}.`);
+        showToast(t('toast.layoutSet', { name: t('layout.' + mode) }));
         return true;
     }
     return false;
@@ -1841,7 +2053,7 @@ function renderShortcutRows() {
 
         const desc = document.createElement('span');
         desc.className = 'shortcut-desc';
-        desc.textContent = SHORTCUT_LABELS[action];
+        desc.textContent = t('sl.' + action);
         row.appendChild(desc);
 
         const control = document.createElement('span');
@@ -1851,7 +2063,7 @@ function renderShortcutRows() {
         capture.type = 'button';
         capture.className = 'shortcut-capture' + (capturingAction === action ? ' capturing' : '');
         capture.dataset.action = action;
-        capture.title = 'Click, then press the new key combination';
+        capture.title = t('sc.captureTitle');
         capture.textContent = shortcuts[action];
         capture.addEventListener('click', () => startCapture(action, capture));
         capture.addEventListener('blur', () => {
@@ -1862,7 +2074,7 @@ function renderShortcutRows() {
         const reset = document.createElement('button');
         reset.type = 'button';
         reset.className = 'shortcut-reset';
-        reset.title = 'Reset to default';
+        reset.title = t('sc.resetDefault');
         reset.textContent = '\u21ba';
         reset.disabled = shortcutIsDefault(action, shortcuts[action]);
         reset.addEventListener('click', (e) => {
@@ -1893,7 +2105,7 @@ function startCapture(action, captureEl) {
     capturingAction = action;
     capturingEl = captureEl;
     captureEl.classList.add('capturing');
-    captureEl.textContent = 'Press keys\u2026';
+    captureEl.textContent = t('sc.pressKeys');
 }
 
 function stopCapture() {
@@ -1914,7 +2126,7 @@ function captureKeydown(e) {
     e.stopPropagation();
     const hasMod = e.ctrlKey || e.metaKey || e.shiftKey || e.altKey;
     if (!hasMod) {
-        showToast('Include Ctrl, Shift, or Alt.');
+        showToast(t('sc.includeModifier'));
         return;
     }
     const accel = eventToAccel(e);
@@ -1930,13 +2142,13 @@ function captureKeydown(e) {
         }
     }
     if (conflict) {
-        showToast(`That shortcut is already used for "${SHORTCUT_LABELS[conflict].toLowerCase()}".`);
+        showToast(t('sc.duplicate', { name: t('sl.' + conflict).toLowerCase() }));
         stopCapture();
         return;
     }
     shortcuts[capturingAction] = displayAccel(accel);
     saveShortcuts(shortcuts);
-    showToast(`Shortcut updated to ${displayAccel(accel)}.`);
+    showToast(t('sc.updated', { acc: displayAccel(accel) }));
     stopCapture();
 }
 
@@ -1957,7 +2169,7 @@ function resetShortcut(action) {
     shortcuts[action] = DEFAULT_SHORTCUTS[action];
     saveShortcuts(shortcuts);
     renderShortcutRows();
-    showToast(`Shortcut for "${SHORTCUT_LABELS[action].toLowerCase()}" reset to ${DEFAULT_SHORTCUTS[action]}.`);
+    showToast(t('sc.reset', { name: t('sl.' + action).toLowerCase(), acc: DEFAULT_SHORTCUTS[action] }));
 }
 
 document.addEventListener('keydown', (e) => {
@@ -1989,16 +2201,22 @@ updateCounts();
 setDirty(false);
 loadLayoutSetting();
 loadDateFirstSetting();
+syncTooltipDensityPicker();
 loadConfirmDeleteSetting();
 loadCloseAfterCopySetting();
 loadAutoCheckUpdatesSetting();
+syncUpdateChannelPicker();
+loadPortableModeSetting();
 loadThemeSetting();
 loadStartupSetting();
+loadStartInTraySetting();
+loadReduceMotionSetting();
 loadAccentSetting();
 loadHotkeySetting();
 refreshAboutInfo();
 syncRestoreModePicker();
 renderRollbackState();
+applyI18n();
 syncHeight();
 runAutoUpdateCheck();
 
