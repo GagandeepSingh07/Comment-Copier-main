@@ -200,9 +200,20 @@
                         <div class="setting-desc">Export all comment lists, the prompt, student details, and settings to a JSON file, or load them back in.</div>
                     </div>
                     <div class="backup-actions">
+                        <div class="restore-mode" id="mw-restore-mode" role="group" aria-label="Restore mode">
+                            <button type="button" class="restore-mode-option" data-mode="replace" title="Replace all current data with the backup">Replace</button>
+                            <button type="button" class="restore-mode-option" data-mode="merge" title="Keep current data and add anything missing from the backup">Merge</button>
+                        </div>
                         <button type="button" class="btn-backup" id="mw-backup">Backup</button>
                         <button type="button" class="btn-backup" id="mw-restore">Restore</button>
                     </div>
+                </div>
+                <div class="setting-row">
+                    <div class="setting-info">
+                        <div class="setting-title">Undo last restore</div>
+                        <div class="setting-desc">Restore the data you had right before the most recent restore.</div>
+                    </div>
+                    <button type="button" class="btn-backup" id="mw-rollback" disabled>Roll back</button>
                 </div>
                 <div class="setting-row">
                     <div class="setting-info">

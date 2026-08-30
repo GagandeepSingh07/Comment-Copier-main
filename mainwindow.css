@@ -1044,6 +1044,51 @@ body.theme-light .color-rgb-field input { background: #f6f8fa; }
     gap: 8px;
 }
 
+.restore-mode {
+    display: flex;
+    gap: 3px;
+    background: #010409;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 3px;
+}
+
+body.theme-light .restore-mode { background: #f6f8fa; }
+
+.restore-mode-option {
+    padding: 6px 10px;
+    background: transparent;
+    color: var(--muted);
+    border: none;
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 12px;
+    cursor: pointer;
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.restore-mode-option:hover { color: var(--text); }
+
+.restore-mode-option.active {
+    background: var(--accent);
+    color: #0d1117;
+    font-weight: 600;
+}
+
+body.theme-light .restore-mode-option.active,
+body.theme-sepia .restore-mode-option.active,
+body.theme-midnight .restore-mode-option.active { color: #ffffff; }
+
+.btn-backup:disabled {
+    opacity: 0.45;
+    cursor: default;
+}
+
+.btn-backup:disabled:hover {
+    background: transparent;
+    border-color: rgba(88, 166, 255, 0.4);
+}
+
 .btn-backup {
     padding: 8px 14px;
     background: transparent;

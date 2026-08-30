@@ -61,6 +61,8 @@ const hotkeyInput = document.getElementById('mw-hotkey-input');
 const hotkeyClear = document.getElementById('mw-hotkey-clear');
 const backupBtn = document.getElementById('mw-backup');
 const restoreBtn2 = document.getElementById('mw-restore');
+const restoreModeOptions = document.querySelectorAll('#mw-restore-mode .restore-mode-option');
+const rollbackBtn = document.getElementById('mw-rollback');
 
 let activeTab = 'accept';
 let dirty = false;
@@ -1258,19 +1260,127 @@ async function exportBackup() {
     }
 }
 
-async function importBackup() {
-    if (!window.mainWindowAPI || typeof window.mainWindowAPI.importBackup !== 'function') {
-        showToast('Restore unavailable.');
-        return;
+function getRestoreMode() {
+    return localStorage.getItem(RESTORE_MODE_KEY) === 'merge' ? 'merge' : 'replace';
+}
+
+function syncRestoreModePicker() {
+    const mode = getRestoreMode();
+    restoreModeOptions.forEach((b) => b.classList.toggle('active', b.dataset.mode === mode));
+}
+
+function saveRollback() {
+    try {
+        localStorage.setItem(ROLLBACK_KEY, JSON.stringify({ snapshot: buildBackupPayload(), at: new Date().toISOString() }));
+    } catch (e) {}
+}
+
+function loadRollback() {
+    try {
+        const cached = JSON.parse(localStorage.getItem(ROLLBACK_KEY));
+        if (cached && cached.snapshot && typeof cached.snapshot === 'object') return cached;
+    } catch (e) {}
+    return null;
+}
+
+function renderRollbackState() {
+    rollbackBtn.disabled = !loadRollback();
+}
+
+function normalizeComment(c) {
+    return typeof c === 'string' ? c.trim().toLowerCase() : '';
+}
+
+function parseMaybe(raw) {
+    if (raw === undefined || raw === null) return null;
+    if (typeof raw === 'string') {
+        try {
+            return JSON.parse(raw);
+        } catch (e) {
+            return null;
+        }
     }
-    const result = await window.mainWindowAPI.importBackup();
-    if (!result || result.canceled) return;
-    if (!result.ok || !result.data) {
-        showToast((result && result.error) || 'Restore failed.');
-        return;
+    return typeof raw === 'object' ? raw : null;
+}
+
+function mergeComments(backupRaw) {
+    const backup = parseMaybe(backupRaw);
+    if (backup === null || typeof backup !== 'object') return false;
+    let current = null;
+    try {
+        current = JSON.parse(localStorage.getItem(STORAGE_KEY));
+    } catch (e) {
+        current = null;
     }
-    const data = result.data;
-    const apply = (key, raw) => {
+    const result = {};
+    let changed = false;
+    categories.forEach((key) => {
+        const curEntry = current && current[key] && Array.isArray(current[key].comments) ? current[key] : null;
+        const backupList = backup[key] && Array.isArray(backup[key].comments) ? backup[key].comments : [];
+        const curList = curEntry ? curEntry.comments.slice() : [];
+        const seen = new Set(curList.map(normalizeComment));
+        backupList.forEach((c) => {
+            const norm = normalizeComment(c);
+            if (norm && !seen.has(norm)) {
+                curList.push(c);
+                seen.add(norm);
+                changed = true;
+            }
+        });
+        const curIndex = curEntry && typeof curEntry.index === 'number' ? curEntry.index : 0;
+        const index = Math.min(curIndex, Math.max(curList.length - 1, 0));
+        result[key] = { comments: curList, index };
+    });
+    if (changed) {
+        try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(result));
+        } catch (e) {}
+    }
+    return changed;
+}
+
+function mergeUsage(backupRaw) {
+    const backup = parseMaybe(backupRaw);
+    if (backup === null || typeof backup !== 'object') return false;
+    const current = loadUsage();
+    let changed = false;
+    for (const cat of Object.keys(backup)) {
+        const map = backup[cat];
+        if (!map || typeof map !== 'object') continue;
+        for (const idx of Object.keys(map)) {
+            const val = typeof map[idx] === 'number' ? map[idx] : 0;
+            if (val > 0) {
+                if (!current[cat]) current[cat] = {};
+                current[cat][idx] = (typeof current[cat][idx] === 'number' ? current[cat][idx] : 0) + val;
+                changed = true;
+            }
+        }
+    }
+    if (changed) saveUsage(current);
+    return changed;
+}
+
+function mergeFill(key, raw) {
+    if (raw === undefined || raw === null) return false;
+    const current = localStorage.getItem(key);
+    let empty = current === null || current === '';
+    if (key === SHEET_KEY && !empty) {
+        try {
+            const parsed = JSON.parse(current);
+            const hasCodes = parsed && Array.isArray(parsed.codes) && parsed.codes.length > 0;
+            const hasIdentity = parsed && (parsed.studentId || parsed.name);
+            empty = !hasCodes && !hasIdentity;
+        } catch (e) {
+            empty = true;
+        }
+    }
+    if (!empty) return false;
+    localStorage.setItem(key, typeof raw === 'string' ? raw : JSON.stringify(raw));
+    return true;
+}
+
+function applyBackupData(data, mode) {
+    const replace = (key, raw) => {
         if (data[key] === undefined) return false;
         if (raw === undefined || raw === null) {
             localStorage.removeItem(key);
@@ -1279,19 +1389,39 @@ async function importBackup() {
         }
         return true;
     };
-    apply(STORAGE_KEY, data[STORAGE_KEY]);
-    apply(PROMPT_KEY, data[PROMPT_KEY]);
-    apply(SHEET_KEY, data[SHEET_KEY]);
-    apply(LAYOUT_KEY, data[LAYOUT_KEY]);
-    apply(DATE_FIRST_KEY, data[DATE_FIRST_KEY]);
-    apply(THEME_KEY, data[THEME_KEY]);
-    apply(ACCENT_KEY, data[ACCENT_KEY]);
-    apply(HOTKEY_KEY, data[HOTKEY_KEY]);
-    apply(USAGE_KEY, data[USAGE_KEY]);
-    apply(SHORTCUTS_KEY, data[SHORTCUTS_KEY]);
-    apply(CONFIRM_DELETE_KEY, data[CONFIRM_DELETE_KEY]);
-    apply(CLOSE_AFTER_COPY_KEY, data[CLOSE_AFTER_COPY_KEY]);
-    apply(AUTO_CHECK_UPDATES_KEY, data[AUTO_CHECK_UPDATES_KEY]);
+    if (mode !== 'merge') {
+        replace(STORAGE_KEY, data[STORAGE_KEY]);
+        replace(PROMPT_KEY, data[PROMPT_KEY]);
+        replace(SHEET_KEY, data[SHEET_KEY]);
+        replace(LAYOUT_KEY, data[LAYOUT_KEY]);
+        replace(DATE_FIRST_KEY, data[DATE_FIRST_KEY]);
+        replace(THEME_KEY, data[THEME_KEY]);
+        replace(ACCENT_KEY, data[ACCENT_KEY]);
+        replace(HOTKEY_KEY, data[HOTKEY_KEY]);
+        replace(USAGE_KEY, data[USAGE_KEY]);
+        replace(SHORTCUTS_KEY, data[SHORTCUTS_KEY]);
+        replace(CONFIRM_DELETE_KEY, data[CONFIRM_DELETE_KEY]);
+        replace(CLOSE_AFTER_COPY_KEY, data[CLOSE_AFTER_COPY_KEY]);
+        replace(AUTO_CHECK_UPDATES_KEY, data[AUTO_CHECK_UPDATES_KEY]);
+        return false;
+    }
+    mergeComments(data[STORAGE_KEY]);
+    mergeFill(PROMPT_KEY, data[PROMPT_KEY]);
+    mergeFill(SHEET_KEY, data[SHEET_KEY]);
+    mergeFill(LAYOUT_KEY, data[LAYOUT_KEY]);
+    mergeFill(DATE_FIRST_KEY, data[DATE_FIRST_KEY]);
+    mergeFill(THEME_KEY, data[THEME_KEY]);
+    mergeFill(ACCENT_KEY, data[ACCENT_KEY]);
+    mergeFill(HOTKEY_KEY, data[HOTKEY_KEY]);
+    mergeUsage(data[USAGE_KEY]);
+    mergeFill(SHORTCUTS_KEY, data[SHORTCUTS_KEY]);
+    mergeFill(CONFIRM_DELETE_KEY, data[CONFIRM_DELETE_KEY]);
+    mergeFill(CLOSE_AFTER_COPY_KEY, data[CLOSE_AFTER_COPY_KEY]);
+    mergeFill(AUTO_CHECK_UPDATES_KEY, data[AUTO_CHECK_UPDATES_KEY]);
+    return true;
+}
+
+function reloadAfterRestore() {
     load();
     loadPrompt();
     renderList();
@@ -1304,8 +1434,45 @@ async function importBackup() {
     loadCloseAfterCopySetting();
     loadAutoCheckUpdatesSetting();
     loadHotkeySetting();
+    syncRestoreModePicker();
     renderShortcutRows();
-    showToast('Data restored.');
+}
+
+async function importBackup() {
+    if (!window.mainWindowAPI || typeof window.mainWindowAPI.importBackup !== 'function') {
+        showToast('Restore unavailable.');
+        return;
+    }
+    const result = await window.mainWindowAPI.importBackup();
+    if (!result || result.canceled) return;
+    if (!result.ok || !result.data) {
+        showToast((result && result.error) || 'Restore failed.');
+        return;
+    }
+    const data = result.data;
+    if (!data || typeof data !== 'object') {
+        showToast('Restore failed.');
+        return;
+    }
+    const mode = getRestoreMode();
+    saveRollback();
+    applyBackupData(data, mode);
+    reloadAfterRestore();
+    renderRollbackState();
+    showToast(mode === 'merge' ? 'Backup merged with current data.' : 'Data restored.');
+}
+
+function rollbackRestore() {
+    const cached = loadRollback();
+    if (!cached) {
+        renderRollbackState();
+        return;
+    }
+    applyBackupData(cached.snapshot, 'replace');
+    localStorage.removeItem(ROLLBACK_KEY);
+    reloadAfterRestore();
+    renderRollbackState();
+    showToast('Rolled back to the data from before the last restore.');
 }
 
 async function refreshAboutInfo() {
@@ -1549,6 +1716,14 @@ document.addEventListener('click', (e) => {
 });
 backupBtn.addEventListener('click', exportBackup);
 restoreBtn2.addEventListener('click', importBackup);
+restoreModeOptions.forEach((b) => {
+    b.addEventListener('click', () => {
+        localStorage.setItem(RESTORE_MODE_KEY, b.dataset.mode);
+        syncRestoreModePicker();
+        showToast(b.dataset.mode === 'merge' ? 'Restores will merge with current data.' : 'Restores will replace current data.');
+    });
+});
+rollbackBtn.addEventListener('click', rollbackRestore);
 
 /* ---------- Rebindable in-window shortcuts ---------- */
 
@@ -1822,6 +1997,8 @@ loadStartupSetting();
 loadAccentSetting();
 loadHotkeySetting();
 refreshAboutInfo();
+syncRestoreModePicker();
+renderRollbackState();
 syncHeight();
 runAutoUpdateCheck();
 
