@@ -39,8 +39,20 @@ const layoutPickerOptions = document.querySelectorAll('#mw-layout-picker .layout
 const dateFirstToggle = document.getElementById('mw-date-first');
 const themePickerOptions = document.querySelectorAll('#mw-theme-picker .theme-option');
 const accentSwatches = document.querySelectorAll('#mw-accent-picker .accent-swatch');
-const accentCustomEl = document.querySelector('#mw-accent-picker .accent-custom');
-const accentCustomInput = document.getElementById('mw-accent-custom');
+const accentCustomEl = document.getElementById('mw-accent-custom-btn');
+// The swatch buttons only carry their color in data-accent — nothing paints
+// that onto the button itself, so give each one its background here.
+accentSwatches.forEach((b) => { b.style.backgroundColor = b.dataset.accent; });
+const colorPopover = document.getElementById('mw-color-popover');
+const cpSv = document.getElementById('cp-sv');
+const cpSvHandle = document.getElementById('cp-sv-handle');
+const cpHue = document.getElementById('cp-hue');
+const cpHueHandle = document.getElementById('cp-hue-handle');
+const cpPreview = document.getElementById('cp-preview');
+const cpEyedrop = document.getElementById('cp-eyedrop');
+const cpR = document.getElementById('cp-r');
+const cpG = document.getElementById('cp-g');
+const cpB = document.getElementById('cp-b');
 const startupToggle = document.getElementById('mw-startup');
 const confirmDeleteToggle = document.getElementById('mw-confirm-delete');
 const closeAfterCopyToggle = document.getElementById('mw-close-after-copy');
@@ -858,11 +870,20 @@ function applyAccent(color) {
     }
 }
 
+let suppressPickerSync = false;
+
 function syncAccentPicker(color) {
     accentSwatches.forEach((b) => b.classList.toggle('active', b.dataset.accent === color));
     const isPreset = !!color && Array.from(accentSwatches).some((b) => b.dataset.accent === color);
     accentCustomEl.classList.toggle('active', !!color && !isPreset);
-    if (color) accentCustomInput.value = color;
+    const customColor = color && !isPreset ? color : '#58a6ff';
+    accentCustomEl.style.background = isPreset || !color
+        ? 'conic-gradient(red, yellow, lime, cyan, blue, magenta, red)'
+        : customColor;
+    // While the popover itself is driving a live drag, its cpHue0/cpSat0/cpVal0
+    // state is the source of truth; re-deriving HSV from the rounded hex on
+    // every tick would make the hue drift near the grayscale edges.
+    if (!suppressPickerSync) setColorPickerState(customColor);
 }
 
 function loadAccentSetting() {
@@ -880,6 +901,218 @@ function setAccent(color, label) {
     applyAccent(color);
     syncAccentPicker(color);
     showToast(`${label || 'Accent'} applied.`);
+}
+
+/* ---------- Custom color popover (replaces the native <input type="color">
+   picker, which is OS/Chromium chrome and can't be restyled) ---------- */
+
+let cpHue0 = 209, cpSat0 = 65, cpVal0 = 100;
+
+function clampNum(n, min, max) { return Math.min(max, Math.max(min, n)); }
+
+function hsvToRgb(h, s, v) {
+    s /= 100; v /= 100;
+    const c = v * s;
+    const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
+    const m = v - c;
+    let r = 0, g = 0, b = 0;
+    if (h < 60) { r = c; g = x; b = 0; }
+    else if (h < 120) { r = x; g = c; b = 0; }
+    else if (h < 180) { r = 0; g = c; b = x; }
+    else if (h < 240) { r = 0; g = x; b = c; }
+    else if (h < 300) { r = x; g = 0; b = c; }
+    else { r = c; g = 0; b = x; }
+    return {
+        r: Math.round((r + m) * 255),
+        g: Math.round((g + m) * 255),
+        b: Math.round((b + m) * 255),
+    };
+}
+
+function rgbToHsv(r, g, b) {
+    r /= 255; g /= 255; b /= 255;
+    const max = Math.max(r, g, b), min = Math.min(r, g, b);
+    const d = max - min;
+    let h = 0;
+    if (d !== 0) {
+        if (max === r) h = (((g - b) / d) % 6);
+        else if (max === g) h = (b - r) / d + 2;
+        else h = (r - g) / d + 4;
+        h *= 60;
+        if (h < 0) h += 360;
+    }
+    const s = max === 0 ? 0 : d / max;
+    return { h, s: s * 100, v: max * 100 };
+}
+
+function rgbToHex(r, g, b) {
+    const toHex = (n) => clampNum(Math.round(n), 0, 255).toString(16).padStart(2, '0');
+    return '#' + toHex(r) + toHex(g) + toHex(b);
+}
+
+function hexToRgb(hex) {
+    const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex || '');
+    if (!m) return null;
+    return { r: parseInt(m[1], 16), g: parseInt(m[2], 16), b: parseInt(m[3], 16) };
+}
+
+// Paint the popover to match the current cpHue0/cpSat0/cpVal0 state and
+// return the resulting hex.
+function renderColorPopover() {
+    const rgb = hsvToRgb(cpHue0, cpSat0, cpVal0);
+    const hex = rgbToHex(rgb.r, rgb.g, rgb.b);
+    cpSv.style.backgroundColor = `hsl(${cpHue0}, 100%, 50%)`;
+    cpSvHandle.style.left = cpSat0 + '%';
+    cpSvHandle.style.top = (100 - cpVal0) + '%';
+    cpHueHandle.style.left = (cpHue0 / 360 * 100) + '%';
+    cpPreview.style.backgroundColor = hex;
+    if (document.activeElement !== cpR) cpR.value = rgb.r;
+    if (document.activeElement !== cpG) cpG.value = rgb.g;
+    if (document.activeElement !== cpB) cpB.value = rgb.b;
+    return hex;
+}
+
+// Load a hex color into the popover's internal HSV state (used when the
+// accent changed from outside the popover — a preset click, restore, etc).
+function setColorPickerState(hex) {
+    const rgb = hexToRgb(hex);
+    if (!rgb) return;
+    const hsv = rgbToHsv(rgb.r, rgb.g, rgb.b);
+    cpHue0 = hsv.h;
+    cpSat0 = hsv.s;
+    cpVal0 = hsv.v;
+    renderColorPopover();
+}
+
+// Apply the popover's current color as the app accent, without letting that
+// round-trip back and clobber the popover's own HSV state mid-drag.
+function commitColorPicker() {
+    const hex = renderColorPopover();
+    suppressPickerSync = true;
+    setAccent(hex, 'Custom accent');
+    suppressPickerSync = false;
+}
+
+function isColorPopoverOpen() {
+    return !colorPopover.classList.contains('hidden');
+}
+
+function openColorPopover() {
+    if (globalCapturing) stopGlobalCapture();
+    if (capturingAction) stopCapture();
+    const rect = accentCustomEl.getBoundingClientRect();
+    const popW = 220;
+    const popH = 300;
+    let left = clampNum(rect.right - popW, 8, window.innerWidth - popW - 8);
+    let top = rect.bottom + 8;
+    if (top + popH > window.innerHeight - 8) top = rect.top - popH - 8;
+    colorPopover.style.left = left + 'px';
+    colorPopover.style.top = Math.max(8, top) + 'px';
+    colorPopover.classList.remove('hidden');
+    accentCustomEl.setAttribute('aria-expanded', 'true');
+    renderColorPopover();
+}
+
+function closeColorPopover() {
+    colorPopover.classList.add('hidden');
+    accentCustomEl.setAttribute('aria-expanded', 'false');
+}
+
+accentCustomEl.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (isColorPopoverOpen()) closeColorPopover();
+    else openColorPopover();
+});
+
+document.addEventListener('click', (e) => {
+    if (isColorPopoverOpen() && !colorPopover.contains(e.target) && e.target !== accentCustomEl) {
+        closeColorPopover();
+    }
+});
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && isColorPopoverOpen()) closeColorPopover();
+});
+
+function svPointerToState(clientX, clientY) {
+    const rect = cpSv.getBoundingClientRect();
+    const x = clampNum(clientX - rect.left, 0, rect.width);
+    const y = clampNum(clientY - rect.top, 0, rect.height);
+    cpSat0 = (x / rect.width) * 100;
+    cpVal0 = 100 - (y / rect.height) * 100;
+}
+
+let svDragging = false;
+cpSv.addEventListener('pointerdown', (e) => {
+    svDragging = true;
+    cpSv.setPointerCapture(e.pointerId);
+    svPointerToState(e.clientX, e.clientY);
+    commitColorPicker();
+});
+cpSv.addEventListener('pointermove', (e) => {
+    if (!svDragging) return;
+    svPointerToState(e.clientX, e.clientY);
+    commitColorPicker();
+});
+cpSv.addEventListener('pointerup', (e) => {
+    svDragging = false;
+    try { cpSv.releasePointerCapture(e.pointerId); } catch (err) {}
+});
+
+function huePointerToState(clientX) {
+    const rect = cpHue.getBoundingClientRect();
+    const x = clampNum(clientX - rect.left, 0, rect.width);
+    cpHue0 = (x / rect.width) * 360;
+}
+
+let hueDragging = false;
+cpHue.addEventListener('pointerdown', (e) => {
+    hueDragging = true;
+    cpHue.setPointerCapture(e.pointerId);
+    huePointerToState(e.clientX);
+    commitColorPicker();
+});
+cpHue.addEventListener('pointermove', (e) => {
+    if (!hueDragging) return;
+    huePointerToState(e.clientX);
+    commitColorPicker();
+});
+cpHue.addEventListener('pointerup', (e) => {
+    hueDragging = false;
+    try { cpHue.releasePointerCapture(e.pointerId); } catch (err) {}
+});
+
+[cpR, cpG, cpB].forEach((input) => {
+    input.addEventListener('input', () => {
+        input.value = input.value.replace(/[^\d]/g, '').slice(0, 3);
+    });
+    input.addEventListener('change', () => {
+        const r = clampNum(parseInt(cpR.value, 10) || 0, 0, 255);
+        const g = clampNum(parseInt(cpG.value, 10) || 0, 0, 255);
+        const b = clampNum(parseInt(cpB.value, 10) || 0, 0, 255);
+        const hsv = rgbToHsv(r, g, b);
+        cpHue0 = hsv.h;
+        cpSat0 = hsv.s;
+        cpVal0 = hsv.v;
+        commitColorPicker();
+    });
+});
+
+// Chromium's native eyedropper, when available — no polyfill for browsers
+// without it, the button just stays hidden.
+if (typeof window.EyeDropper === 'function') {
+    cpEyedrop.hidden = false;
+    cpEyedrop.addEventListener('click', async () => {
+        try {
+            const result = await new window.EyeDropper().open();
+            if (result && result.sRGBHex) {
+                setColorPickerState(result.sRGBHex);
+                commitColorPicker();
+            }
+        } catch (e) {
+            // User canceled the pick — nothing to do.
+        }
+    });
 }
 
 function loadThemeSetting() {
@@ -1264,9 +1497,6 @@ accentSwatches.forEach((b) => {
     b.addEventListener('click', () => {
         setAccent(b.dataset.accent, b.dataset.label);
     });
-});
-accentCustomInput.addEventListener('input', () => {
-    setAccent(accentCustomInput.value, 'Custom accent');
 });
 startupToggle.addEventListener('click', async () => {
     const enabled = startupToggle.getAttribute('aria-checked') !== 'true';

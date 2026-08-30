@@ -105,9 +105,36 @@
                         <button type="button" class="accent-swatch" data-accent="#f85149" data-label="Red" title="Red"></button>
                         <button type="button" class="accent-swatch" data-accent="#39c5cf" data-label="Teal" title="Teal"></button>
                         <button type="button" class="accent-swatch" data-accent="#f778ba" data-label="Pink" title="Pink"></button>
-                        <label class="accent-custom" title="Custom color">
-                            <input type="color" id="mw-accent-custom" value="#58a6ff">
-                        </label>
+                        <button type="button" class="accent-custom" id="mw-accent-custom-btn" title="Custom color" aria-haspopup="true" aria-expanded="false"></button>
+                    </div>
+
+                    <div class="color-popover hidden" id="mw-color-popover" role="dialog" aria-label="Custom color picker">
+                        <div class="color-sv" id="cp-sv">
+                            <div class="color-sv-handle" id="cp-sv-handle"></div>
+                        </div>
+                        <div class="color-controls-row">
+                            <button type="button" class="color-eyedrop" id="cp-eyedrop" title="Pick a color from your screen" hidden>
+                                <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><path d="M11.2 2.3a1.8 1.8 0 0 1 2.5 2.5l-1 1-2.5-2.5 1-1Z"/><path d="M9.3 4.2 3 10.5 2 14l3.5-1L11.8 6.5"/></svg>
+                            </button>
+                            <div class="color-preview" id="cp-preview"></div>
+                            <div class="color-hue" id="cp-hue">
+                                <div class="color-hue-handle" id="cp-hue-handle"></div>
+                            </div>
+                        </div>
+                        <div class="color-rgb-row">
+                            <div class="color-rgb-field">
+                                <input type="text" inputmode="numeric" maxlength="3" id="cp-r" autocomplete="off">
+                                <label for="cp-r">R</label>
+                            </div>
+                            <div class="color-rgb-field">
+                                <input type="text" inputmode="numeric" maxlength="3" id="cp-g" autocomplete="off">
+                                <label for="cp-g">G</label>
+                            </div>
+                            <div class="color-rgb-field">
+                                <input type="text" inputmode="numeric" maxlength="3" id="cp-b" autocomplete="off">
+                                <label for="cp-b">B</label>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="setting-row">
