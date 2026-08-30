@@ -40,6 +40,7 @@ const dateFirstToggle = document.getElementById('mw-date-first');
 const themePickerOptions = document.querySelectorAll('#mw-theme-picker .theme-option');
 const startupToggle = document.getElementById('mw-startup');
 const confirmDeleteToggle = document.getElementById('mw-confirm-delete');
+const closeAfterCopyToggle = document.getElementById('mw-close-after-copy');
 const hotkeyInput = document.getElementById('mw-hotkey-input');
 const hotkeyClear = document.getElementById('mw-hotkey-clear');
 const backupBtn = document.getElementById('mw-backup');
@@ -769,6 +770,14 @@ function confirmDeleteEnabled() {
     return saved === null ? true : saved !== '0';
 }
 
+/* ---------- Close popup after copy ---------- */
+
+function loadCloseAfterCopySetting() {
+    const saved = localStorage.getItem(CLOSE_AFTER_COPY_KEY);
+    const enabled = saved === '1';
+    closeAfterCopyToggle.setAttribute('aria-checked', enabled ? 'true' : 'false');
+}
+
 function setView(name) {
     navItems.forEach((b) => b.classList.toggle('active', b.dataset.view === name));
     panels.forEach((p) => p.classList.toggle('active', p.dataset.viewPanel === name));
@@ -898,6 +907,7 @@ function buildBackupPayload() {
     } catch (e) {}
     payload[SHORTCUTS_KEY] = localStorage.getItem(SHORTCUTS_KEY);
     payload[CONFIRM_DELETE_KEY] = localStorage.getItem(CONFIRM_DELETE_KEY);
+    payload[CLOSE_AFTER_COPY_KEY] = localStorage.getItem(CLOSE_AFTER_COPY_KEY);
     return payload;
 }
 
@@ -948,6 +958,7 @@ async function importBackup() {
     apply(USAGE_KEY, data[USAGE_KEY]);
     apply(SHORTCUTS_KEY, data[SHORTCUTS_KEY]);
     apply(CONFIRM_DELETE_KEY, data[CONFIRM_DELETE_KEY]);
+    apply(CLOSE_AFTER_COPY_KEY, data[CLOSE_AFTER_COPY_KEY]);
     load();
     loadPrompt();
     renderList();
@@ -956,6 +967,7 @@ async function importBackup() {
     loadDateFirstSetting();
     loadThemeSetting();
     loadConfirmDeleteSetting();
+    loadCloseAfterCopySetting();
     loadHotkeySetting();
     renderShortcutRows();
     showToast('Data restored.');
@@ -1082,6 +1094,8 @@ window.addEventListener('storage', (e) => {
         loadDateFirstSetting();
     } else if (e.key === CONFIRM_DELETE_KEY) {
         loadConfirmDeleteSetting();
+    } else if (e.key === CLOSE_AFTER_COPY_KEY) {
+        loadCloseAfterCopySetting();
     } else if (e.key === THEME_KEY) {
         loadThemeSetting();
     }
@@ -1153,6 +1167,12 @@ confirmDeleteToggle.addEventListener('click', () => {
     localStorage.setItem(CONFIRM_DELETE_KEY, enabled ? '1' : '0');
     confirmDeleteToggle.setAttribute('aria-checked', enabled ? 'true' : 'false');
     showToast(enabled ? 'Confirmations on before deleting.' : 'Confirmations off \u2014 delete instantly.');
+});
+closeAfterCopyToggle.addEventListener('click', () => {
+    const enabled = closeAfterCopyToggle.getAttribute('aria-checked') !== 'true';
+    localStorage.setItem(CLOSE_AFTER_COPY_KEY, enabled ? '1' : '0');
+    closeAfterCopyToggle.setAttribute('aria-checked', enabled ? 'true' : 'false');
+    showToast(enabled ? 'Popup will close after you copy.' : 'Popup stays open after copying.');
 });
 hotkeyInput.addEventListener('click', (e) => {
     e.stopPropagation();
@@ -1428,6 +1448,7 @@ setDirty(false);
 loadLayoutSetting();
 loadDateFirstSetting();
 loadConfirmDeleteSetting();
+loadCloseAfterCopySetting();
 loadThemeSetting();
 loadStartupSetting();
 loadHotkeySetting();

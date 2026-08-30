@@ -259,6 +259,20 @@ function recordUsage(key, index) {
     } catch (e) {}
 }
 
+function closeAfterCopyEnabled() {
+    return localStorage.getItem(CLOSE_AFTER_COPY_KEY) === '1';
+}
+
+function closePopupAfterCopy() {
+    if (!closeAfterCopyEnabled()) return;
+    // Give the "Copied ..." toast a moment to show, then hide the popup.
+    setTimeout(() => {
+        if (window.popupAPI && typeof window.popupAPI.close === 'function') {
+            window.popupAPI.close();
+        }
+    }, 80);
+}
+
 async function handleCopy(key) {
     const s = state[key];
     const label = LABELS[key];
@@ -290,6 +304,7 @@ async function handleCopy(key) {
         }
         showToast(`Copied ${label} comment ${copiedNumber}`);
         advance();
+        closePopupAfterCopy();
         return;
     }
     const ok = await writeClipboard(buildDateLine(), false);
@@ -313,6 +328,7 @@ async function handleCopy(key) {
         }
         showToast(`Copied ${label} comment ${copiedNumber}`);
         advance();
+        closePopupAfterCopy();
     }, 500);
 }
 
