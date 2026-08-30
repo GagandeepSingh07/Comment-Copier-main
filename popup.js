@@ -1134,7 +1134,79 @@ organizerBtn.addEventListener('click', (e) => {
     organizerBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
 });
 mainTabs.forEach((b) => b.addEventListener('click', () => setMainTab(b.dataset.tab)));
+function popupShortcutCanonical(accel) {
+    if (!accel) return '';
+    const parts = String(accel).trim().split(/\s*\+\s*/).map((p) => p.trim().toLowerCase()).filter(Boolean);
+    const mods = [...new Set(parts
+        .filter((p) => p === 'ctrl' || p === 'shift' || p === 'alt' || p === 'cmd' || p === 'meta')
+        .map((p) => (p === 'cmd' || p === 'meta' ? 'ctrl' : p)))].sort();
+    const key = parts.find((p) => !['ctrl', 'shift', 'alt', 'cmd', 'meta'].includes(p));
+    const segs = mods.slice();
+    if (key) segs.push(key);
+    return segs.join('+');
+}
+
+function popupEventToAccel(e) {
+    const mods = [];
+    if (e.ctrlKey || e.metaKey) mods.push('ctrl');
+    if (e.shiftKey) mods.push('shift');
+    if (e.altKey) mods.push('alt');
+    const k = String(e.key).toLowerCase();
+    if (['control', 'shift', 'alt', 'meta', 'cmd'].includes(k)) return '';
+    return mods.sort().join('+') + (k ? '+' + k : '');
+}
+
+function popupLayoutShortcutBindings() {
+    const out = {
+        tabAccept: DEFAULT_SHORTCUTS.tabAccept,
+        tabAireject: DEFAULT_SHORTCUTS.tabAireject,
+        tabCopyreject: DEFAULT_SHORTCUTS.tabCopyreject,
+        tabPrompt: DEFAULT_SHORTCUTS.tabPrompt,
+    };
+    try {
+        const saved = JSON.parse(localStorage.getItem(SHORTCUTS_KEY));
+        if (saved && typeof saved === 'object') {
+            Object.keys(out).forEach((a) => {
+                if (typeof saved[a] === 'string' && saved[a].trim()) out[a] = saved[a].trim();
+            });
+        }
+    } catch (e) {}
+    return out;
+}
+
+function popupMatchLayoutShortcut(e) {
+    const accel = popupEventToAccel(e);
+    if (!accel) return null;
+    const bindings = popupLayoutShortcutBindings();
+    for (const action of ['tabAccept', 'tabAireject', 'tabCopyreject', 'tabPrompt']) {
+        if (bindings[action] && popupShortcutCanonical(bindings[action]) === accel) return action;
+    }
+    return null;
+}
+
+function popupSwitchLayout(action) {
+    const layoutName = { cards: 'Cards', tabs: 'Tabs', stack: 'Side by side' };
+    const order = ['cards', 'tabs', 'stack'];
+    let mode;
+    if (action === 'tabPrompt') {
+        const idx = order.indexOf(layoutMode);
+        mode = order[(idx + 1) % order.length];
+    } else {
+        mode = { tabAccept: 'cards', tabAireject: 'tabs', tabCopyreject: 'stack' }[action];
+    }
+    localStorage.setItem(LAYOUT_KEY, mode);
+    layoutMode = mode;
+    applyLayout();
+    showToast(`Popup layout set to ${layoutName[mode]}.`);
+}
+
 document.addEventListener('keydown', (e) => {
+    const layoutAction = popupMatchLayoutShortcut(e);
+    if (layoutAction) {
+        e.preventDefault();
+        popupSwitchLayout(layoutAction);
+        return;
+    }
     if (e.key === 'Escape') {
         if (organizerWrap.classList.contains('open')) {
             organizerWrap.classList.remove('open');

@@ -21,11 +21,19 @@ const DEFAULT_SHORTCUTS = {
     addComment: 'Ctrl+N',
     search: 'Ctrl+F',
     backup: 'Ctrl+B',
+    tabAccept: 'Ctrl+1',
+    tabAireject: 'Ctrl+2',
+    tabCopyreject: 'Ctrl+3',
+    tabPrompt: 'Ctrl+4',
 };
 const SHORTCUT_LABELS = {
     addComment: 'Focus the add-comment box',
     search: 'Focus the search box',
     backup: 'Back up your data',
+    tabAccept: 'Set popup layout to Cards',
+    tabAireject: 'Set popup layout to Tabs',
+    tabCopyreject: 'Set popup layout to Side by side',
+    tabPrompt: 'Cycle to the next popup layout',
 };
 
 // Per-comment usage counters live under a separate storage key so a full

@@ -762,6 +762,26 @@ function loadLayoutSetting() {
     layoutPickerOptions.forEach((b) => b.classList.toggle('active', b.dataset.layout === mode));
 }
 
+const LAYOUT_ORDER = ['cards', 'tabs', 'stack'];
+
+function getEffectiveLayout() {
+    const saved = localStorage.getItem(LAYOUT_KEY);
+    return (saved === 'tabs' || saved === 'stack') ? saved : 'cards';
+}
+
+function setLayout(mode) {
+    localStorage.setItem(LAYOUT_KEY, mode);
+    layoutPickerOptions.forEach((b) => b.classList.toggle('active', b.dataset.layout === mode));
+}
+
+function cycleLayout() {
+    const current = getEffectiveLayout();
+    const idx = LAYOUT_ORDER.indexOf(current);
+    const next = LAYOUT_ORDER[(idx + 1) % LAYOUT_ORDER.length];
+    setLayout(next);
+    return next;
+}
+
 function loadDateFirstSetting() {
     const saved = localStorage.getItem(DATE_FIRST_KEY);
     const enabled = saved === null ? true : saved !== '0';
@@ -1244,7 +1264,7 @@ restoreBtn2.addEventListener('click', importBackup);
 
 /* ---------- Rebindable in-window shortcuts ---------- */
 
-const SHORTCUT_ORDER = ['addComment', 'search', 'backup'];
+const SHORTCUT_ORDER = ['addComment', 'search', 'backup', 'tabAccept', 'tabAireject', 'tabCopyreject', 'tabPrompt'];
 const shortcutsWrap = document.getElementById('shortcuts-editable');
 
 function getShortcuts() {
@@ -1329,6 +1349,18 @@ function runShortcut(action) {
     }
     if (action === 'backup') {
         exportBackup();
+        return true;
+    }
+    const layoutName = { cards: 'Cards', tabs: 'Tabs', stack: 'Side by side' };
+    const layoutByAction = {
+        tabAccept: 'cards',
+        tabAireject: 'tabs',
+        tabCopyreject: 'stack',
+        tabPrompt: '', // '' = cycle to the next layout
+    };
+    if (layoutByAction[action] !== undefined) {
+        const mode = layoutByAction[action] === '' ? cycleLayout() : (setLayout(layoutByAction[action]), layoutByAction[action]);
+        showToast(`Popup layout set to ${layoutName[mode]}.`);
         return true;
     }
     return false;
