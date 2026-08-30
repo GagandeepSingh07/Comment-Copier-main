@@ -842,6 +842,59 @@ body.theme-light .theme-picker { background: #f6f8fa; }
 
 body.theme-light .theme-option.active { color: #ffffff; }
 
+/* ---------- Accent color picker ---------- */
+
+.accent-picker {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.accent-swatch {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    cursor: pointer;
+    padding: 0;
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.accent-swatch:hover { transform: scale(1.15); }
+
+.accent-swatch.active {
+    box-shadow: 0 0 0 2px var(--text);
+    border-color: transparent;
+}
+
+.accent-custom {
+    display: inline-flex;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    cursor: pointer;
+    overflow: hidden;
+    position: relative;
+    background: conic-gradient(red, yellow, lime, cyan, blue, magenta, red);
+}
+
+.accent-custom input[type="color"] {
+    position: absolute;
+    inset: -8px;
+    width: 36px;
+    height: 36px;
+    border: none;
+    cursor: pointer;
+    opacity: 0;
+}
+
+.accent-custom.active {
+    box-shadow: 0 0 0 2px var(--text);
+    border-color: transparent;
+}
+
 .hotkey-control {
     flex: 0 0 auto;
     display: flex;
@@ -1206,6 +1259,58 @@ body.theme-light .about-hero {
 }
 body.theme-light .about-hero-icon { box-shadow: 0 10px 28px rgba(31, 35, 40, 0.18); }
 body.theme-light .comment-card .card-usage { color: #9a6700; background: rgba(154, 103, 0, 0.1); }
+
+/* ---------- Midnight theme ---------- */
+
+body.theme-midnight {
+    color-scheme: dark;
+    --bg: #10131f;
+    --card: #171b2b;
+    --border: #262b3d;
+    --text: #e6e9f5;
+    --muted: #8a91a8;
+    --accent: #a371f7;
+    --danger: #f85149;
+}
+
+body.theme-midnight ::-webkit-scrollbar-thumb,
+body.theme-midnight ::-webkit-scrollbar-thumb:hover { background: #3a3f55; }
+body.theme-midnight * { scrollbar-color: #3a3f55 transparent; }
+
+body.theme-midnight .theme-option.active,
+body.theme-midnight .etab.active { color: #ffffff; }
+
+body.theme-midnight .btn-add,
+body.theme-midnight .btn-save { color: #ffffff; }
+
+body.theme-midnight .comment-card.current .card-index { color: #a371f7; background: rgba(163, 113, 247, 0.14); }
+body.theme-midnight .comment-card.current { border-color: #a371f7; }
+
+/* ---------- Sepia theme ---------- */
+
+body.theme-sepia {
+    color-scheme: light;
+    --bg: #f6efe2;
+    --card: #fdf9f0;
+    --border: #e0d6c3;
+    --text: #3a3226;
+    --muted: #8a7f6d;
+    --accent: #9a6700;
+    --danger: #b35900;
+}
+
+body.theme-sepia ::-webkit-scrollbar-thumb { background: #d5c8ae; }
+body.theme-sepia ::-webkit-scrollbar-thumb:hover { background: #bfb093; }
+body.theme-sepia * { scrollbar-color: #d5c8ae transparent; }
+
+body.theme-sepia .theme-option.active,
+body.theme-sepia .etab.active { color: #ffffff; }
+
+body.theme-sepia .btn-add,
+body.theme-sepia .btn-save { color: #ffffff; }
+
+body.theme-sepia .comment-card.current .card-index { color: #9a6700; background: rgba(154, 103, 0, 0.14); }
+body.theme-sepia .comment-card.current { border-color: #9a6700; }
 
 /* ---------- Responsive ---------- */
 

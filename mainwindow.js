@@ -38,6 +38,9 @@ const resetBtn = document.getElementById('mw-reset');
 const layoutPickerOptions = document.querySelectorAll('#mw-layout-picker .layout-picker-option');
 const dateFirstToggle = document.getElementById('mw-date-first');
 const themePickerOptions = document.querySelectorAll('#mw-theme-picker .theme-option');
+const accentSwatches = document.querySelectorAll('#mw-accent-picker .accent-swatch');
+const accentCustomEl = document.querySelector('#mw-accent-picker .accent-custom');
+const accentCustomInput = document.getElementById('mw-accent-custom');
 const startupToggle = document.getElementById('mw-startup');
 const confirmDeleteToggle = document.getElementById('mw-confirm-delete');
 const closeAfterCopyToggle = document.getElementById('mw-close-after-copy');
@@ -837,17 +840,59 @@ function setView(name) {
 
 /* ---------- Theme ---------- */
 
+const THEME_NAMES = ['dark', 'light', 'midnight', 'sepia'];
+
+function applyThemeClass(theme) {
+    const t = THEME_NAMES.includes(theme) ? theme : 'dark';
+    document.body.classList.remove('theme-light', 'theme-midnight', 'theme-sepia');
+    document.body.classList.add('theme-' + t);
+    document.body.dataset.theme = t;
+    return t;
+}
+
+function applyAccent(color) {
+    if (color) {
+        document.body.style.setProperty('--accent', color);
+    } else {
+        document.body.style.removeProperty('--accent');
+    }
+}
+
+function syncAccentPicker(color) {
+    accentSwatches.forEach((b) => b.classList.toggle('active', b.dataset.accent === color));
+    const isPreset = !!color && Array.from(accentSwatches).some((b) => b.dataset.accent === color);
+    accentCustomEl.classList.toggle('active', !!color && !isPreset);
+    if (color) accentCustomInput.value = color;
+}
+
+function loadAccentSetting() {
+    const saved = localStorage.getItem(ACCENT_KEY);
+    applyAccent(saved);
+    syncAccentPicker(saved);
+}
+
+function setAccent(color, label) {
+    if (color) {
+        localStorage.setItem(ACCENT_KEY, color);
+    } else {
+        localStorage.removeItem(ACCENT_KEY);
+    }
+    applyAccent(color);
+    syncAccentPicker(color);
+    showToast(`${label || 'Accent'} applied.`);
+}
+
 function loadThemeSetting() {
     const saved = localStorage.getItem(THEME_KEY);
-    const theme = saved === 'light' ? 'light' : 'dark';
-    document.body.classList.toggle('theme-light', theme === 'light');
+    const theme = applyThemeClass(saved);
     themePickerOptions.forEach((b) => b.classList.toggle('active', b.dataset.theme === theme));
 }
 
 function setTheme(theme) {
     localStorage.setItem(THEME_KEY, theme);
-    document.body.classList.toggle('theme-light', theme === 'light');
-    themePickerOptions.forEach((b) => b.classList.toggle('active', b.dataset.theme === theme));
+    const t = applyThemeClass(theme);
+    themePickerOptions.forEach((b) => b.classList.toggle('active', b.dataset.theme === t));
+    loadAccentSetting();
 }
 
 /* ---------- Launch at startup ---------- */
@@ -952,6 +997,7 @@ function buildBackupPayload() {
     payload[LAYOUT_KEY] = localStorage.getItem(LAYOUT_KEY);
     payload[DATE_FIRST_KEY] = localStorage.getItem(DATE_FIRST_KEY);
     payload[THEME_KEY] = localStorage.getItem(THEME_KEY);
+    payload[ACCENT_KEY] = localStorage.getItem(ACCENT_KEY);
     payload[HOTKEY_KEY] = localStorage.getItem(HOTKEY_KEY);
     try {
         payload[USAGE_KEY] = JSON.parse(localStorage.getItem(USAGE_KEY));
@@ -1006,6 +1052,7 @@ async function importBackup() {
     apply(LAYOUT_KEY, data[LAYOUT_KEY]);
     apply(DATE_FIRST_KEY, data[DATE_FIRST_KEY]);
     apply(THEME_KEY, data[THEME_KEY]);
+    apply(ACCENT_KEY, data[ACCENT_KEY]);
     apply(HOTKEY_KEY, data[HOTKEY_KEY]);
     apply(USAGE_KEY, data[USAGE_KEY]);
     apply(SHORTCUTS_KEY, data[SHORTCUTS_KEY]);
@@ -1019,6 +1066,7 @@ async function importBackup() {
     loadLayoutSetting();
     loadDateFirstSetting();
     loadThemeSetting();
+    loadAccentSetting();
     loadConfirmDeleteSetting();
     loadCloseAfterCopySetting();
     loadAutoCheckUpdatesSetting();
@@ -1159,6 +1207,8 @@ window.addEventListener('storage', (e) => {
         loadAutoCheckUpdatesSetting();
     } else if (e.key === THEME_KEY) {
         loadThemeSetting();
+    } else if (e.key === ACCENT_KEY) {
+        loadAccentSetting();
     }
 });
 
@@ -1209,6 +1259,14 @@ themePickerOptions.forEach((b) => {
         setTheme(b.dataset.theme);
         showToast(`${b.textContent} theme applied.`);
     });
+});
+accentSwatches.forEach((b) => {
+    b.addEventListener('click', () => {
+        setAccent(b.dataset.accent, b.dataset.label);
+    });
+});
+accentCustomInput.addEventListener('input', () => {
+    setAccent(accentCustomInput.value, 'Custom accent');
 });
 startupToggle.addEventListener('click', async () => {
     const enabled = startupToggle.getAttribute('aria-checked') !== 'true';
@@ -1531,6 +1589,7 @@ loadCloseAfterCopySetting();
 loadAutoCheckUpdatesSetting();
 loadThemeSetting();
 loadStartupSetting();
+loadAccentSetting();
 loadHotkeySetting();
 refreshAboutInfo();
 syncHeight();

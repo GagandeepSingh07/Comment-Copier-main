@@ -5,6 +5,7 @@ const LAYOUT_KEY = 'comment-copier-layout-v1';
 const ORGANIZER_KEY = 'comment-copier-organizer-path-v1';
 const DATE_FIRST_KEY = 'comment-copier-date-first-v1';
 const THEME_KEY = 'comment-copier-theme-v1';
+const ACCENT_KEY = 'comment-copier-accent-v1';
 const HOTKEY_KEY = 'comment-copier-hotkey-v1';
 const CONFIRM_DELETE_KEY = 'comment-copier-confirm-delete-v1';
 const LAST_STUDENT_KEY = 'comment-copier-last-student-v1';

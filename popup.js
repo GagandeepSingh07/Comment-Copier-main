@@ -395,6 +395,15 @@ function loadLayout() {
     applyLayout();
 }
 
+function applyPopupAccent() {
+    const saved = localStorage.getItem(ACCENT_KEY);
+    if (saved) {
+        document.body.style.setProperty('--accent', saved);
+    } else {
+        document.body.style.removeProperty('--accent');
+    }
+}
+
 function getSavedPrompt() {
     const saved = localStorage.getItem(PROMPT_KEY);
     return saved === null ? defaultPrompt : saved;
@@ -1289,6 +1298,7 @@ renderSheetPreview();
 selectMark('Checked');
 renderRows();
 loadLayout();
+applyPopupAccent();
 updateCounts();
 pushQuickState();
 
@@ -1296,6 +1306,8 @@ pushQuickState();
 window.addEventListener('storage', (e) => {
     if (e.key === LAYOUT_KEY) {
         loadLayout();
+    } else if (e.key === ACCENT_KEY) {
+        applyPopupAccent();
     }
     load();
     renderRows();
