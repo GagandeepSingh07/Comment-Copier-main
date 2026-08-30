@@ -12,6 +12,16 @@ const I18N_NAMES = {
     ar: '\u0627\u0644\u0639\u0631\u0628\u064a\u0629',
 };
 
+// The same languages in English, used so the language dropdown is always
+// understandable no matter which language the UI is currently showing.
+const I18N_NAMES_EN = {
+    en: 'English',
+    es: 'Spanish',
+    fr: 'French',
+    de: 'German',
+    ar: 'Arabic',
+};
+
 const I18N = { en: {}, es: {}, fr: {}, de: {}, ar: {} };
 
 I18N.en = {

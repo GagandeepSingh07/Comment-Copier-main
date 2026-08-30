@@ -818,6 +818,24 @@ function getLanguage() {
     return getLang();
 }
 
+function buildLanguageOptions() {
+    if (!languageSelect) return;
+    const current = getLang();
+    languageSelect.innerHTML = '';
+    for (const lang of SUPPORTED_LANGS) {
+        const opt = document.createElement('option');
+        opt.value = lang;
+        const native = I18N_NAMES[lang];
+        let label = native;
+        if (native !== I18N_NAMES_EN[lang]) {
+            label = `${native} (${I18N_NAMES_EN[lang]})`;
+        }
+        opt.textContent = label;
+        languageSelect.appendChild(opt);
+    }
+    languageSelect.value = current;
+}
+
 function syncLanguagePicker() {
     if (languageSelect) languageSelect.value = getLanguage();
 }
@@ -2216,6 +2234,7 @@ loadHotkeySetting();
 refreshAboutInfo();
 syncRestoreModePicker();
 renderRollbackState();
+buildLanguageOptions();
 applyI18n();
 syncHeight();
 runAutoUpdateCheck();
