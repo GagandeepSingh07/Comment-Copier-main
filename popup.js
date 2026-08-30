@@ -487,8 +487,17 @@ function loadSheetInputs() {
             return false;
         });
     }
-    sheetId.value = saved && typeof saved.studentId === 'string' ? saved.studentId : defaultSheetData.studentId;
-    sheetName.value = saved && typeof saved.name === 'string' ? saved.name : defaultSheetData.name;
+    let id = saved && typeof saved.studentId === 'string' ? saved.studentId : '';
+    let name = saved && typeof saved.name === 'string' ? saved.name : '';
+    if (!id && !name) {
+        const last = lastStudentRemembered();
+        if (last) {
+            id = last.studentId || '';
+            name = last.name || '';
+        }
+    }
+    sheetId.value = id;
+    sheetName.value = name;
     const rawCount = saved && Array.isArray(saved.codes)
         ? saved.codes.reduce((n, row) => n + (Array.isArray(row) ? row.length : 1), 0)
         : 0;
@@ -596,7 +605,24 @@ function removeSheetEntry(index) {
 }
 
 function persistSheetData() {
-    localStorage.setItem(SHEET_KEY, JSON.stringify(sheetDataFromInputs()));
+    const data = sheetDataFromInputs();
+    localStorage.setItem(SHEET_KEY, JSON.stringify(data));
+    rememberLastStudent(data.studentId, data.name);
+}
+
+function rememberLastStudent(studentId, name) {
+    if (!studentId && !name) return;
+    try {
+        localStorage.setItem(LAST_STUDENT_KEY, JSON.stringify({ studentId, name }));
+    } catch (e) {}
+}
+
+function lastStudentRemembered() {
+    try {
+        const saved = JSON.parse(localStorage.getItem(LAST_STUDENT_KEY));
+        if (saved && (saved.studentId || saved.name)) return saved;
+    } catch (e) {}
+    return null;
 }
 
 function resetSheetData() {

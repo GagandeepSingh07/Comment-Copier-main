@@ -6,6 +6,8 @@ const ORGANIZER_KEY = 'comment-copier-organizer-path-v1';
 const DATE_FIRST_KEY = 'comment-copier-date-first-v1';
 const THEME_KEY = 'comment-copier-theme-v1';
 const HOTKEY_KEY = 'comment-copier-hotkey-v1';
+const CONFIRM_DELETE_KEY = 'comment-copier-confirm-delete-v1';
+const LAST_STUDENT_KEY = 'comment-copier-last-student-v1';
 
 // The three app-wide, in-window keyboard shortcuts (Comment Editor's
 // add-comment/search focus, and the global backup action) are user-

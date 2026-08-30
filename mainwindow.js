@@ -39,6 +39,7 @@ const layoutPickerOptions = document.querySelectorAll('#mw-layout-picker .layout
 const dateFirstToggle = document.getElementById('mw-date-first');
 const themePickerOptions = document.querySelectorAll('#mw-theme-picker .theme-option');
 const startupToggle = document.getElementById('mw-startup');
+const confirmDeleteToggle = document.getElementById('mw-confirm-delete');
 const hotkeyInput = document.getElementById('mw-hotkey-input');
 const hotkeyClear = document.getElementById('mw-hotkey-clear');
 const backupBtn = document.getElementById('mw-backup');
@@ -340,6 +341,9 @@ function setCurrent(key, index) {
 function deleteComment(key, index) {
     const list = state[key].comments;
     if (!list.length) return;
+    if (confirmDeleteEnabled() && !window.confirm('Delete this comment? You can still use Undo right after.')) {
+        return;
+    }
     const [removed] = list.splice(index, 1);
     if (state[key].index >= list.length) state[key].index = list.length ? list.length - 1 : 0;
     if (index < state[key].index && state[key].index > 0) state[key].index -= 1;
@@ -401,6 +405,9 @@ function clearSelection() {
 
 function bulkDelete() {
     if (!selectedIndices.size) return;
+    if (confirmDeleteEnabled() && !window.confirm(`Delete ${selectedIndices.size} selected comment${selectedIndices.size === 1 ? '' : 's'}?`)) {
+        return;
+    }
     const list = state[activeTab].comments;
     const indices = [...selectedIndices].sort((a, b) => b - a);
     const removed = indices.map((i) => ({ index: i, text: list[i] }));
@@ -749,6 +756,19 @@ function loadDateFirstSetting() {
     dateFirstToggle.setAttribute('aria-checked', enabled ? 'true' : 'false');
 }
 
+/* ---------- Confirm before delete ---------- */
+
+function loadConfirmDeleteSetting() {
+    const saved = localStorage.getItem(CONFIRM_DELETE_KEY);
+    const enabled = saved === null ? true : saved !== '0';
+    confirmDeleteToggle.setAttribute('aria-checked', enabled ? 'true' : 'false');
+}
+
+function confirmDeleteEnabled() {
+    const saved = localStorage.getItem(CONFIRM_DELETE_KEY);
+    return saved === null ? true : saved !== '0';
+}
+
 function setView(name) {
     navItems.forEach((b) => b.classList.toggle('active', b.dataset.view === name));
     panels.forEach((p) => p.classList.toggle('active', p.dataset.viewPanel === name));
@@ -877,6 +897,7 @@ function buildBackupPayload() {
         payload[USAGE_KEY] = JSON.parse(localStorage.getItem(USAGE_KEY));
     } catch (e) {}
     payload[SHORTCUTS_KEY] = localStorage.getItem(SHORTCUTS_KEY);
+    payload[CONFIRM_DELETE_KEY] = localStorage.getItem(CONFIRM_DELETE_KEY);
     return payload;
 }
 
@@ -926,6 +947,7 @@ async function importBackup() {
     apply(HOTKEY_KEY, data[HOTKEY_KEY]);
     apply(USAGE_KEY, data[USAGE_KEY]);
     apply(SHORTCUTS_KEY, data[SHORTCUTS_KEY]);
+    apply(CONFIRM_DELETE_KEY, data[CONFIRM_DELETE_KEY]);
     load();
     loadPrompt();
     renderList();
@@ -933,6 +955,7 @@ async function importBackup() {
     loadLayoutSetting();
     loadDateFirstSetting();
     loadThemeSetting();
+    loadConfirmDeleteSetting();
     loadHotkeySetting();
     renderShortcutRows();
     showToast('Data restored.');
@@ -1057,6 +1080,8 @@ window.addEventListener('storage', (e) => {
         loadLayoutSetting();
     } else if (e.key === DATE_FIRST_KEY) {
         loadDateFirstSetting();
+    } else if (e.key === CONFIRM_DELETE_KEY) {
+        loadConfirmDeleteSetting();
     } else if (e.key === THEME_KEY) {
         loadThemeSetting();
     }
@@ -1122,6 +1147,12 @@ startupToggle.addEventListener('click', async () => {
             showToast('Couldn\u2019t update startup setting.');
         }
     }
+});
+confirmDeleteToggle.addEventListener('click', () => {
+    const enabled = confirmDeleteToggle.getAttribute('aria-checked') !== 'true';
+    localStorage.setItem(CONFIRM_DELETE_KEY, enabled ? '1' : '0');
+    confirmDeleteToggle.setAttribute('aria-checked', enabled ? 'true' : 'false');
+    showToast(enabled ? 'Confirmations on before deleting.' : 'Confirmations off \u2014 delete instantly.');
 });
 hotkeyInput.addEventListener('click', (e) => {
     e.stopPropagation();
@@ -1396,6 +1427,7 @@ updateCounts();
 setDirty(false);
 loadLayoutSetting();
 loadDateFirstSetting();
+loadConfirmDeleteSetting();
 loadThemeSetting();
 loadStartupSetting();
 loadHotkeySetting();
