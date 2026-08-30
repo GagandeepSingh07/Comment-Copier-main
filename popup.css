@@ -892,6 +892,36 @@ body.layout-stack .tab-panel + .tab-panel {
 
 .btn-organize:disabled { opacity: 0.45; cursor: default; }
 
+.organizer-buttons {
+    display: flex;
+    gap: 6px;
+    margin-top: 8px;
+}
+
+.organizer-buttons .btn-organize { margin-top: 0; flex: 1; }
+
+.btn-preview {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    flex: 0 0 auto;
+    background: #161b22;
+    color: var(--text);
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 7px 10px;
+    cursor: pointer;
+    transition: border-color 0.15s ease, opacity 0.15s ease, color 0.15s ease;
+}
+
+.btn-preview:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+
+.btn-preview:disabled { opacity: 0.45; cursor: default; }
+
 .organizer-summary {
     margin-top: 6px;
     color: var(--muted);
@@ -931,6 +961,16 @@ body.layout-stack .tab-panel + .tab-panel {
     color: var(--muted);
     font-size: 10px;
     margin-top: 5px;
+}
+
+.organizer-preview-folder {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    color: var(--accent);
+    font-size: 10px;
+    font-weight: 700;
+    margin-top: 4px;
 }
 
 /* ---------- Footer ---------- */

@@ -17,6 +17,11 @@ const REDUCE_MOTION_KEY = 'comment-copier-reduce-motion-v1';
 const TOOLTIP_DENSITY_KEY = 'comment-copier-tooltip-density-v1';
 const UPDATE_CHANNEL_KEY = 'comment-copier-update-channel-v1';
 const LANG_KEY = 'comment-copier-lang-v1';
+const ORG_DEST_KEY = 'comment-copier-org-dest-v1';
+const ORG_TARGET_KEY = 'comment-copier-org-target-v1';
+const ORG_CONFLICT_KEY = 'comment-copier-org-conflict-v1';
+const ORG_SKIP_EXT_KEY = 'comment-copier-org-skip-ext-v1';
+const ORG_RECURSIVE_KEY = 'comment-copier-org-recursive-v1';
 
 // The three app-wide, in-window keyboard shortcuts (Comment Editor's
 // add-comment/search focus, and the global backup action) are user-
@@ -250,4 +255,40 @@ function substitutePlaceholders(text, values) {
         const resolved = resolvePlaceholder(token, values);
         return resolved === null ? whole : resolved;
     });
+}
+
+// ---- File Organizer settings (shared between the tray popup and the main window) ----
+
+const ORG_DEFAULTS = {
+    dest: 'same',
+    target: '',
+    conflict: 'rename',
+    skipExt: 'bat, ps1',
+    recursive: false,
+};
+
+function getOrgSetting(name) {
+    const key = {
+        dest: ORG_DEST_KEY,
+        target: ORG_TARGET_KEY,
+        conflict: ORG_CONFLICT_KEY,
+        skipExt: ORG_SKIP_EXT_KEY,
+        recursive: ORG_RECURSIVE_KEY,
+    }[name];
+    if (!key) return undefined;
+    const raw = localStorage.getItem(key);
+    if (raw === null) return ORG_DEFAULTS[name];
+    if (name === 'recursive') return raw === '1';
+    if (name === 'target') return raw;
+    return raw || ORG_DEFAULTS[name];
+}
+
+function organizerOptions() {
+    return {
+        destMode: getOrgSetting('dest'),
+        targetFolder: getOrgSetting('target') || '',
+        conflict: getOrgSetting('conflict'),
+        skipExt: getOrgSetting('skipExt'),
+        recursive: getOrgSetting('recursive') === true,
+    };
 }

@@ -49,6 +49,7 @@ const organizerPathInput = document.getElementById('organizer-path');
 const organizerBrowseBtn = document.getElementById('organizer-browse-btn');
 const organizerClearBtn = document.getElementById('organizer-clear-btn');
 const organizerRunBtn = document.getElementById('organizer-run-btn');
+const organizerPreviewBtn = document.getElementById('organizer-preview-btn');
 const organizerSummary = document.getElementById('organizer-summary');
 const organizerList = document.getElementById('organizer-list');
 const mainTabs = document.querySelectorAll('.tab');
@@ -999,9 +1000,48 @@ function loadOrganizerPath() {
     if (saved) {
         organizerFolder = saved;
         organizerPathInput.value = saved;
-        organizerRunBtn.disabled = false;
+        setOrganizerEnabled(true);
         organizerFolderRow.classList.add('has-folder');
     }
+}
+
+function setOrganizerEnabled(enabled) {
+    organizerRunBtn.disabled = !enabled;
+    organizerPreviewBtn.disabled = !enabled;
+}
+
+function basename(p) {
+    return String(p || '').replace(/[\\/]+$/, '').split(/[\\/]/).pop() || p;
+}
+
+function renderOrganizerPreview(result) {
+    organizerSummary.textContent = t('org.summary', { moved: result.moved, skipped: result.skipped.length });
+    organizerList.innerHTML = '';
+    if (!result.preview || !result.preview.length) {
+        const empty = document.createElement('div');
+        empty.className = 'organizer-empty';
+        empty.textContent = t('org.previewNone');
+        organizerList.appendChild(empty);
+        return;
+    }
+    const byDest = {};
+    result.preview.forEach((item) => {
+        (byDest[item.to] = byDest[item.to] || []).push(item);
+    });
+    Object.keys(byDest).forEach((destPath) => {
+        const head = document.createElement('div');
+        head.className = 'organizer-preview-folder';
+        head.textContent = t('org.previewDest', { dir: basename(destPath) });
+        organizerList.appendChild(head);
+        byDest[destPath].forEach((item) => {
+            const el = document.createElement('div');
+            el.className = 'organizer-item';
+            el.innerHTML =
+                '<div class="organizer-item-file">' + escapeHtml(item.file) + '</div>' +
+                '<div class="organizer-item-reason">' + escapeHtml(item.from) + '</div>';
+            organizerList.appendChild(el);
+        });
+    });
 }
 
 function renderOrganizerResult(result) {
@@ -1046,7 +1086,7 @@ async function pickOrganizerFolder() {
     organizerFolder = picked;
     organizerPathInput.value = picked;
     localStorage.setItem(ORGANIZER_KEY, picked);
-    organizerRunBtn.disabled = false;
+    setOrganizerEnabled(true);
     organizerFolderRow.classList.add('has-folder');
     organizerSummary.textContent = '';
     organizerList.innerHTML = '';
@@ -1057,31 +1097,39 @@ function clearOrganizerFolder() {
     organizerFolder = '';
     organizerPathInput.value = '';
     localStorage.removeItem(ORGANIZER_KEY);
-    organizerRunBtn.disabled = true;
+    setOrganizerEnabled(false);
     organizerFolderRow.classList.remove('has-folder');
     organizerSummary.textContent = '';
     organizerList.innerHTML = '';
     syncHeight();
 }
 
-async function runOrganizer() {
+async function runOrganizer(dryRun) {
     if (organizerBusy || !organizerFolder) return;
     if (!window.popupAPI || typeof window.popupAPI.organizeFolder !== 'function') {
         showToast(t('org.organizerUnavailable'));
         return;
     }
     organizerBusy = true;
-    organizerRunBtn.disabled = true;
+    setOrganizerEnabled(false);
     organizerRunBtn.querySelector('span').textContent = t('org.running');
+    const options = organizerOptions();
+    if (dryRun) options.dryRun = true;
     let result = null;
     try {
-        result = await window.popupAPI.organizeFolder(organizerFolder);
+        result = await window.popupAPI.organizeFolder(organizerFolder, options);
     } catch (e) {
         result = { ok: false, error: t('org.failed') + ' ' + e.message };
     }
     organizerBusy = false;
-    organizerRunBtn.disabled = false;
+    setOrganizerEnabled(!!organizerFolder);
     organizerRunBtn.querySelector('span').textContent = t('org.run');
+    if (dryRun) {
+        if (result && result.ok) renderOrganizerPreview(result);
+        else renderOrganizerResult(result);
+        syncHeight();
+        return;
+    }
     renderOrganizerResult(result);
     syncHeight();
     if (result && result.ok) {
@@ -1089,7 +1137,7 @@ async function runOrganizer() {
         organizerFolder = '';
         organizerPathInput.value = '';
         localStorage.removeItem(ORGANIZER_KEY);
-        organizerRunBtn.disabled = true;
+        setOrganizerEnabled(false);
     } else {
         showToast(result && result.error ? result.error : t('org.failed'));
     }
@@ -1316,8 +1364,26 @@ document.addEventListener('click', (e) => {
 });
 organizerBrowseBtn.addEventListener('click', pickOrganizerFolder);
 organizerFolderRow.addEventListener('click', pickOrganizerFolder);
-organizerRunBtn.addEventListener('click', runOrganizer);
+organizerRunBtn.addEventListener('click', () => runOrganizer(false));
+organizerPreviewBtn.addEventListener('click', () => runOrganizer(true));
 organizerClearBtn.addEventListener('click', clearOrganizerFolder);
+
+function setOrganizerFolderFromShell(folder) {
+    if (!folder) return;
+    localStorage.setItem(ORGANIZER_KEY, folder);
+    organizerFolder = folder;
+    organizerPathInput.value = folder;
+    setOrganizerEnabled(true);
+    organizerFolderRow.classList.add('has-folder');
+    organizerList.innerHTML = '';
+    organizerSummary.textContent = '';
+    organizerWrap.classList.add('open');
+    organizerBtn.setAttribute('aria-expanded', 'true');
+}
+
+if (window.popupAPI && typeof window.popupAPI.onSetOrganizerFolder === 'function') {
+    window.popupAPI.onSetOrganizerFolder(setOrganizerFolderFromShell);
+}
 
 function applyI18n() {
     i18nApply(document);
@@ -1327,6 +1393,9 @@ function applyI18n() {
     selectMark(selectedMark);
     if (organizerRunBtn.querySelector('span')) {
         organizerRunBtn.querySelector('span').textContent = organizerBusy ? t('org.running') : t('org.run');
+    }
+    if (organizerPreviewBtn.querySelector('span')) {
+        organizerPreviewBtn.querySelector('span').textContent = t('org.preview');
     }
 }
 

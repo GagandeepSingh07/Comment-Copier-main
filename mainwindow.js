@@ -72,6 +72,14 @@ const backupBtn = document.getElementById('mw-backup');
 const restoreBtn2 = document.getElementById('mw-restore');
 const restoreModeOptions = document.querySelectorAll('#mw-restore-mode .restore-mode-option');
 const rollbackBtn = document.getElementById('mw-rollback');
+const orgDestOptions = document.querySelectorAll('#mw-org-dest .layout-picker-option');
+const orgTargetRow = document.getElementById('mw-org-target-row');
+const orgTargetInput = document.getElementById('mw-org-target');
+const orgTargetBrowse = document.getElementById('mw-org-target-browse');
+const orgConflictOptions = document.querySelectorAll('#mw-org-conflict .layout-picker-option');
+const orgSkipExtInput = document.getElementById('mw-org-skip-ext');
+const orgRecursiveToggle = document.getElementById('mw-org-recursive');
+const orgShellToggle = document.getElementById('mw-org-shell');
 
 let activeTab = 'accept';
 let dirty = false;
@@ -976,6 +984,7 @@ function setView(name) {
     navItems.forEach((b) => b.classList.toggle('active', b.dataset.view === name));
     panels.forEach((p) => p.classList.toggle('active', p.dataset.viewPanel === name));
     if (name === 'about') refreshAboutInfo();
+    if (name === 'settings') loadOrgSettingsUI();
 }
 
 /* ---------- Portable mode ---------- */
@@ -1025,6 +1034,94 @@ portableToggle.addEventListener('click', async () => {
         } catch (e) {
             showToast(t('portable.failDisable'));
         }
+    }
+});
+
+/* ---------- File Organizer settings ---------- */
+
+function syncOrgDestPicker() {
+    orgDestOptions.forEach((b) => b.classList.toggle('active', b.dataset.dest === getOrgSetting('dest')));
+    if (orgTargetRow) orgTargetRow.classList.toggle('hidden', getOrgSetting('dest') !== 'custom');
+}
+
+function syncOrgConflictPicker() {
+    orgConflictOptions.forEach((b) => b.classList.toggle('active', b.dataset.conflict === getOrgSetting('conflict')));
+}
+
+async function loadOrgSettingsUI() {
+    syncOrgDestPicker();
+    syncOrgConflictPicker();
+    if (orgTargetInput) orgTargetInput.value = getOrgSetting('target') || '';
+    if (orgSkipExtInput) orgSkipExtInput.value = getOrgSetting('skipExt') || '';
+    if (orgRecursiveToggle) orgRecursiveToggle.setAttribute('aria-checked', getOrgSetting('recursive') ? 'true' : 'false');
+    if (orgShellToggle && window.mainWindowAPI && typeof window.mainWindowAPI.getShellOrganizer === 'function') {
+        try {
+            const res = await window.mainWindowAPI.getShellOrganizer();
+            orgShellToggle.setAttribute('aria-checked', res && res.enabled ? 'true' : 'false');
+        } catch (e) { /* leave the toggle as-is */ }
+    }
+}
+
+orgDestOptions.forEach((b) => {
+    b.addEventListener('click', () => {
+        localStorage.setItem(ORG_DEST_KEY, b.dataset.dest);
+        syncOrgDestPicker();
+    });
+});
+
+orgTargetBrowse.addEventListener('click', async () => {
+    if (!window.mainWindowAPI || typeof window.mainWindowAPI.choosePortableDir !== 'function') {
+        showToast(t('org.failPick'));
+        return;
+    }
+    try {
+        const chosen = await window.mainWindowAPI.choosePortableDir(t('org.pickTarget'));
+        if (!chosen) return;
+        orgTargetInput.value = chosen;
+        orgTargetInput.title = chosen;
+        localStorage.setItem(ORG_TARGET_KEY, chosen);
+        showToast(t('org.targetSet'));
+    } catch (e) {
+        showToast(t('org.failPick'));
+    }
+});
+
+orgConflictOptions.forEach((b) => {
+    b.addEventListener('click', () => {
+        localStorage.setItem(ORG_CONFLICT_KEY, b.dataset.conflict);
+        syncOrgConflictPicker();
+    });
+});
+
+orgSkipExtInput.addEventListener('change', () => {
+    const val = orgSkipExtInput.value.split(',').map((s) => s.trim()).filter(Boolean).join(', ');
+    orgSkipExtInput.value = val;
+    localStorage.setItem(ORG_SKIP_EXT_KEY, val);
+});
+
+orgRecursiveToggle.addEventListener('click', () => {
+    const enabled = orgRecursiveToggle.getAttribute('aria-checked') !== 'true';
+    localStorage.setItem(ORG_RECURSIVE_KEY, enabled ? '1' : '0');
+    orgRecursiveToggle.setAttribute('aria-checked', enabled ? 'true' : 'false');
+});
+
+orgShellToggle.addEventListener('click', async () => {
+    const enabled = orgShellToggle.getAttribute('aria-checked') !== 'true';
+    orgShellToggle.setAttribute('aria-checked', enabled ? 'true' : 'false');
+    if (!window.mainWindowAPI || typeof window.mainWindowAPI.setShellOrganizer !== 'function') {
+        orgShellToggle.setAttribute('aria-checked', enabled ? 'false' : 'true');
+        showToast(t('org.shellFail'));
+        return;
+    }
+    orgShellToggle.disabled = true;
+    try {
+        const res = await window.mainWindowAPI.setShellOrganizer(enabled);
+        if (!res || !res.ok) throw new Error('shell set failed');
+    } catch (e) {
+        orgShellToggle.setAttribute('aria-checked', enabled ? 'false' : 'true');
+        showToast(t('org.shellFail'));
+    } finally {
+        orgShellToggle.disabled = false;
     }
 });
 
@@ -2284,6 +2381,7 @@ loadStartInTraySetting();
 loadReduceMotionSetting();
 loadAccentSetting();
 loadHotkeySetting();
+loadOrgSettingsUI();
 refreshAboutInfo();
 syncRestoreModePicker();
 renderRollbackState();

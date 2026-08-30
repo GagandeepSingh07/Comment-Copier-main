@@ -79,8 +79,9 @@
         </section>
 
         <section class="view" data-view-panel="settings">
-            
-            <div class="settings-block">
+            <div class="settings-group">
+                <div class="settings-block-title" data-i18n="settings.catPopup">Popup &amp; displaying</div>
+                <div class="settings-block">
                 <div class="setting-row">
                     <div class="setting-info">
                         <div class="setting-title" data-i18n="settings.popupLayout">Popup layout</div>
@@ -117,6 +118,11 @@
                         <button type="button" class="layout-picker-option" data-density="detailed" data-i18n="tooltip.detailed">Detailed</button>
                     </div>
                 </div>
+                </div>
+            </div>
+            <div class="settings-group">
+                <div class="settings-block-title" data-i18n="settings.catAppearance">Appearance</div>
+                <div class="settings-block">
                 <div class="setting-row">
                     <div class="setting-info">
                         <div class="setting-title" data-i18n="settings.accent">Accent color</div>
@@ -174,6 +180,11 @@
                         <button type="button" class="theme-option" data-theme="sepia" data-i18n="theme.sepia">Sepia</button>
                     </div>
                 </div>
+                </div>
+            </div>
+            <div class="settings-group">
+                <div class="settings-block-title" data-i18n="settings.catCopy">Copying &amp; editing</div>
+                <div class="settings-block">
                 <div class="setting-row">
                     <div class="setting-info">
                         <div class="setting-title" data-i18n="settings.reduceMotion">Reduce motion</div>
@@ -189,33 +200,6 @@
                         <div class="setting-desc" data-i18n="settings.dateFirstDesc">When copying a comment, put today's date on the clipboard first, then the comment.</div>
                     </div>
                     <button type="button" class="toggle" id="mw-date-first" role="switch" aria-checked="true" title="Toggle date-first copying" data-i18n-title="settings.titles.dateFirstTitle">
-                        <span class="toggle-thumb"></span>
-                    </button>
-                </div>
-                <div class="setting-row">
-                    <div class="setting-info">
-                        <div class="setting-title" data-i18n="settings.startup">Launch at startup</div>
-                        <div class="setting-desc" data-i18n="settings.startupDesc">Start Comment Copier automatically when you sign in to Windows.</div>
-                    </div>
-                    <button type="button" class="toggle" id="mw-startup" role="switch" aria-checked="false" title="Toggle start-at-login" data-i18n-title="settings.titles.startLoginTitle">
-                        <span class="toggle-thumb"></span>
-                    </button>
-                </div>
-                <div class="setting-row">
-                    <div class="setting-info">
-                        <div class="setting-title" data-i18n="settings.startInTray">Start minimized to tray</div>
-                        <div class="setting-desc" data-i18n="settings.startInTrayDesc">Start quietly in the system tray. Turn off to open the editor when Comment Copier starts.</div>
-                    </div>
-                    <button type="button" class="toggle" id="mw-start-in-tray" role="switch" aria-checked="true" title="Toggle start minimized to tray" data-i18n-title="settings.titles.startTrayTitle">
-                        <span class="toggle-thumb"></span>
-                    </button>
-                </div>
-                <div class="setting-row">
-                    <div class="setting-info">
-                        <div class="setting-title" data-i18n="portable.title">Portable mode</div>
-                        <div class="setting-desc" data-i18n="portable.desc">Store your data beside the app (e.g. on a USB drive) instead of the temporary folder.</div>
-                    </div>
-                    <button type="button" class="toggle" id="mw-portable-mode" role="switch" aria-checked="false" title="Toggle portable mode" data-i18n-title="settings.titles.portableToggleTitle">
                         <span class="toggle-thumb"></span>
                     </button>
                 </div>
@@ -237,6 +221,29 @@
                         <span class="toggle-thumb"></span>
                     </button>
                 </div>
+                </div>
+            </div>
+            <div class="settings-group">
+                <div class="settings-block-title" data-i18n="settings.catStartup">Startup &amp; updates</div>
+                <div class="settings-block">
+                <div class="setting-row">
+                    <div class="setting-info">
+                        <div class="setting-title" data-i18n="settings.startup">Launch at startup</div>
+                        <div class="setting-desc" data-i18n="settings.startupDesc">Start Comment Copier automatically when you sign in to Windows.</div>
+                    </div>
+                    <button type="button" class="toggle" id="mw-startup" role="switch" aria-checked="false" title="Toggle start-at-login" data-i18n-title="settings.titles.startLoginTitle">
+                        <span class="toggle-thumb"></span>
+                    </button>
+                </div>
+                <div class="setting-row">
+                    <div class="setting-info">
+                        <div class="setting-title" data-i18n="settings.startInTray">Start minimized to tray</div>
+                        <div class="setting-desc" data-i18n="settings.startInTrayDesc">Start quietly in the system tray. Turn off to open the editor when Comment Copier starts.</div>
+                    </div>
+                    <button type="button" class="toggle" id="mw-start-in-tray" role="switch" aria-checked="true" title="Toggle start minimized to tray" data-i18n-title="settings.titles.startTrayTitle">
+                        <span class="toggle-thumb"></span>
+                    </button>
+                </div>
                 <div class="setting-row">
                     <div class="setting-info">
                         <div class="setting-title" data-i18n="settings.autoUpdate">Check for updates on launch</div>
@@ -255,6 +262,20 @@
                         <button type="button" class="layout-picker-option" data-channel="stable" data-i18n="channel.stable">Stable</button>
                         <button type="button" class="layout-picker-option" data-channel="beta" data-i18n="channel.beta">Beta</button>
                     </div>
+                </div>
+                </div>
+            </div>
+            <div class="settings-group">
+                <div class="settings-block-title" data-i18n="settings.catData">Data &amp; storage</div>
+                <div class="settings-block">
+                <div class="setting-row">
+                    <div class="setting-info">
+                        <div class="setting-title" data-i18n="portable.title">Portable mode</div>
+                        <div class="setting-desc" data-i18n="portable.desc">Store your data beside the app (e.g. on a USB drive) instead of the temporary folder.</div>
+                    </div>
+                    <button type="button" class="toggle" id="mw-portable-mode" role="switch" aria-checked="false" title="Toggle portable mode" data-i18n-title="settings.titles.portableToggleTitle">
+                        <span class="toggle-thumb"></span>
+                    </button>
                 </div>
                 <div class="setting-row">
                     <div class="setting-info">
@@ -283,6 +304,68 @@
                         <div class="setting-desc" data-i18n="settings.resetDesc">Clear all saved comment lists, prompt, and student details back to defaults.</div>
                     </div>
                     <button type="button" class="btn-reset" id="mw-reset" data-i18n="btn.resetApp">Reset app data</button>
+                </div>
+                </div>
+            </div>
+            <div class="settings-group">
+                <div class="settings-block-title" data-i18n="settings.catOrganizer">File Organizer</div>
+                <div class="settings-block">
+                <div class="setting-row">
+                    <div class="setting-info">
+                        <div class="setting-title" data-i18n="settings.orgDest">Destination</div>
+                        <div class="setting-desc" data-i18n="settings.orgDestDesc">Where organized files are moved to.</div>
+                    </div>
+                    <div class="layout-picker" id="mw-org-dest" role="group" aria-label="Organizer destination" data-i18n-aria="settings.orgDest">
+                        <button type="button" class="layout-picker-option" data-dest="same" data-i18n="org.destSame">Same folder</button>
+                        <button type="button" class="layout-picker-option" data-dest="custom" data-i18n="org.destCustom">A different folder</button>
+                    </div>
+                </div>
+                <div class="setting-row org-target-row hidden" id="mw-org-target-row">
+                    <div class="setting-info">
+                        <div class="setting-title" data-i18n="settings.orgTarget">Target folder</div>
+                        <div class="setting-desc org-target-desc" data-i18n="settings.orgTargetDesc">Files are organized into subfolders inside this folder.</div>
+                    </div>
+                    <div class="org-target-control">
+                        <input type="text" class="org-target-input" id="mw-org-target" data-i18n-placeholder="org.noFolder" placeholder="No folder selected" readonly>
+                        <button type="button" class="btn-backup" id="mw-org-target-browse" data-i18n="org.browse">Browse</button>
+                    </div>
+                </div>
+                <div class="setting-row">
+                    <div class="setting-info">
+                        <div class="setting-title" data-i18n="settings.orgConflict">When a file already exists</div>
+                        <div class="setting-desc" data-i18n="settings.orgConflictDesc">How to handle a name clash in the destination folder.</div>
+                    </div>
+                    <div class="layout-picker" id="mw-org-conflict" role="group" aria-label="Organizer conflict" data-i18n-aria="settings.orgConflict">
+                        <button type="button" class="layout-picker-option" data-conflict="rename" data-i18n="org.conflictRename">Rename</button>
+                        <button type="button" class="layout-picker-option" data-conflict="skip" data-i18n="org.conflictSkip">Skip</button>
+                        <button type="button" class="layout-picker-option" data-conflict="overwrite" data-i18n="org.conflictOverwrite">Overwrite</button>
+                    </div>
+                </div>
+                <div class="setting-row">
+                    <div class="setting-info">
+                        <div class="setting-title" data-i18n="settings.orgSkipExt">Skip file types</div>
+                        <div class="setting-desc" data-i18n="settings.orgSkipExtDesc">Comma-separated extensions left untouched, e.g. bat, ps1.</div>
+                    </div>
+                    <input type="text" class="org-skip-input" id="mw-org-skip-ext" spellcheck="false" autocomplete="off" value="bat, ps1">
+                </div>
+                <div class="setting-row">
+                    <div class="setting-info">
+                        <div class="setting-title" data-i18n="settings.orgRecursive">Include subfolders</div>
+                        <div class="setting-desc" data-i18n="settings.orgRecursiveDesc">Process files inside subfolders too, not just the top level.</div>
+                    </div>
+                    <button type="button" class="toggle" id="mw-org-recursive" role="switch" aria-checked="false" title="Toggle subfolders" data-i18n-title="settings.titles.orgRecursiveTitle">
+                        <span class="toggle-thumb"></span>
+                    </button>
+                </div>
+                <div class="setting-row">
+                    <div class="setting-info">
+                        <div class="setting-title" data-i18n="settings.orgShell">Right-click menu</div>
+                        <div class="setting-desc" data-i18n="settings.orgShellDesc">Add an "Open in File Organizer" entry to the right-click menu of folders in File Explorer.</div>
+                    </div>
+                    <button type="button" class="toggle" id="mw-org-shell" role="switch" aria-checked="false" title="Toggle context menu" data-i18n-title="settings.titles.orgShellTitle">
+                        <span class="toggle-thumb"></span>
+                    </button>
+                </div>
                 </div>
             </div>
         </section>

@@ -621,6 +621,47 @@ body {
 .setting-title { font-weight: 600; font-size: 14px; margin-bottom: 3px; }
 .setting-desc { color: var(--muted); font-size: 12.5px; }
 
+.settings-group + .settings-group { margin-top: 22px; }
+
+.settings-block-title {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0 0 8px 2px;
+}
+
+.org-target-control {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.org-target-input,
+.org-skip-input {
+    padding: 8px 10px;
+    background: #0d1117;
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 12.5px;
+    font-family: inherit;
+    outline: none;
+}
+
+.org-target-input { width: 240px; }
+.org-skip-input { width: 220px; }
+
+.org-target-input:focus,
+.org-skip-input:focus { border-color: var(--accent); }
+
+.org-target-desc { max-width: 380px; }
+
+body.theme-light .org-target-input,
+body.theme-light .org-skip-input { background: #f6f8fa; }
+
 .layout-picker {
     flex: 0 0 auto;
     display: flex;
