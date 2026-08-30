@@ -140,6 +140,15 @@
                 </div>
                 <div class="setting-row">
                     <div class="setting-info">
+                        <div class="setting-title">Check for updates on launch</div>
+                        <div class="setting-desc">Automatically check for a new version when the app starts, and surface the latest release notes here.</div>
+                    </div>
+                    <button type="button" class="toggle" id="mw-auto-check-updates" role="switch" aria-checked="true" title="Toggle auto-update-check">
+                        <span class="toggle-thumb"></span>
+                    </button>
+                </div>
+                <div class="setting-row">
+                    <div class="setting-info">
                         <div class="setting-title">Backup &amp; restore</div>
                         <div class="setting-desc">Export all comment lists, the prompt, student details, and settings to a JSON file, or load them back in.</div>
                     </div>
@@ -196,6 +205,14 @@
                     <span class="version-pill" id="mw-info-version"></span>
                 </div>
                 <div class="about-hero-desc" id="mw-info-desc"></div>
+            </div>
+
+            <div class="about-highlight" id="mw-latest-update" hidden>
+                <div class="about-highlight-head">
+                    <span class="about-highlight-badge">Latest update</span>
+                    <span class="version-pill" id="mw-latest-update-version"></span>
+                </div>
+                <div class="info-changelog" id="mw-latest-update-notes"></div>
             </div>
 
             <div class="about-cards">

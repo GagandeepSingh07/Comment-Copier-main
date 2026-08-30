@@ -41,6 +41,7 @@ const themePickerOptions = document.querySelectorAll('#mw-theme-picker .theme-op
 const startupToggle = document.getElementById('mw-startup');
 const confirmDeleteToggle = document.getElementById('mw-confirm-delete');
 const closeAfterCopyToggle = document.getElementById('mw-close-after-copy');
+const autoCheckUpdatesToggle = document.getElementById('mw-auto-check-updates');
 const hotkeyInput = document.getElementById('mw-hotkey-input');
 const hotkeyClear = document.getElementById('mw-hotkey-clear');
 const backupBtn = document.getElementById('mw-backup');
@@ -704,28 +705,38 @@ function renderInfoMeta(info) {
     ).join('');
 }
 
+function changelogEntryHtml(entry) {
+    let body = '';
+    if (Array.isArray(entry.categories) && entry.categories.length) {
+        body = entry.categories.map((cat) =>
+            '<li class="info-changelog-category">' + escapeHtml(cat.heading) + '</li>' +
+            (Array.isArray(cat.notes) ? cat.notes.map((n) => '<li>' + escapeHtml(n) + '</li>').join('') : '')
+        ).join('');
+    } else if (Array.isArray(entry.notes) && entry.notes.length) {
+        body = entry.notes.map((n) => '<li>' + escapeHtml(n) + '</li>').join('');
+    }
+    return '<div class="info-changelog-entry">' +
+        '<div class="info-changelog-version">' + escapeHtml(entry.version) + '</div>' +
+        (body ? '<ul class="info-changelog-notes">' + body + '</ul>' : '') +
+    '</div>';
+}
+
 function renderChangelog(changelog) {
     const wrap = document.getElementById('mw-changelog-card');
     if (!Array.isArray(changelog) || !changelog.length) {
         if (wrap) wrap.style.display = 'none';
+        const latest = document.getElementById('mw-latest-update');
+        if (latest) latest.hidden = true;
         return;
     }
     if (wrap) wrap.style.display = '';
-    infoChangelog.innerHTML = changelog.slice(0, 3).map((entry) => {
-        let body = '';
-        if (Array.isArray(entry.categories) && entry.categories.length) {
-            body = entry.categories.map((cat) =>
-                '<li class="info-changelog-category">' + escapeHtml(cat.heading) + '</li>' +
-                (Array.isArray(cat.notes) ? cat.notes.map((n) => '<li>' + escapeHtml(n) + '</li>').join('') : '')
-            ).join('');
-        } else if (Array.isArray(entry.notes) && entry.notes.length) {
-            body = entry.notes.map((n) => '<li>' + escapeHtml(n) + '</li>').join('');
-        }
-        return '<div class="info-changelog-entry">' +
-            '<div class="info-changelog-version">' + escapeHtml(entry.version) + '</div>' +
-            (body ? '<ul class="info-changelog-notes">' + body + '</ul>' : '') +
-        '</div>';
-    }).join('');
+    const latest = document.getElementById('mw-latest-update');
+    const latestVersion = document.getElementById('mw-latest-update-version');
+    const latestNotes = document.getElementById('mw-latest-update-notes');
+    if (latest) latest.hidden = false;
+    if (latestVersion) latestVersion.textContent = changelog[0].version || '';
+    if (latestNotes) latestNotes.innerHTML = changelogEntryHtml(changelog[0]);
+    infoChangelog.innerHTML = changelog.slice(1, 5).map(changelogEntryHtml).join('');
 }
 
 let resetArmed = false;
@@ -776,6 +787,26 @@ function loadCloseAfterCopySetting() {
     const saved = localStorage.getItem(CLOSE_AFTER_COPY_KEY);
     const enabled = saved === '1';
     closeAfterCopyToggle.setAttribute('aria-checked', enabled ? 'true' : 'false');
+}
+
+/* ---------- Auto-check for updates on launch ---------- */
+
+function loadAutoCheckUpdatesSetting() {
+    const saved = localStorage.getItem(AUTO_CHECK_UPDATES_KEY);
+    const enabled = saved === null ? true : saved !== '0';
+    autoCheckUpdatesToggle.setAttribute('aria-checked', enabled ? 'true' : 'false');
+}
+
+function autoCheckUpdatesEnabled() {
+    const saved = localStorage.getItem(AUTO_CHECK_UPDATES_KEY);
+    return saved === null ? true : saved !== '0';
+}
+
+function runAutoUpdateCheck() {
+    if (!autoCheckUpdatesEnabled()) return;
+    // Wait for the window to settle, then quietly check. Updates surface a
+    // toast; an up-to-date check stays silent.
+    setTimeout(() => { checkForUpdates(true); }, 2500);
 }
 
 function setView(name) {
@@ -908,6 +939,7 @@ function buildBackupPayload() {
     payload[SHORTCUTS_KEY] = localStorage.getItem(SHORTCUTS_KEY);
     payload[CONFIRM_DELETE_KEY] = localStorage.getItem(CONFIRM_DELETE_KEY);
     payload[CLOSE_AFTER_COPY_KEY] = localStorage.getItem(CLOSE_AFTER_COPY_KEY);
+    payload[AUTO_CHECK_UPDATES_KEY] = localStorage.getItem(AUTO_CHECK_UPDATES_KEY);
     return payload;
 }
 
@@ -959,6 +991,7 @@ async function importBackup() {
     apply(SHORTCUTS_KEY, data[SHORTCUTS_KEY]);
     apply(CONFIRM_DELETE_KEY, data[CONFIRM_DELETE_KEY]);
     apply(CLOSE_AFTER_COPY_KEY, data[CLOSE_AFTER_COPY_KEY]);
+    apply(AUTO_CHECK_UPDATES_KEY, data[AUTO_CHECK_UPDATES_KEY]);
     load();
     loadPrompt();
     renderList();
@@ -968,6 +1001,7 @@ async function importBackup() {
     loadThemeSetting();
     loadConfirmDeleteSetting();
     loadCloseAfterCopySetting();
+    loadAutoCheckUpdatesSetting();
     loadHotkeySetting();
     renderShortcutRows();
     showToast('Data restored.');
@@ -988,30 +1022,35 @@ async function refreshAboutInfo() {
     if (helperEl) helperEl.textContent = info.helper;
 }
 
-async function checkForUpdates() {
+async function checkForUpdates(silent) {
     if (!window.mainWindowAPI || typeof window.mainWindowAPI.checkForUpdates !== 'function') {
-        showToast('Update check unavailable.');
-        return;
+        if (!silent) showToast('Update check unavailable.');
+        return false;
     }
-    updateBtn.disabled = true;
-    updateBtn.textContent = 'Checking\u2026';
+    if (!silent) {
+        updateBtn.disabled = true;
+        updateBtn.textContent = 'Checking\u2026';
+    }
     let result = null;
     try {
         result = await window.mainWindowAPI.checkForUpdates();
     } catch (e) {
         result = null;
     }
-    updateBtn.disabled = false;
-    updateBtn.textContent = 'Check for updates';
+    if (!silent) {
+        updateBtn.disabled = false;
+        updateBtn.textContent = 'Check for updates';
+    }
     if (!result || !result.ok) {
-        showToast(result && result.error ? result.error : 'Update check failed.');
-        return;
+        if (!silent) showToast(result && result.error ? result.error : 'Update check failed.');
+        return false;
     }
     if (result.updateAvailable) {
-        showToast(`Update available: v${result.latest} (you have v${result.current}).`);
-    } else {
+        showToast(`Update available: v${result.latest} (you have v${result.current}). Check What\u2019s new for the latest notes.`);
+    } else if (!silent) {
         showToast(`Up to date \u2014 you\u2019re on v${result.current}.`);
     }
+    return result.updateAvailable;
 }
 
 function diagnosticsText(info) {
@@ -1096,6 +1135,8 @@ window.addEventListener('storage', (e) => {
         loadConfirmDeleteSetting();
     } else if (e.key === CLOSE_AFTER_COPY_KEY) {
         loadCloseAfterCopySetting();
+    } else if (e.key === AUTO_CHECK_UPDATES_KEY) {
+        loadAutoCheckUpdatesSetting();
     } else if (e.key === THEME_KEY) {
         loadThemeSetting();
     }
@@ -1173,6 +1214,12 @@ closeAfterCopyToggle.addEventListener('click', () => {
     localStorage.setItem(CLOSE_AFTER_COPY_KEY, enabled ? '1' : '0');
     closeAfterCopyToggle.setAttribute('aria-checked', enabled ? 'true' : 'false');
     showToast(enabled ? 'Popup will close after you copy.' : 'Popup stays open after copying.');
+});
+autoCheckUpdatesToggle.addEventListener('click', () => {
+    const enabled = autoCheckUpdatesToggle.getAttribute('aria-checked') !== 'true';
+    localStorage.setItem(AUTO_CHECK_UPDATES_KEY, enabled ? '1' : '0');
+    autoCheckUpdatesToggle.setAttribute('aria-checked', enabled ? 'true' : 'false');
+    showToast(enabled ? 'Check for updates on launch is on.' : 'Updates are checked manually only.');
 });
 hotkeyInput.addEventListener('click', (e) => {
     e.stopPropagation();
@@ -1449,11 +1496,13 @@ loadLayoutSetting();
 loadDateFirstSetting();
 loadConfirmDeleteSetting();
 loadCloseAfterCopySetting();
+loadAutoCheckUpdatesSetting();
 loadThemeSetting();
 loadStartupSetting();
 loadHotkeySetting();
 refreshAboutInfo();
 syncHeight();
+runAutoUpdateCheck();
 
 // Re-fit auto-sized comment boxes when the window (and therefore the card
 // width and line-wrapping) changes.
