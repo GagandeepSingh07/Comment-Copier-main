@@ -25,6 +25,7 @@
     "files": [
       "main.js",
       "shared-data.js",
+      "i18n.js",
       "popup.html",
       "popup.css",
       "popup.js",

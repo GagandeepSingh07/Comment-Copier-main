@@ -20,6 +20,13 @@ function readPortablePointer() {
     return { enabled: false, dir: '' };
 }
 function defaultDataRoot() {
+    return path.join(app.getPath('appData'), 'comment-copier');
+}
+// Old (buggy) default: data used to live under the OS temp folder, which
+// the OS/antivirus/cleanup tools can wipe at any time — this is what was
+// causing all settings/comments to appear "erased". Kept only so existing
+// installs can be migrated forward one time to the real appData location.
+function legacyTempDataRoot() {
     return path.join(app.getPath('temp'), 'comment-copier');
 }
 function writePortablePointer(dir) {
@@ -54,7 +61,22 @@ function migrateData(from, to) {
 }
 
 const portableMode = readPortablePointer();
-app.setPath('userData', portableMode.enabled ? portableMode.dir : defaultDataRoot());
+const resolvedDataRoot = portableMode.enabled ? portableMode.dir : defaultDataRoot();
+// One-time migration for installs affected by the old temp-folder bug:
+// if the real data root is empty but the legacy temp location still has
+// data (i.e. it survived until this launch), copy it over before anything
+// reads from resolvedDataRoot.
+if (!portableMode.enabled) {
+    try {
+        const legacy = legacyTempDataRoot();
+        const legacyHasData = fs.existsSync(legacy) && fs.readdirSync(legacy).length > 0;
+        const newHasData = fs.existsSync(resolvedDataRoot) && fs.readdirSync(resolvedDataRoot).length > 0;
+        if (legacyHasData && !newHasData) {
+            migrateData(legacy, resolvedDataRoot);
+        }
+    } catch (e) { /* ignore — fall through to a fresh data root */ }
+}
+app.setPath('userData', resolvedDataRoot);
 
 if (!app.requestSingleInstanceLock()) {
     app.quit();
