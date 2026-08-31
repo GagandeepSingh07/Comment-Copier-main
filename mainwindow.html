@@ -180,11 +180,6 @@
                         <button type="button" class="theme-option" data-theme="sepia" data-i18n="theme.sepia">Sepia</button>
                     </div>
                 </div>
-                </div>
-            </div>
-            <div class="settings-group">
-                <div class="settings-block-title" data-i18n="settings.catCopy">Copying &amp; editing</div>
-                <div class="settings-block">
                 <div class="setting-row">
                     <div class="setting-info">
                         <div class="setting-title" data-i18n="settings.reduceMotion">Reduce motion</div>
@@ -194,6 +189,11 @@
                         <span class="toggle-thumb"></span>
                     </button>
                 </div>
+                </div>
+            </div>
+            <div class="settings-group">
+                <div class="settings-block-title" data-i18n="settings.catCopy">Copying &amp; editing</div>
+                <div class="settings-block">
                 <div class="setting-row">
                     <div class="setting-info">
                         <div class="setting-title" data-i18n="settings.dateFirst">Date before comment</div>
@@ -344,9 +344,12 @@
                 <div class="setting-row">
                     <div class="setting-info">
                         <div class="setting-title" data-i18n="settings.orgSkipExt">Skip file types</div>
-                        <div class="setting-desc" data-i18n="settings.orgSkipExtDesc">Comma-separated extensions left untouched, e.g. bat, ps1.</div>
+                        <div class="setting-desc" data-i18n="settings.orgSkipExtDesc">Add the extensions to leave untouched, e.g. bat, ps1.</div>
                     </div>
-                    <input type="text" class="org-skip-input" id="mw-org-skip-ext" spellcheck="false" autocomplete="off" value="bat, ps1">
+                    <div class="org-skip-editor" id="mw-org-skip-ext-editor">
+                        <input type="text" class="org-skip-chip-input" id="mw-org-skip-ext" spellcheck="false" autocomplete="off" aria-label="Added file types" data-i18n-aria="settings.orgSkipExtInputAria" data-i18n-placeholder="settings.orgSkipExtPlaceholder" placeholder="" />
+                        <div class="org-skip-chips" id="mw-org-skip-ext-chips" role="list"></div>
+                    </div>
                 </div>
                 <div class="setting-row">
                     <div class="setting-info">

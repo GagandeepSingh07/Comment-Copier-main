@@ -639,8 +639,7 @@ body {
     gap: 8px;
 }
 
-.org-target-input,
-.org-skip-input {
+.org-target-input {
     padding: 8px 10px;
     background: #0d1117;
     color: var(--text);
@@ -652,15 +651,92 @@ body {
 }
 
 .org-target-input { width: 240px; }
-.org-skip-input { width: 220px; }
 
-.org-target-input:focus,
-.org-skip-input:focus { border-color: var(--accent); }
+.org-target-input:focus { border-color: var(--accent); }
+
+/* Skip file types — chip/tag editor */
+.org-skip-editor {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    align-items: stretch;
+    max-width: 320px;
+}
+
+.org-skip-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    justify-content: flex-start;
+}
+
+.org-skip-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 6px 3px 9px;
+    background: rgba(88, 166, 255, 0.12);
+    border: 1px solid rgba(88, 166, 255, 0.35);
+    color: var(--text);
+    border-radius: 999px;
+    font-size: 12px;
+    line-height: 1.3;
+}
+
+.org-skip-chip-remove {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.org-skip-chip-remove:hover {
+    background: var(--danger);
+    color: #ffffff;
+}
+
+.org-skip-chip-input {
+    min-width: 120px;
+    padding: 8px 10px;
+    background: #0d1117;
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 12.5px;
+    font-family: inherit;
+    outline: none;
+}
+
+.org-skip-chip-input:focus { border-color: var(--accent); }
+
+.org-skip-chip-input.invalid {
+    border-color: var(--danger);
+    animation: org-skip-shake 0.25s ease;
+}
+
+@keyframes org-skip-shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-3px); }
+    75% { transform: translateX(3px); }
+}
+
+body.theme-light .org-skip-chip-input { background: #f6f8fa; }
 
 .org-target-desc { max-width: 380px; }
 
-body.theme-light .org-target-input,
-body.theme-light .org-skip-input { background: #f6f8fa; }
+body.theme-light .org-target-input { background: #f6f8fa; }
+body.theme-light .org-skip-chip { background: rgba(31, 136, 61, 0.12); border-color: rgba(31, 136, 61, 0.4); }
+body.theme-light .org-skip-chip-remove:hover { color: #ffffff; }
 
 .layout-picker {
     flex: 0 0 auto;

@@ -78,7 +78,11 @@ const orgTargetInput = document.getElementById('mw-org-target');
 const orgTargetBrowse = document.getElementById('mw-org-target-browse');
 const orgConflictOptions = document.querySelectorAll('#mw-org-conflict .layout-picker-option');
 const orgSkipExtInput = document.getElementById('mw-org-skip-ext');
+const orgSkipExtChips = document.getElementById('mw-org-skip-ext-chips');
+const orgSkipExtEditor = document.getElementById('mw-org-skip-ext-editor');
 const orgRecursiveToggle = document.getElementById('mw-org-recursive');
+
+let skipExtList = [];
 
 let activeTab = 'accept';
 let dirty = false;
@@ -902,6 +906,7 @@ function setLanguage(lang) {
 
 function applyI18n() {
     i18nApply(document);
+    applySkipExtList(skipExtList);
     syncLanguagePicker();
     syncTooltipDensityPicker();
     if (!capturingAction) renderShortcutRows();
@@ -1051,7 +1056,7 @@ async function loadOrgSettingsUI() {
     syncOrgDestPicker();
     syncOrgConflictPicker();
     if (orgTargetInput) orgTargetInput.value = getOrgSetting('target') || '';
-    if (orgSkipExtInput) orgSkipExtInput.value = getOrgSetting('skipExt') || '';
+    applySkipExtList(splitSkipExt(getOrgSetting('skipExt')));
     if (orgRecursiveToggle) orgRecursiveToggle.setAttribute('aria-checked', getOrgSetting('recursive') ? 'true' : 'false');
 }
 
@@ -1086,10 +1091,81 @@ orgConflictOptions.forEach((b) => {
     });
 });
 
-orgSkipExtInput.addEventListener('change', () => {
-    const val = orgSkipExtInput.value.split(',').map((s) => s.trim()).filter(Boolean).join(', ');
-    orgSkipExtInput.value = val;
-    localStorage.setItem(ORG_SKIP_EXT_KEY, val);
+function splitSkipExt(raw) {
+    return String(raw || '')
+        .split(/[\s,]+/)
+        .map((s) => s.trim().replace(/^\.+/, '').toLowerCase())
+        .filter((s) => s.length > 0)
+        .filter((s, i, arr) => arr.indexOf(s) === i);
+}
+
+function persistSkipExt() {
+    localStorage.setItem(ORG_SKIP_EXT_KEY, skipExtList.join(', '));
+}
+
+function applySkipExtList(list) {
+    skipExtList = Array.isArray(list) ? list.slice() : [];
+    if (!orgSkipExtChips) return;
+    orgSkipExtChips.innerHTML = '';
+    for (const ext of skipExtList) {
+        const chip = document.createElement('span');
+        chip.className = 'org-skip-chip';
+        chip.setAttribute('role', 'listitem');
+        chip.textContent = ext;
+
+        const remove = document.createElement('button');
+        remove.type = 'button';
+        remove.className = 'org-skip-chip-remove';
+        remove.setAttribute('aria-label', t('settings.orgSkipExtRemoveAria', { ext }));
+        remove.textContent = '\u00d7';
+        remove.addEventListener('click', () => {
+            skipExtList = skipExtList.filter((x) => x !== ext);
+            persistSkipExt();
+            applySkipExtList(skipExtList);
+        });
+
+        chip.appendChild(remove);
+        orgSkipExtChips.appendChild(chip);
+    }
+    persistSkipExt();
+}
+
+function addSkipExt(raw) {
+    const parts = splitSkipExt(raw);
+    if (!parts.length) return;
+    let added = false;
+    for (const clean of parts) {
+        if (skipExtList.includes(clean)) {
+            flashSkipExtInvalid();
+            continue;
+        }
+        skipExtList.push(clean);
+        added = true;
+    }
+    if (added) applySkipExtList(skipExtList);
+    if (orgSkipExtInput) orgSkipExtInput.value = '';
+}
+
+function flashSkipExtInvalid() {
+    if (!orgSkipExtInput) return;
+    orgSkipExtInput.classList.add('invalid');
+    setTimeout(() => orgSkipExtInput.classList.remove('invalid'), 260);
+}
+
+orgSkipExtInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ',') {
+        e.preventDefault();
+        addSkipExt(orgSkipExtInput.value);
+    } else if (e.key === 'Backspace' && !orgSkipExtInput.value && skipExtList.length) {
+        const last = skipExtList[skipExtList.length - 1];
+        skipExtList = skipExtList.filter((x) => x !== last);
+        persistSkipExt();
+        applySkipExtList(skipExtList);
+    }
+});
+
+orgSkipExtInput.addEventListener('blur', () => {
+    if (orgSkipExtInput.value.trim()) addSkipExt(orgSkipExtInput.value);
 });
 
 orgRecursiveToggle.addEventListener('click', () => {
