@@ -14,8 +14,6 @@ contextBridge.exposeInMainWorld('mainWindowAPI', {
     getStartInTray: () => ipcRenderer.invoke('app:get-start-in-tray'),
     setGlobalHotkey: (accelerator) => ipcRenderer.invoke('hotkey:set', accelerator),
     getGlobalHotkey: () => ipcRenderer.invoke('hotkey:get'),
-    setShellOrganizer: (enabled) => ipcRenderer.invoke('shell-organizer:set', enabled),
-    getShellOrganizer: () => ipcRenderer.invoke('shell-organizer:get'),
     getPortableMode: () => ipcRenderer.invoke('comment-copier:get-portable-mode'),
     choosePortableDir: (title) => ipcRenderer.invoke('comment-copier:choose-portable-dir', title),
     enablePortableMode: (dir) => ipcRenderer.invoke('comment-copier:enable-portable-mode', dir),

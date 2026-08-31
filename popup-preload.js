@@ -7,7 +7,6 @@ contextBridge.exposeInMainWorld('popupAPI', {
     pickOrganizeFolder: () => ipcRenderer.invoke('file-organizer:pick-folder'),
     organizeFolder: (folderPath, options) => ipcRenderer.invoke('file-organizer:organize', folderPath, options),
     readClipboardText: () => ipcRenderer.invoke('sheet-import:read-clipboard'),
-    onSetOrganizerFolder: (callback) => ipcRenderer.on('organizer:set-folder', (event, folder) => callback(folder)),
     pushQuickState: (payload) => ipcRenderer.send('comment-copier:quick-state', payload),
     reportCopyResult: (info) => ipcRenderer.send('comment-copier:tray-copied', info),
     quitApp: () => ipcRenderer.send('popup:quit'),

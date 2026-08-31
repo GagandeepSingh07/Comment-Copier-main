@@ -995,16 +995,6 @@ async function copySheet() {
     showToast(t('toast.sheetCopied'));
 }
 
-function loadOrganizerPath() {
-    const saved = localStorage.getItem(ORGANIZER_KEY);
-    if (saved) {
-        organizerFolder = saved;
-        organizerPathInput.value = saved;
-        setOrganizerEnabled(true);
-        organizerFolderRow.classList.add('has-folder');
-    }
-}
-
 function setOrganizerEnabled(enabled) {
     organizerRunBtn.disabled = !enabled;
     organizerPreviewBtn.disabled = !enabled;
@@ -1015,7 +1005,7 @@ function basename(p) {
 }
 
 function renderOrganizerPreview(result) {
-    organizerSummary.textContent = t('org.summary', { moved: result.moved, skipped: result.skipped.length });
+    organizerSummary.textContent = t('org.summary', { moved: result.planned, skipped: result.skipped.length });
     organizerList.innerHTML = '';
     if (!result.preview || !result.preview.length) {
         const empty = document.createElement('div');
@@ -1085,7 +1075,6 @@ async function pickOrganizerFolder() {
     if (!picked) return;
     organizerFolder = picked;
     organizerPathInput.value = picked;
-    localStorage.setItem(ORGANIZER_KEY, picked);
     setOrganizerEnabled(true);
     organizerFolderRow.classList.add('has-folder');
     organizerSummary.textContent = '';
@@ -1368,23 +1357,6 @@ organizerRunBtn.addEventListener('click', () => runOrganizer(false));
 organizerPreviewBtn.addEventListener('click', () => runOrganizer(true));
 organizerClearBtn.addEventListener('click', clearOrganizerFolder);
 
-function setOrganizerFolderFromShell(folder) {
-    if (!folder) return;
-    localStorage.setItem(ORGANIZER_KEY, folder);
-    organizerFolder = folder;
-    organizerPathInput.value = folder;
-    setOrganizerEnabled(true);
-    organizerFolderRow.classList.add('has-folder');
-    organizerList.innerHTML = '';
-    organizerSummary.textContent = '';
-    organizerWrap.classList.add('open');
-    organizerBtn.setAttribute('aria-expanded', 'true');
-}
-
-if (window.popupAPI && typeof window.popupAPI.onSetOrganizerFolder === 'function') {
-    window.popupAPI.onSetOrganizerFolder(setOrganizerFolderFromShell);
-}
-
 function applyI18n() {
     i18nApply(document);
     renderRows();
@@ -1401,7 +1373,7 @@ function applyI18n() {
 
 load();
 loadSheetInputs();
-loadOrganizerPath();
+clearOrganizerFolder();
 renderSheetPreview();
 selectMark('Checked');
 renderRows();

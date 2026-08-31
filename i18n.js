@@ -133,8 +133,6 @@ I18N.en = {
         orgSkipExtDesc: 'Comma-separated extensions left untouched, e.g. bat, ps1.',
         orgRecursive: 'Include subfolders',
         orgRecursiveDesc: 'Process files inside subfolders too, not just the top level.',
-        orgShell: 'Right-click menu',
-        orgShellDesc: 'Add an "Open in File Organizer" entry to the right-click menu of folders in File Explorer.',
     },
     layout: { cards: 'Cards', tabs: 'Tabs', stack: 'Side by side' },
     tooltip: { off: 'Off', compact: 'Compact', detailed: 'Detailed' },
@@ -246,7 +244,6 @@ I18N.en = {
         preview: 'Preview',
         previewDest: 'Into {dir}',
         previewNone: 'Nothing would be moved.',
-        shellFail: 'Could not update the right-click menu.',
     },
     toast: {
         nothing: 'Nothing to copy yet \u2014 add comments first.',
@@ -425,8 +422,6 @@ I18N.es = {
         orgSkipExtDesc: 'Extensiones separadas por comas que se dejan intactas, p. ej. bat, ps1.',
         orgRecursive: 'Incluir subcarpetas',
         orgRecursiveDesc: 'Procesar tambi\u00e9n los archivos de las subcarpetas, no solo el nivel superior.',
-        orgShell: 'Men\u00fa contextual',
-        orgShellDesc: 'A\u00f1ade una entrada "Abrir en el Organizador de archivos" al men\u00fa contextual de las carpetas en el Explorador de archivos.',
     },
     layout: { cards: 'Tarjetas', tabs: 'Pesta\u00f1as', stack: 'Lado a lado' },
     tooltip: { off: 'No', compact: 'Compacto', detailed: 'Detallado' },
@@ -538,7 +533,6 @@ I18N.es = {
         preview: 'Vista previa',
         previewDest: 'En {dir}',
         previewNone: 'No se mover\u00eda nada.',
-        shellFail: 'No se pudo actualizar el men\u00fa contextual.',
     },
     toast: {
         nothing: 'No hay nada que copiar \u2014 a\u00f1ade comentarios primero.',
@@ -710,8 +704,6 @@ I18N.fr = {
         orgSkipExtDesc: 'Extensions s\u00e9par\u00e9es par des virgules laiss\u00e9es intactes, p. ex. bat, ps1.',
         orgRecursive: 'Inclure les sous-dossiers',
         orgRecursiveDesc: 'Traiter aussi les fichiers des sous-dossiers, pas seulement le niveau sup\u00e9rieur.',
-        orgShell: 'Menu contextuel',
-        orgShellDesc: 'Ajoute une entr\u00e9e \u00ab Ouvrir dans l\u2019organisateur de fichiers \u00bb au menu contextuel des dossiers dans l\u2019Explorateur de fichiers.',
     },
     layout: { cards: 'Cartes', tabs: 'Onglets', stack: 'C\u00f4te \u00e0 c\u00f4te' },
     tooltip: { off: 'D\u00e9sactiv\u00e9', compact: 'Compact', detailed: 'D\u00e9taill\u00e9' },
@@ -823,7 +815,6 @@ I18N.fr = {
         preview: 'Aper\u00e7u',
         previewDest: 'Dans {dir}',
         previewNone: 'Rien ne serait d\u00e9plac\u00e9.',
-        shellFail: 'Impossible de mettre \u00e0 jour le menu contextuel.',
     },
     toast: {
         nothing: 'Rien \u00e0 copier \u2014 ajoutez des commentaires d\u2019abord.',
@@ -995,8 +986,6 @@ I18N.de = {
         orgSkipExtDesc: 'Durch Kommas getrennte Erweiterungen, die unber\u00fchrt bleiben, z. B. bat, ps1.',
         orgRecursive: 'Unterordner einbeziehen',
         orgRecursiveDesc: 'Verarbeitet auch Dateien in Unterordnern, nicht nur auf oberster Ebene.',
-        orgShell: 'Kontextmen\u00fc',
-        orgShellDesc: 'F\u00fcgt dem Kontextmen\u00fc von Ordnern im Explorer einen Eintrag "Im Dateiorganisator \u00f6ffnen" hinzu.',
     },
     layout: { cards: 'Karten', tabs: 'Registerkarten', stack: 'Nebeneinander' },
     tooltip: { off: 'Aus', compact: 'Kompakt', detailed: 'Ausf\u00fchrlich' },
@@ -1108,7 +1097,6 @@ I18N.de = {
         preview: 'Vorschau',
         previewDest: 'In {dir}',
         previewNone: 'Es w\u00fcrde nichts verschoben.',
-        shellFail: 'Das Kontextmen\u00fc konnte nicht aktualisiert werden.',
     },
     toast: {
         nothing: 'Nichts zu kopieren \u2014 zuerst Kommentare hinzuf\u00fcgen.',
@@ -1280,8 +1268,6 @@ I18N.ar = {
         orgSkipExtDesc: '\u0627\u0645\u062A\u062F\u0627\u062F\u0627\u062A \u0645\u0641\u0635\u0648\u0644\u0629 \u0628\u0641\u0648\u0627\u0635\u0644 \u062A\u064F\u062A\u0631\u0643 \u062F\u0648\u0646 \u062A\u063A\u064A\u064A\u0631\u060C \u0645\u062B\u0644 bat, ps1.',
         orgRecursive: '\u062A\u0636\u0645\u064A\u0646 \u0627\u0644\u0645\u062C\u0644\u062F\u0627\u062A \u0627\u0644\u0641\u0631\u0639\u064A\u0629',
         orgRecursiveDesc: '\u0645\u0639\u0627\u0644\u062C\u0629 \u0627\u0644\u0645\u0644\u0641\u0627\u062A \u062F\u0627\u062E\u0644 \u0627\u0644\u0645\u062C\u0644\u062F\u0627\u062A \u0627\u0644\u0641\u0631\u0639\u064A\u0629 \u0623\u064A\u0636\u064B\u0627\u060C \u0648\u0644\u064A\u0633 \u0627\u0644\u0645\u0633\u062A\u0648\u0649 \u0627\u0644\u0623\u0639\u0644\u0649 \u0641\u0642\u0637.',
-        orgShell: '\u0642\u0627\u0626\u0645\u0629 \u0627\u0644\u0646\u0642\u0631 \u0628\u0632\u0631 \u0627\u0644\u0645\u0627\u0648\u0633 \u0627\u0644\u0623\u064A\u0645\u0646',
-        orgShellDesc: '\u0625\u0636\u0627\u0641\u0629 \u0625\u062F\u062E\u0627\u0644 "\u0641\u062A\u062D \u0641\u064A \u0645\u0646\u0638\u0645 \u0627\u0644\u0645\u0644\u0641\u0627\u062A" \u0625\u0644\u0649 \u0642\u0627\u0626\u0645\u0629 \u0627\u0644\u0646\u0642\u0631 \u0628\u0632\u0631 \u0627\u0644\u0645\u0627\u0648\u0633 \u0627\u0644\u0623\u064A\u0645\u0646 \u0644\u0644\u0645\u062C\u0644\u062F\u0627\u062A \u0641\u064A \u0645\u0633\u062A\u0643\u0634\u0641 \u0627\u0644\u0645\u0644\u0641\u0627\u062A.',
     },
     layout: { cards: '\u0628\u0637\u0627\u0642\u0627\u062a', tabs: '\u0639\u0644\u0627\u0645\u0627\u062a \u062a\u0628\u0648\u064a\u0628', stack: '\u062c\u0646\u0628\u064b\u0627 \u0625\u0644\u0649 \u062c\u0646\u0628' },
     tooltip: { off: '\u0625\u064a\u0642\u0627\u0641', compact: '\u0645\u062e\u062a\u0635\u0631', detailed: '\u0645\u0641\u0635\u0651\u0644' },
@@ -1393,7 +1379,6 @@ I18N.ar = {
         preview: '\u0645\u0639\u0627\u064A\u0646\u0629',
         previewDest: '\u0641\u064A {dir}',
         previewNone: '\u0644\u0646 \u064A\u062A\u0645 \u0646\u0642\u0644 \u0623\u064A \u0634\u064A\u0621.',
-        shellFail: '\u062A\u0639\u0630\u0631 \u062A\u062D\u062F\u064A\u062B \u0642\u0627\u0626\u0645\u0629 \u0627\u0644\u0646\u0642\u0631 \u0628\u0632\u0631 \u0627\u0644\u0645\u0627\u0648\u0633 \u0627\u0644\u0623\u064A\u0645\u0646.',
     },
     toast: {
         nothing: '\u0644\u0627 \u064a\u0648\u062c\u062f \u0645\u0627 \u064a\u064f\u0646\u0633\u062e \u0628\u0639\u062f \u2014 \u0623\u0636\u0641 \u062a\u0639\u0644\u064a\u0642\u0627\u062a \u0623\u0648\u0644\u064b\u0627.',
@@ -1524,7 +1509,6 @@ const EXTRA_I18N = {
                 autoUpdateTitle: 'Toggle auto-update-check',
                 portableToggleTitle: 'Toggle portable mode',
                 orgRecursiveTitle: 'Toggle subfolders',
-                orgShellTitle: 'Toggle the context menu',
             },
         },
         portable: {
@@ -1604,7 +1588,6 @@ const EXTRA_I18N = {
                 autoUpdateTitle: 'Alternar b\u00fasqueda de actualizaciones al iniciar',
                 portableToggleTitle: 'Alternar modo port\u00e1til',
                 orgRecursiveTitle: 'Activar o desactivar subcarpetas',
-                orgShellTitle: 'Activar o desactivar el men\u00fa contextual',
             },
         },
         portable: {
@@ -1684,7 +1667,6 @@ const EXTRA_I18N = {
                 autoUpdateTitle: 'Activer/d\u00e9sactiver la v\u00e9rification au lancement',
                 portableToggleTitle: 'Activer/d\u00e9sactiver le mode portable',
                 orgRecursiveTitle: 'Activer ou d\u00e9sactiver les sous-dossiers',
-                orgShellTitle: 'Activer ou d\u00e9sactiver le menu contextuel',
             },
         },
         portable: {
@@ -1764,7 +1746,6 @@ const EXTRA_I18N = {
                 autoUpdateTitle: 'Update-Pr\u00fcfung beim Start umschalten',
                 portableToggleTitle: 'Portablen Modus umschalten',
                 orgRecursiveTitle: 'Unterordner ein/aus',
-                orgShellTitle: 'Kontextmen\u00fc ein/aus',
             },
         },
         portable: {
@@ -1844,7 +1825,6 @@ const EXTRA_I18N = {
                 autoUpdateTitle: '\u062a\u0628\u062f\u064a\u0644 \u0627\u0644\u0628\u062d\u062b \u0639\u0646 \u0627\u0644\u062a\u062d\u062f\u064a\u062b\u0627\u062a \u0639\u0646\u062f \u0627\u0644\u0625\u0637\u0644\u0627\u0642',
                 portableToggleTitle: '\u062a\u0628\u062f\u064a\u0644 \u0627\u0644\u0648\u0636\u0639 \u0627\u0644\u0645\u062d\u0645\u0648\u0644',
                 orgRecursiveTitle: '\u062A\u0628\u062F\u064A\u0644 \u0627\u0644\u0645\u062C\u0644\u062F\u0627\u062A \u0627\u0644\u0641\u0631\u0639\u064A\u0629',
-                orgShellTitle: '\u062A\u0628\u062F\u064A\u0644 \u0642\u0627\u0626\u0645\u0629 \u0627\u0644\u0646\u0642\u0631 \u0628\u0632\u0631 \u0627\u0644\u0645\u0627\u0648\u0633 \u0627\u0644\u0623\u064A\u0645\u0646',
             },
         },
         portable: {

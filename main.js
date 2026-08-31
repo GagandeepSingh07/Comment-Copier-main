@@ -2,7 +2,6 @@ const { app, BrowserWindow, ipcMain, clipboard, Tray, screen, dialog, shell, glo
 const path = require('path');
 const fs = require('fs');
 const https = require('https');
-const { execFile } = require('child_process');
 
 app.commandLine.appendSwitch('disable-gpu-cache');
 app.commandLine.appendSwitch('disk-cache-size', '0');
@@ -83,7 +82,6 @@ const CHANGELOG = [
                     'The About page now shows just the details that matter: the "Latest update" reflects the current app version automatically, and sensitive install/data paths plus engine version numbers are hidden from view (still available in Export diagnostics).',
                     'The About section is fully responsive and the Comment Editor navigation icon was refreshed.',
                     'The File Organizer is customizable: choose where files go (same folder or a custom target), how name clashes are handled (rename, skip, or overwrite), which file types to skip, and whether to include subfolders. A preview button shows what would be moved before doing it.',
-                    'Folders can now be opened in the File Organizer directly from File Explorer\u2019s right-click menu (turn it on/off in Settings \u2192 File Organizer).',
                 ],
             },
         ],
@@ -690,7 +688,7 @@ ipcMain.handle('file-organizer:organize', async (event, folderPath, options) => 
         }
 
         planned++;
-        previewMoves.push({ file: displayName, from: srcFile, to: destFile });
+        previewMoves.push({ file: displayName, from: srcFile, to: destDir });
         if (dryRun) continue;
 
         try {
@@ -703,101 +701,6 @@ ipcMain.handle('file-organizer:organize', async (event, folderPath, options) => 
 
     return { ok: true, moved, planned, skipped, total: sweepFiles.length, preview: dryRun ? previewMoves : null };
 });
-
-/* ---------- Windows "Open in File Organizer" shell context menu ---------- */
-
-const SHELL_KEY = 'HKCU\\Software\\Classes\\Directory\\shell\\CommentCopierOrganize';
-const SHELL_COMMAND_KEY = SHELL_KEY + '\\command';
-
-function runReg(args) {
-    return new Promise((resolve) => {
-        execFile('reg', args, { windowsHide: true }, (err) => resolve({ ok: !err, error: err ? (err.message || '') : '' }));
-    });
-}
-
-async function isShellIntegrationRegistered() {
-    try {
-        const out = await new Promise((resolve) => {
-            execFile('reg', ['query', SHELL_COMMAND_KEY, '/ve'], { windowsHide: true }, (err, stdout) => resolve({ err, stdout }));
-        });
-        return !out.err && /--organize/.test(out.stdout || '');
-    } catch (e) {
-        return false;
-    }
-}
-
-async function enableShellIntegration() {
-    try {
-        const exe = process.execPath;
-        const cmd = `"${exe}" --organize "%1"`;
-        let r = await runReg(['add', SHELL_KEY, '/ve', '/d', 'Open in File Organizer', '/f']);
-        if (!r.ok) return { ok: false, error: r.error };
-        r = await runReg(['add', SHELL_KEY, '/v', 'Icon', '/d', `"${exe}",0`, '/f']);
-        if (!r.ok) return { ok: false, error: r.error };
-        r = await runReg(['add', SHELL_COMMAND_KEY, '/ve', '/d', cmd, '/f']);
-        if (!r.ok) return { ok: false, error: r.error };
-        saveConfig({ shellOrganizer: true });
-        return { ok: true };
-    } catch (e) {
-        return { ok: false, error: e.message };
-    }
-}
-
-async function disableShellIntegration() {
-    try {
-        const r = await runReg(['delete', SHELL_KEY, '/f']);
-        if (!r.ok && r.error) {
-            // "unable to find the specified registry key" still reports an
-            // error from reg.exe; treat a missing key as a successful removal.
-            if (/unable to find/i.test(r.error)) return { ok: true };
-            return { ok: false, error: r.error };
-        }
-        saveConfig({ shellOrganizer: false });
-        return { ok: true };
-    } catch (e) {
-        return { ok: false, error: e.message };
-    }
-}
-
-ipcMain.handle('shell-organizer:get', async () => {
-    const configured = loadConfig().shellOrganizer !== false;
-    const registered = configured ? await isShellIntegrationRegistered() : false;
-    return { enabled: configured && registered, state: configured };
-});
-
-ipcMain.handle('shell-organizer:set', async (event, enabled) => {
-    if (enabled) return enableShellIntegration();
-    return disableShellIntegration();
-});
-
-function extractOrganizerArg(argv) {
-    if (!Array.isArray(argv)) return null;
-    for (let i = 0; i < argv.length; i++) {
-        const a = argv[i];
-        if (a === '--organize' && argv[i + 1]) return argv[i + 1];
-        if (typeof a === 'string' && a.startsWith('--organize=')) return a.slice('--organize='.length);
-    }
-    for (let i = argv.length - 1; i >= 1; i--) {
-        const a = argv[i];
-        if (!a || a.startsWith('-')) continue;
-        try { if (fs.statSync(a).isDirectory()) return a; } catch (e) {}
-    }
-    return null;
-}
-
-let pendingOrganizerFolder = null;
-let popupLoaded = false;
-
-function pushOrganizerFolder(folder) {
-    pendingOrganizerFolder = folder || null;
-    if (!popupWindow || popupWindow.isDestroyed()) return;
-    if (popupLoaded) {
-        popupWindow.webContents.send('organizer:set-folder', folder);
-    }
-    positionPopup();
-    popupWindow.show();
-    popupWindow.focus();
-}
 
 ipcMain.handle('sheet-import:read-clipboard', () => {
     let text = '';
@@ -1020,9 +923,7 @@ function togglePopup() {
 }
 
 function createPopup() {
-    popupLoaded = false;
-    popupWindow = new BrowserWindow({
-        width: POPUP_WIDTH,
+    popupWindow = new BrowserWindow({        width: POPUP_WIDTH,
         height: 440,
         frame: false,
         resizable: false,
@@ -1039,13 +940,6 @@ function createPopup() {
     });
 
     popupWindow.loadFile('popup.html');
-
-    popupWindow.webContents.on('did-finish-load', () => {
-        popupLoaded = true;
-        if (pendingOrganizerFolder) {
-            popupWindow.webContents.send('organizer:set-folder', pendingOrganizerFolder);
-        }
-    });
 
     popupWindow.on('blur', () => {
         if (!nativeDialogOpen) hidePopup();
@@ -1221,11 +1115,6 @@ app.on('before-quit', () => {
 });
 
 app.on('second-instance', (event, argv) => {
-    const folder = extractOrganizerArg(argv);
-    if (folder) {
-        pushOrganizerFolder(folder);
-        return;
-    }
     if (popupWindow && !popupWindow.isDestroyed()) {
         positionPopup();
         popupWindow.show();
@@ -1239,16 +1128,6 @@ app.whenReady().then(() => {
     createPopup();
     createTray();
     registerHotkey(loadConfig().globalHotkey || '');
-    // Keep the folder right-click entry in sync with the saved preference.
-    if (loadConfig().shellOrganizer !== false) {
-        enableShellIntegration();
-    }
-    // Launched via "Open in File Organizer"? Open the popup organizer pre-loaded
-    // with that folder.
-    const startupFolder = extractOrganizerArg(process.argv);
-    if (startupFolder) {
-        pushOrganizerFolder(startupFolder);
-    }
 });
 
 }

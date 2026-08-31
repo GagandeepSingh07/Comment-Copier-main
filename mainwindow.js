@@ -79,7 +79,6 @@ const orgTargetBrowse = document.getElementById('mw-org-target-browse');
 const orgConflictOptions = document.querySelectorAll('#mw-org-conflict .layout-picker-option');
 const orgSkipExtInput = document.getElementById('mw-org-skip-ext');
 const orgRecursiveToggle = document.getElementById('mw-org-recursive');
-const orgShellToggle = document.getElementById('mw-org-shell');
 
 let activeTab = 'accept';
 let dirty = false;
@@ -1054,12 +1053,6 @@ async function loadOrgSettingsUI() {
     if (orgTargetInput) orgTargetInput.value = getOrgSetting('target') || '';
     if (orgSkipExtInput) orgSkipExtInput.value = getOrgSetting('skipExt') || '';
     if (orgRecursiveToggle) orgRecursiveToggle.setAttribute('aria-checked', getOrgSetting('recursive') ? 'true' : 'false');
-    if (orgShellToggle && window.mainWindowAPI && typeof window.mainWindowAPI.getShellOrganizer === 'function') {
-        try {
-            const res = await window.mainWindowAPI.getShellOrganizer();
-            orgShellToggle.setAttribute('aria-checked', res && res.enabled ? 'true' : 'false');
-        } catch (e) { /* leave the toggle as-is */ }
-    }
 }
 
 orgDestOptions.forEach((b) => {
@@ -1103,26 +1096,6 @@ orgRecursiveToggle.addEventListener('click', () => {
     const enabled = orgRecursiveToggle.getAttribute('aria-checked') !== 'true';
     localStorage.setItem(ORG_RECURSIVE_KEY, enabled ? '1' : '0');
     orgRecursiveToggle.setAttribute('aria-checked', enabled ? 'true' : 'false');
-});
-
-orgShellToggle.addEventListener('click', async () => {
-    const enabled = orgShellToggle.getAttribute('aria-checked') !== 'true';
-    orgShellToggle.setAttribute('aria-checked', enabled ? 'true' : 'false');
-    if (!window.mainWindowAPI || typeof window.mainWindowAPI.setShellOrganizer !== 'function') {
-        orgShellToggle.setAttribute('aria-checked', enabled ? 'false' : 'true');
-        showToast(t('org.shellFail'));
-        return;
-    }
-    orgShellToggle.disabled = true;
-    try {
-        const res = await window.mainWindowAPI.setShellOrganizer(enabled);
-        if (!res || !res.ok) throw new Error('shell set failed');
-    } catch (e) {
-        orgShellToggle.setAttribute('aria-checked', enabled ? 'false' : 'true');
-        showToast(t('org.shellFail'));
-    } finally {
-        orgShellToggle.disabled = false;
-    }
 });
 
 /* ---------- Theme ---------- */
