@@ -105,6 +105,17 @@ const defaultCourses = [
     { name: 'Graduate Diploma of Management (Learning)', code: 'BSB80120', trainer: 'Harjinder Singh' },
 ];
 
+// Identity key for a saved course preset. Includes the trainer (and any text
+// signature) so the same course code taught by different trainers counts as
+// two separate presets instead of colliding, and blank-only presets no longer
+// collapse onto the same "|" key. Used by both the tray popup and the main
+// window for duplicate checks, updates and backup merging.
+function coursePresetKey(item) {
+    return [item && item.name, item && item.code, item && item.trainer, item && item.signature]
+        .map((v) => String(v || '').trim().toLowerCase())
+        .join('|');
+}
+
 const defaultPrompt = `**TASK:**
 Create named folders in the target directory based on file names. The folder name should be the code/identifier extracted from the file's name. Then move each file into its corresponding folder.
 

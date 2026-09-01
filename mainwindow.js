@@ -81,6 +81,14 @@ const orgSkipExtInput = document.getElementById('mw-org-skip-ext');
 const orgSkipExtChips = document.getElementById('mw-org-skip-ext-chips');
 const orgSkipExtEditor = document.getElementById('mw-org-skip-ext-editor');
 const orgRecursiveToggle = document.getElementById('mw-org-recursive');
+const mwCourseName = document.getElementById('mw-course-name');
+const mwCourseCode = document.getElementById('mw-course-code');
+const mwTrainerName = document.getElementById('mw-trainer-name');
+const mwTrainerSignature = document.getElementById('mw-trainer-signature');
+const mwCourseSave = document.getElementById('mw-course-save');
+const mwCourseClear = document.getElementById('mw-course-clear');
+const mwCourseListEl = document.getElementById('mw-course-list');
+const mwCourseCount = document.getElementById('mw-course-count');
 
 let skipExtList = [];
 
@@ -914,6 +922,7 @@ function applyI18n() {
     updateCounts();
     setDirty(dirty);
     updateBulkBtn();
+    mwRenderCourseList();
     renderGlobalHotkey();
     resetBtn.textContent = resetArmed ? t('btn.clickAgain') : t('btn.resetApp');
     updateBtn.textContent = t('update.check');
@@ -1736,7 +1745,7 @@ function mergeUsage(backupRaw) {
 }
 
 function courseMergeKey(item) {
-    return (((item && item.name) || '') + '|' + ((item && item.code) || '')).trim().toLowerCase();
+    return coursePresetKey(item);
 }
 
 function mergeCourses(backupRaw) {
@@ -2010,6 +2019,380 @@ function syncHeight() {
     });
 }
 
+/* ---------- Courses & Trainers management ---------- */
+
+let mwCourseList = [];
+let mwPresetUndo = null;
+let mwPresetUndoExpire = 0;
+let mwPresetUndoTimer = null;
+
+function mwLoadCourseList() {
+    let saved = null;
+    try {
+        saved = JSON.parse(localStorage.getItem(COURSES_KEY));
+    } catch (e) {
+        saved = null;
+    }
+    if (Array.isArray(saved)) {
+        mwCourseList = saved
+            .filter((c) => c && typeof c === 'object')
+            .map((c) => ({
+                name: typeof c.name === 'string' ? c.name : '',
+                code: typeof c.code === 'string' ? c.code : '',
+                trainer: typeof c.trainer === 'string' ? c.trainer : '',
+                signature: typeof c.signature === 'string' ? c.signature : '',
+                signatureFile: typeof c.signatureFile === 'string' ? c.signatureFile : '',
+            }))
+            .filter((c) => c.name || c.code || c.trainer || c.signature || c.signatureFile);
+        const byKey = {};
+        mwCourseList.forEach((c) => { byKey[coursePresetKey(c)] = c; });
+        let mergedAny = false;
+        defaultCourses.forEach((d) => {
+            const found = byKey[coursePresetKey(d)];
+            if (found) {
+                if (!found.signatureFile && d.signatureFile) {
+                    found.signatureFile = d.signatureFile;
+                    mergedAny = true;
+                }
+                if (!found.signature && d.signature) {
+                    found.signature = d.signature;
+                    mergedAny = true;
+                }
+            } else {
+                mwCourseList.push(Object.assign({}, d));
+                mergedAny = true;
+            }
+        });
+        if (mergedAny) mwSaveCourseList();
+    } else {
+        mwCourseList = defaultCourses.map((c) => Object.assign({}, c));
+        mwSaveCourseList();
+    }
+}
+
+function mwSaveCourseList() {
+    localStorage.setItem(COURSES_KEY, JSON.stringify(mwCourseList));
+}
+
+function mwCourseItemText(item) {
+    return [item.name, item.code, item.trainer, item.signature].filter(Boolean).join(' - ');
+}
+
+async function mwWriteClipboardImage(filename) {
+    if (window.mainWindowAPI && typeof window.mainWindowAPI.copySignature === 'function') {
+        try {
+            return await window.mainWindowAPI.copySignature(filename);
+        } catch (e) {
+            return false;
+        }
+    }
+    return false;
+}
+
+async function mwCopyCourseItem(item) {
+    const text = mwCourseItemText(item);
+    const image = item.signatureFile || '';
+    if (!text && !image) return;
+    let ok = false;
+    if (image && window.mainWindowAPI && typeof window.mainWindowAPI.copyCourseAll === 'function') {
+        try {
+            ok = await window.mainWindowAPI.copyCourseAll({ text, image });
+        } catch (e) {
+            ok = false;
+        }
+    } else if (image) {
+        ok = await mwWriteClipboardImage(image);
+    } else if (window.mainWindowAPI && typeof window.mainWindowAPI.copyText === 'function') {
+        try {
+            ok = await window.mainWindowAPI.copyText(text);
+        } catch (e) {
+            ok = false;
+        }
+    }
+    if (!ok) {
+        showToast(t('toast.copyFail'));
+        return;
+    }
+    const label = item.name || item.code || item.trainer || '';
+    const suffix = image ? t('toast.courseImageSuffix') : '';
+    showToast(t('toast.courseCopied', { name: label }) + suffix);
+}
+
+async function mwCopyCourseField(item, field, label, isImage) {
+    if (isImage) {
+        if (!item.signatureFile) return;
+        const ok = await mwWriteClipboardImage(item.signatureFile);
+        if (!ok) {
+            showToast(t('toast.copyFail'));
+            return;
+        }
+        showToast(t('toast.courseFieldCopied', { field: label }));
+        return;
+    }
+    const text = item[field] || '';
+    if (!text) {
+        showToast(t('toast.courseFieldEmpty'));
+        return;
+    }
+    if (window.mainWindowAPI && typeof window.mainWindowAPI.copyText === 'function') {
+        try {
+            const ok = await window.mainWindowAPI.copyText(text);
+            if (!ok) {
+                showToast(t('toast.copyFail'));
+                return;
+            }
+        } catch (e) {
+            showToast(t('toast.copyFail'));
+            return;
+        }
+    } else {
+        showToast(t('toast.copyFail'));
+        return;
+    }
+    showToast(t('toast.courseFieldCopied', { field: label }));
+}
+
+function mwCourseInputValues() {
+    return {
+        name: mwCourseName.value.trim(),
+        code: mwCourseCode.value.trim(),
+        trainer: mwTrainerName.value.trim(),
+        signature: mwTrainerSignature.value.trim(),
+    };
+}
+
+function mwPersistCourseForm(values) {
+    const data = values || mwCourseInputValues();
+    localStorage.setItem(COURSE_KEY, JSON.stringify({
+        courseName: data.name,
+        courseCode: data.code,
+        trainerName: data.trainer,
+        trainerSignature: data.signature,
+    }));
+}
+
+function mwLoadCourseForm() {
+    let saved = null;
+    try {
+        saved = JSON.parse(localStorage.getItem(COURSE_KEY));
+    } catch (e) {
+        saved = null;
+    }
+    const data = Object.assign({}, defaultCourseData, saved || {});
+    mwCourseName.value = data.courseName;
+    mwCourseCode.value = data.courseCode;
+    mwTrainerName.value = data.trainerName;
+    mwTrainerSignature.value = data.trainerSignature;
+}
+
+function mwClearCourseForm() {
+    mwCourseName.value = defaultCourseData.courseName;
+    mwCourseCode.value = defaultCourseData.courseCode;
+    mwTrainerName.value = defaultCourseData.trainerName;
+    mwTrainerSignature.value = defaultCourseData.trainerSignature;
+    mwPersistCourseForm({ name: '', code: '', trainer: '', signature: '' });
+    showToast(t('toast.courseFormCleared'));
+}
+
+// Save / update a preset. Identity is name + code + trainer + text signature,
+// so the same course taught by different trainers is allowed as separate
+// presets, and saving an identical preset updates it instead of rejecting it.
+function mwSaveCurrentAsPreset() {
+    const { name, code, trainer, signature } = mwCourseInputValues();
+    if (!name && !code && !trainer && !signature) {
+        showToast(t('toast.courseNeeded'));
+        return;
+    }
+    const key = coursePresetKey({ name, code, trainer, signature });
+    const existing = mwCourseList.findIndex((c) => coursePresetKey(c) === key);
+    if (existing >= 0) {
+        mwCourseList[existing].name = name;
+        mwCourseList[existing].code = code;
+        mwCourseList[existing].trainer = trainer;
+        mwCourseList[existing].signature = signature;
+        mwSaveCourseList();
+        mwRenderCourseList();
+        mwPersistCourseForm({ name, code, trainer, signature });
+        showToast(t('toast.presetUpdated'));
+        return;
+    }
+    mwCourseList.push({ name, code, trainer, signature });
+    mwSaveCourseList();
+    mwRenderCourseList();
+    mwPersistCourseForm({ name, code, trainer, signature });
+    showToast(t('toast.presetSaved'));
+}
+
+function mwEditPreset(index) {
+    const item = mwCourseList[index];
+    if (!item) return;
+    mwCourseName.value = item.name || '';
+    mwCourseCode.value = item.code || '';
+    mwTrainerName.value = item.trainer || '';
+    mwTrainerSignature.value = item.signature || '';
+    mwPersistCourseForm();
+    showToast(t('toast.presetLoaded'));
+    document.querySelector('[data-view-panel="settings"]').scrollIntoView({ block: 'start' });
+    mwCourseName.focus();
+}
+
+function mwPushPresetUndo(item, index) {
+    mwPresetUndo = { item, index };
+    mwPresetUndoExpire = Date.now() + 5000;
+}
+
+function mwPopPresetUndo() {
+    if (!mwPresetUndo) return;
+    mwCourseList.splice(mwPresetUndo.index, 0, mwPresetUndo.item);
+    mwPresetUndo = null;
+    mwSaveCourseList();
+    mwRenderCourseList();
+    showToast(t('toast.presetRestored'));
+}
+
+function mwShowPresetUndoToast(message) {
+    toastEl.innerHTML = '';
+    toastEl.textContent = message + ' ';
+    const undo = document.createElement('button');
+    undo.type = 'button';
+    undo.className = 'toast-undo';
+    undo.textContent = t('editor.undo');
+    undo.addEventListener('click', () => {
+        mwPopPresetUndo();
+        clearTimeout(mwPresetUndoTimer);
+        toastEl.classList.remove('show');
+    });
+    toastEl.appendChild(undo);
+    toastEl.classList.add('show');
+    clearTimeout(mwPresetUndoTimer);
+    mwPresetUndoTimer = setTimeout(() => {
+        toastEl.classList.remove('show');
+        if (mwPresetUndo && Date.now() > mwPresetUndoExpire) mwPresetUndo = null;
+    }, 4000);
+}
+
+function mwRemoveCourseItem(index) {
+    const item = mwCourseList[index];
+    if (!item) return;
+    if (confirmDeleteEnabled() && !window.confirm(t('confirm.deletePreset'))) {
+        return;
+    }
+    const [removed] = mwCourseList.splice(index, 1);
+    mwSaveCourseList();
+    mwRenderCourseList();
+    mwPushPresetUndo(removed, index);
+    mwShowPresetUndoToast(t('toast.presetRemoved'));
+}
+
+const MW_COPY_ICON = '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>';
+
+const MW_FIELD_ICONS = {
+    name: '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7V4h16v3"></path><path d="M9 20h6"></path><path d="M12 4v16"></path></svg>',
+    code: '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="8 6 2 12 8 18"></polyline><polyline points="16 6 22 12 16 18"></polyline></svg>',
+    trainer: '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>',
+    signature: '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>',
+};
+
+function mwRenderCourseList() {
+    if (!mwCourseListEl) return;
+    mwCourseCount.textContent = tN('count.entry', mwCourseList.length, { n: mwCourseList.length });
+    mwCourseListEl.innerHTML = '';
+    if (!mwCourseList.length) {
+        const empty = document.createElement('div');
+        empty.className = 'mw-course-empty';
+        empty.textContent = t('popup.courseListEmpty');
+        mwCourseListEl.appendChild(empty);
+        return;
+    }
+    mwCourseList.forEach((item, i) => {
+        const row = document.createElement('div');
+        row.className = 'mw-course-item';
+        row.title = t('popup.courseItemTitle');
+
+        const chips = document.createElement('div');
+        chips.className = 'mw-course-item-chips';
+
+        const fields = [
+            { field: 'name', label: t('popup.courseName'), value: item.name || '' },
+            { field: 'code', label: t('popup.courseCode'), value: item.code || '' },
+            { field: 'trainer', label: t('popup.trainerName'), value: item.trainer || '' },
+        ];
+        if (item.signature) {
+            fields.push({ field: 'signature', label: t('popup.trainerSignature'), value: item.signature, isImage: false });
+        }
+        if (item.signatureFile) {
+            fields.push({ field: 'signature', label: t('popup.signatureImage'), value: t('popup.signatureImage'), isImage: true });
+        }
+        fields.forEach((f) => {
+            if (!f.value) return;
+            const chip = document.createElement('button');
+            chip.type = 'button';
+            chip.className = 'mw-course-chip';
+            chip.title = t('popup.copyFieldTitle', { field: f.label });
+            chip.innerHTML =
+                '<span class="mw-course-chip-icon" aria-hidden="true">' + (MW_FIELD_ICONS[f.field] || '') + '</span>' +
+                '<span class="mw-course-chip-text">' + escapeHtml(f.value) + '</span>';
+            chip.addEventListener('click', (e) => {
+                e.stopPropagation();
+                mwCopyCourseField(item, f.field, f.label, f.isImage);
+            });
+            chips.appendChild(chip);
+        });
+
+        const allBtn = document.createElement('button');
+        allBtn.type = 'button';
+        allBtn.className = 'mw-course-chip mw-course-chip-all';
+        allBtn.title = t('popup.copyAllTitle');
+        allBtn.innerHTML = '<span class="mw-course-chip-icon" aria-hidden="true">' + MW_COPY_ICON + '</span><span class="mw-course-chip-text">' + escapeHtml(t('popup.copyAllShort')) + '</span>';
+        allBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            mwCopyCourseItem(item);
+        });
+        chips.appendChild(allBtn);
+
+        row.appendChild(chips);
+
+        const actions = document.createElement('div');
+        actions.className = 'mw-course-item-actions';
+
+        const editBtn = document.createElement('button');
+        editBtn.type = 'button';
+        editBtn.className = 'mw-course-item-btn';
+        editBtn.title = t('courses.editTitle');
+        editBtn.textContent = t('courses.edit');
+        editBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            mwEditPreset(i);
+        });
+        actions.appendChild(editBtn);
+
+        const delBtn = document.createElement('button');
+        delBtn.type = 'button';
+        delBtn.className = 'mw-course-item-btn mw-course-del';
+        delBtn.title = t('popup.remove');
+        delBtn.textContent = '\u00d7';
+        delBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            mwRemoveCourseItem(i);
+        });
+        actions.appendChild(delBtn);
+
+        row.appendChild(actions);
+        row.addEventListener('click', () => mwCopyCourseItem(item));
+        mwCourseListEl.appendChild(row);
+    });
+}
+
+let mwCourseFormTimer = null;
+[mwCourseName, mwCourseCode, mwTrainerName, mwTrainerSignature].forEach((el) => {
+    el.addEventListener('input', () => {
+        clearTimeout(mwCourseFormTimer);
+        mwCourseFormTimer = setTimeout(() => mwPersistCourseForm(), 400);
+    });
+});
+mwCourseSave.addEventListener('click', mwSaveCurrentAsPreset);
+mwCourseClear.addEventListener('click', mwClearCourseForm);
+
 // Keep in sync with data edited in the tray popup.
 window.addEventListener('storage', (e) => {
     if (e.key === LANG_KEY) {
@@ -2034,6 +2417,11 @@ window.addEventListener('storage', (e) => {
         loadThemeSetting();
     } else if (e.key === ACCENT_KEY) {
         loadAccentSetting();
+    } else if (e.key === COURSES_KEY) {
+        mwLoadCourseList();
+        mwRenderCourseList();
+    } else if (e.key === COURSE_KEY) {
+        mwLoadCourseForm();
     }
 });
 
@@ -2472,6 +2860,9 @@ loadReduceMotionSetting();
 loadAccentSetting();
 loadHotkeySetting();
 loadOrgSettingsUI();
+mwLoadCourseList();
+mwRenderCourseList();
+mwLoadCourseForm();
 refreshAboutInfo();
 syncRestoreModePicker();
 renderRollbackState();

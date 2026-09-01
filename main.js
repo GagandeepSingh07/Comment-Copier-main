@@ -417,6 +417,26 @@ ipcMain.handle('comment-copier:copy-signature', (event, filename) => {
     return true;
 });
 
+// Combined "Copy All" for a saved course preset: puts the plain-text details
+// and the bundled signature image on the clipboard in one write, so image-only
+// presets (no text signature) aren't silently dropped.
+ipcMain.handle('comment-copier:copy-course', (event, payload) => {
+    const text = payload && typeof payload.text === 'string' ? payload.text : '';
+    const file = payload && typeof payload.image === 'string' ? payload.image : '';
+    let img = null;
+    if (file && !file.includes('..') && !file.includes('\\') && !file.includes('/')) {
+        const shot = nativeImage.createFromPath(path.join(__dirname, 'signatures', file));
+        if (!shot.isEmpty()) img = shot;
+    }
+    if (!text && !img) return false;
+    const data = { text };
+    if (img) data.image = img;
+    clipboard.write(data);
+    stats.copyCount++;
+    saveStats();
+    return true;
+});
+
 ipcMain.handle('comment-copier:app-info', () => {
     const platform = PLATFORM_NAMES[process.platform] || process.platform;
     const display = screen.getPrimaryDisplay();

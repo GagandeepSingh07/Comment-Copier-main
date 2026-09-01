@@ -42,12 +42,6 @@ const sheetPasteTextarea = document.getElementById('sheet-paste-textarea');
 const sheetPasteImportBtn = document.getElementById('sheet-paste-import-btn');
 const sheetPasteCancelBtn = document.getElementById('sheet-paste-cancel');
 const sheetBtn = document.getElementById('sheet-btn');
-const courseName = document.getElementById('course-name');
-const courseCode = document.getElementById('course-code');
-const trainerName = document.getElementById('trainer-name');
-const trainerSignature = document.getElementById('trainer-signature');
-const courseReset = document.getElementById('course-reset');
-const courseSavePresetBtn = document.getElementById('course-save-preset');
 const courseListEl = document.getElementById('course-list');
 const courseListCount = document.getElementById('course-list-count');
 const organizerWrap = document.querySelector('.organizer-wrap');
@@ -686,47 +680,7 @@ function resetSheetData() {
     showToast(t('toast.sheetCleared'));
 }
 
-function courseDataFromInputs() {
-    return {
-        courseName: courseName.value.trim(),
-        courseCode: courseCode.value.trim(),
-        trainerName: trainerName.value.trim(),
-        trainerSignature: trainerSignature.value.trim(),
-    };
-}
-
-function persistCourseData() {
-    localStorage.setItem(COURSE_KEY, JSON.stringify(courseDataFromInputs()));
-}
-
-function loadCourseInputs() {
-    let saved = null;
-    try {
-        saved = JSON.parse(localStorage.getItem(COURSE_KEY));
-    } catch (e) {
-        saved = null;
-    }
-    const data = Object.assign({}, defaultCourseData, saved || {});
-    courseName.value = data.courseName;
-    courseCode.value = data.courseCode;
-    trainerName.value = data.trainerName;
-    trainerSignature.value = data.trainerSignature;
-}
-
-function resetCourseData() {
-    courseName.value = defaultCourseData.courseName;
-    courseCode.value = defaultCourseData.courseCode;
-    trainerName.value = defaultCourseData.trainerName;
-    trainerSignature.value = defaultCourseData.trainerSignature;
-    persistCourseData();
-    showToast(t('toast.sheetCleared'));
-}
-
 /* ---------- Saved courses (quick-copy presets) ---------- */
-
-function courseKey(item) {
-    return (((item && item.name) || '') + '|' + ((item && item.code) || '')).trim().toLowerCase();
-}
 
 function loadCourseList() {
     let saved = null;
@@ -783,41 +737,60 @@ function courseItemText(item) {
     return [item.name, item.code, item.trainer, item.signature].filter(Boolean).join(' - ');
 }
 
-async function copyCourseItem(item, fillFields) {
+// "Copy All" for a preset. The plain-text details go on the clipboard
+// together with any bundled signature image (one combined write, so neither
+// is silently dropped). The toast mentions the image when one was included.
+async function copyCourseItem(item) {
     const text = courseItemText(item);
-    if (!text) return;
-    const ok = await writeClipboard(text);
-    if (fillFields) {
-        courseName.value = item.name || '';
-        courseCode.value = item.code || '';
-        trainerName.value = item.trainer || '';
-        trainerSignature.value = item.signature || '';
-        persistCourseData();
-    }
+    const image = item.signatureFile || '';
+    if (!text && !image) return;
+    const ok = image
+        ? await copyCourseAll(text, image)
+        : await writeClipboard(text);
     if (!ok) {
         showToast(t('toast.copyFail'));
         return;
     }
-    showToast(t('toast.courseCopied', { name: item.name || item.code || item.trainer || '' }));
+    const label = item.name || item.code || item.trainer || '';
+    const suffix = image ? t('toast.courseImageSuffix') : '';
+    showToast(t('toast.courseCopied', { name: label }) + suffix);
 }
 
-async function copyCourseField(item, field, label) {
-    let text = '';
-    if (field === 'name') text = item.name || '';
-    else if (field === 'code') text = item.code || '';
-    else if (field === 'trainer') text = item.trainer || '';
-    else if (field === 'signature') text = item.signature || '';
-    if (!text && !(field === 'signature' && item.signatureFile)) {
-        showToast(t('toast.courseFieldEmpty'));
-        return;
+async function copyCourseAll(text, filename) {
+    if (window.popupAPI && typeof window.popupAPI.copyCourseAll === 'function') {
+        try {
+            return await window.popupAPI.copyCourseAll({ text, image: filename });
+        } catch (e) {
+            return false;
+        }
     }
-    if (field === 'signature' && item.signatureFile) {
+    // Fallback: copy the image on its own when the combined write isn't
+    // available (it's the part the text-only "Copy All" would drop).
+    if (filename) return writeClipboardImage(filename);
+    return writeClipboard(text);
+}
+
+async function copyCourseField(item, field, label, isImage) {
+    if (isImage) {
+        if (!item.signatureFile) {
+            showToast(t('toast.courseFieldEmpty'));
+            return;
+        }
         const ok = await writeClipboardImage(item.signatureFile);
         if (!ok) {
             showToast(t('toast.copyFail'));
             return;
         }
         showToast(t('toast.courseFieldCopied', { field: label }));
+        return;
+    }
+    let text = '';
+    if (field === 'name') text = item.name || '';
+    else if (field === 'code') text = item.code || '';
+    else if (field === 'trainer') text = item.trainer || '';
+    else if (field === 'signature') text = item.signature || '';
+    if (!text) {
+        showToast(t('toast.courseFieldEmpty'));
         return;
     }
     const ok = await writeClipboard(text);
@@ -839,12 +812,63 @@ async function writeClipboardImage(filename) {
     return false;
 }
 
-function removeCourseItem(index) {
-    courseList.splice(index, 1);
+function confirmDeleteEnabled() {
+    const saved = localStorage.getItem(CONFIRM_DELETE_KEY);
+    return saved === null ? true : saved !== '0';
+}
+
+let presetUndo = null;
+let presetUndoExpire = 0;
+let presetUndoTimer = null;
+
+function pushPresetUndo(item, index) {
+    presetUndo = { item, index };
+    presetUndoExpire = Date.now() + 5000;
+}
+
+function popPresetUndo() {
+    if (!presetUndo) return;
+    courseList.splice(presetUndo.index, 0, presetUndo.item);
+    presetUndo = null;
     saveCourseList();
     renderCourseList();
     syncHeight();
-    showToast(t('toast.presetRemoved'));
+    showToast(t('toast.presetRestored'));
+}
+
+function showPresetUndoToast(message) {
+    toastEl.innerHTML = '';
+    toastEl.textContent = message + ' ';
+    const undo = document.createElement('button');
+    undo.type = 'button';
+    undo.className = 'toast-undo';
+    undo.textContent = t('editor.undo');
+    undo.addEventListener('click', () => {
+        popPresetUndo();
+        clearTimeout(presetUndoTimer);
+        toastEl.classList.remove('show');
+    });
+    toastEl.appendChild(undo);
+    toastEl.classList.add('show');
+    clearTimeout(presetUndoTimer);
+    presetUndoTimer = setTimeout(() => {
+        toastEl.classList.remove('show');
+        if (presetUndo && Date.now() > presetUndoExpire) presetUndo = null;
+    }, 4000);
+}
+
+function removeCourseItem(index) {
+    const item = courseList[index];
+    if (!item) return;
+    if (confirmDeleteEnabled() && !window.confirm(t('confirm.deletePreset'))) {
+        return;
+    }
+    const [removed] = courseList.splice(index, 1);
+    saveCourseList();
+    renderCourseList();
+    syncHeight();
+    pushPresetUndo(removed, index);
+    showPresetUndoToast(t('toast.presetRemoved'));
 }
 
 const COPY_ICON = '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>';
@@ -874,16 +898,19 @@ function renderCourseList() {
         const chips = document.createElement('div');
         chips.className = 'course-item-chips';
 
+        // Text and image signatures are rendered as separate chips so what's
+        // displayed on a chip is always what a click copies.
         const fields = [
             { field: 'name', label: t('popup.courseName'), value: item.name || '' },
             { field: 'code', label: t('popup.courseCode'), value: item.code || '' },
             { field: 'trainer', label: t('popup.trainerName'), value: item.trainer || '' },
-            {
-                field: 'signature',
-                label: t('popup.trainerSignature'),
-                value: item.signature || (item.signatureFile ? t('popup.signatureImage') : ''),
-            },
         ];
+        if (item.signature) {
+            fields.push({ field: 'signature', label: t('popup.trainerSignature'), value: item.signature, isImage: false });
+        }
+        if (item.signatureFile) {
+            fields.push({ field: 'signature', label: t('popup.signatureImage'), value: t('popup.signatureImage'), isImage: true });
+        }
         fields.forEach((f) => {
             if (!f.value) return;
             const chip = document.createElement('button');
@@ -895,7 +922,7 @@ function renderCourseList() {
                 '<span class="course-chip-text">' + escapeHtml(f.value) + '</span>';
             chip.addEventListener('click', (e) => {
                 e.stopPropagation();
-                copyCourseField(item, f.field, f.label);
+                copyCourseField(item, f.field, f.label, f.isImage);
             });
             chips.appendChild(chip);
         });
@@ -924,31 +951,9 @@ function renderCourseList() {
         });
         row.appendChild(delBtn);
 
-        row.addEventListener('click', () => copyCourseItem(item, true));
+        row.addEventListener('click', () => copyCourseItem(item));
         courseListEl.appendChild(row);
     });
-}
-
-function saveCurrentAsPreset() {
-    const name = courseName.value.trim();
-    const code = courseCode.value.trim();
-    const trainer = trainerName.value.trim();
-    const signature = trainerSignature.value.trim();
-    if (!name && !code && !trainer && !signature) {
-        showToast(t('toast.courseNeeded'));
-        return;
-    }
-    const key = courseKey({ name, code });
-    const exists = courseList.some((c) => courseKey(c) === key);
-    if (exists) {
-        showToast(t('toast.presetExists'));
-        return;
-    }
-    courseList.push({ name, code, trainer, signature });
-    saveCourseList();
-    renderCourseList();
-    syncHeight();
-    showToast(t('toast.presetSaved'));
 }
 
 function normalizeCell(v) {
@@ -1588,15 +1593,6 @@ let sheetTimer = null;
     });
 });
 sheetReset.addEventListener('click', resetSheetData);
-let courseTimer = null;
-[courseName, courseCode, trainerName, trainerSignature].forEach((el) => {
-    el.addEventListener('input', () => {
-        clearTimeout(courseTimer);
-        courseTimer = setTimeout(persistCourseData, 400);
-    });
-});
-courseReset.addEventListener('click', resetCourseData);
-courseSavePresetBtn.addEventListener('click', saveCurrentAsPreset);
 sheetPasteBtn.addEventListener('click', pasteFromClipboard);
 sheetPasteToggle.addEventListener('click', () => toggleSheetPastePanel());
 sheetPasteCancelBtn.addEventListener('click', () => toggleSheetPastePanel(false));
@@ -1657,7 +1653,6 @@ function applyI18n() {
 
 load();
 loadSheetInputs();
-loadCourseInputs();
 loadCourseList();
 renderCourseList();
 clearOrganizerFolder();
@@ -1684,6 +1679,10 @@ window.addEventListener('storage', (e) => {
     } else if (e.key === TOOLTIP_DENSITY_KEY) {
         hoveredRow = null;
         cardTooltip.classList.remove('active');
+    } else if (e.key === COURSES_KEY) {
+        loadCourseList();
+        renderCourseList();
+        syncHeight();
     }
     load();
     renderRows();

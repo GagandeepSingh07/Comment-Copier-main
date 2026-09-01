@@ -656,59 +656,6 @@ body.layout-stack .tab-panel + .tab-panel {
 
 /* ---------- Course & trainer details ---------- */
 
-.course-head {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 6px;
-    padding: 10px 2px 6px;
-}
-
-.course-fields {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 5px;
-    padding: 12px;
-    background: #0d1117;
-    border: 1px solid #30363d;
-    border-radius: 14px;
-    transition: border-color 0.15s ease, box-shadow 0.15s ease;
-}
-
-.course-fields:focus-within {
-    border-color: rgba(88, 166, 255, 0.45);
-    box-shadow: 0 0 0 2px rgba(88, 166, 255, 0.12);
-}
-
-.course-fields input {
-    min-width: 0;
-    background: #010409;
-    border: 1px solid #30363d;
-    border-radius: 8px;
-    padding: 7px 10px;
-    font-family: inherit;
-    font-size: 10.5px;
-    color: var(--text);
-    user-select: text;
-    transition: border-color 0.15s ease, box-shadow 0.15s ease;
-}
-
-.course-fields input::placeholder { color: #484f58; }
-
-.course-fields input:hover { border-color: #3d444d; }
-
-.course-fields input:focus {
-    outline: none;
-    border-color: var(--accent);
-    box-shadow: 0 0 0 2px rgba(88, 166, 255, 0.12);
-}
-
-.course-head-actions {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
 .course-list-head {
     display: flex;
     align-items: baseline;
@@ -1257,6 +1204,23 @@ body.layout-stack .tab-panel + .tab-panel {
 
 .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
+.toast.show .toast-undo { pointer-events: auto; }
+
+.toast-undo {
+    margin-left: 6px;
+    padding: 2px 8px;
+    background: transparent;
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 10px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.toast-undo:hover { background: rgba(88, 166, 255, 0.14); }
+
 /* ---------- Card layout ---------- */
 
 .row-icon { display: none; }
@@ -1416,10 +1380,6 @@ body.layout-cards .sheet-fields {
 
 body.layout-cards .sheet-preview {
     margin-top: 6px;
-}
-
-body.layout-cards .course-fields {
-    margin-top: 0;
 }
 
 body.layout-cards .action {
