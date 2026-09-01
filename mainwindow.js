@@ -84,9 +84,13 @@ const orgRecursiveToggle = document.getElementById('mw-org-recursive');
 const mwCourseName = document.getElementById('mw-course-name');
 const mwCourseCode = document.getElementById('mw-course-code');
 const mwTrainerName = document.getElementById('mw-trainer-name');
-const mwTrainerSignature = document.getElementById('mw-trainer-signature');
+const mwSignPick = document.getElementById('mw-sign-pick');
+const mwSignFile = document.getElementById('mw-sign-file');
+const mwSignClear = document.getElementById('mw-sign-clear');
 const mwCourseSave = document.getElementById('mw-course-save');
 const mwCourseClear = document.getElementById('mw-course-clear');
+const mwCourseBanner = document.getElementById('mw-course-banner');
+const mwCourseModeBadge = document.getElementById('mw-course-mode-badge');
 const mwCourseListEl = document.getElementById('mw-course-list');
 const mwCourseCount = document.getElementById('mw-course-count');
 
@@ -922,6 +926,7 @@ function applyI18n() {
     updateCounts();
     setDirty(dirty);
     updateBulkBtn();
+    mwRefreshCourseI18n();
     mwRenderCourseList();
     renderGlobalHotkey();
     resetBtn.textContent = resetArmed ? t('btn.clickAgain') : t('btn.resetApp');
@@ -2025,6 +2030,12 @@ let mwCourseList = [];
 let mwPresetUndo = null;
 let mwPresetUndoExpire = 0;
 let mwPresetUndoTimer = null;
+// The currently selected (or loaded) trainer signature image path. Presets are
+// keyed on name/code/trainer, so the image is a per-preset attachment held in
+// memory while the form is being edited, then written to the preset on save.
+let mwSignatureFile = '';
+// When editing an existing preset, its index in mwCourseList; -1 means "add new".
+let mwEditingIndex = -1;
 
 function mwLoadCourseList() {
     let saved = null;
@@ -2072,6 +2083,11 @@ function mwLoadCourseList() {
 
 function mwSaveCourseList() {
     localStorage.setItem(COURSES_KEY, JSON.stringify(mwCourseList));
+}
+
+function basename(filePath) {
+    if (!filePath) return '';
+    return String(filePath).split(/[\\/]/).pop() || '';
 }
 
 function mwCourseItemText(item) {
@@ -2157,8 +2173,16 @@ function mwCourseInputValues() {
         name: mwCourseName.value.trim(),
         code: mwCourseCode.value.trim(),
         trainer: mwTrainerName.value.trim(),
-        signature: mwTrainerSignature.value.trim(),
     };
+}
+
+function mwSetSignatureFile(filePath) {
+    mwSignatureFile = typeof filePath === 'string' ? filePath : '';
+    if (mwSignFile) {
+        mwSignFile.textContent = mwSignatureFile ? basename(mwSignatureFile) : t('courses.noSign');
+        mwSignFile.classList.toggle('is-empty', !mwSignatureFile);
+        if (mwSignClear) mwSignClear.hidden = !mwSignatureFile;
+    }
 }
 
 function mwPersistCourseForm(values) {
@@ -2167,7 +2191,7 @@ function mwPersistCourseForm(values) {
         courseName: data.name,
         courseCode: data.code,
         trainerName: data.trainer,
-        trainerSignature: data.signature,
+        trainerSignatureFile: mwSignatureFile,
     }));
 }
 
@@ -2182,45 +2206,109 @@ function mwLoadCourseForm() {
     mwCourseName.value = data.courseName;
     mwCourseCode.value = data.courseCode;
     mwTrainerName.value = data.trainerName;
-    mwTrainerSignature.value = data.trainerSignature;
+    mwSetSignatureFile(data.trainerSignatureFile || '');
 }
 
-function mwClearCourseForm() {
+function mwSetFormMode(editingIndex, displayName) {
+    mwEditingIndex = typeof editingIndex === 'number' ? editingIndex : -1;
+    const isEditing = mwEditingIndex >= 0;
+    if (mwCourseModeBadge) {
+        mwCourseModeBadge.hidden = !isEditing;
+        if (isEditing) {
+            mwCourseModeBadge.textContent = t('courses.editingBadge');
+        }
+    }
+    if (mwCourseBanner) {
+        mwCourseBanner.hidden = !isEditing;
+        mwCourseBanner.innerHTML = '';
+        if (isEditing) {
+            mwCourseBanner.textContent = t('courses.editingBanner', { name: displayName || '' }) + ' ';
+            const cancel = document.createElement('button');
+            cancel.type = 'button';
+            cancel.className = 'mw-course-banner-cancel';
+            cancel.textContent = t('courses.cancelEdit');
+            cancel.addEventListener('click', mwResetForm);
+            mwCourseBanner.appendChild(cancel);
+        }
+    }
+    const saveLabel = isEditing ? t('courses.update') : t('courses.save');
+    if (mwCourseSave) mwCourseSave.textContent = saveLabel;
+}
+
+function mwResetForm() {
     mwCourseName.value = defaultCourseData.courseName;
     mwCourseCode.value = defaultCourseData.courseCode;
     mwTrainerName.value = defaultCourseData.trainerName;
-    mwTrainerSignature.value = defaultCourseData.trainerSignature;
-    mwPersistCourseForm({ name: '', code: '', trainer: '', signature: '' });
+    mwSetSignatureFile('');
+    mwSetFormMode(-1);
+    mwPersistCourseForm({ name: '', code: '', trainer: '' });
+}
+
+function mwClearCourseForm() {
+    mwResetForm();
     showToast(t('toast.courseFormCleared'));
 }
 
-// Save / update a preset. Identity is name + code + trainer + text signature,
-// so the same course taught by different trainers is allowed as separate
-// presets, and saving an identical preset updates it instead of rejecting it.
+// Save / update a preset. When editing an existing preset the change applies to
+// that preset in place; otherwise the identity (name + code + trainer) decides
+// whether it updates a matching preset or is added as a new one. The trainer
+// signature is stored as an image path on the preset's `signatureFile`.
 function mwSaveCurrentAsPreset() {
-    const { name, code, trainer, signature } = mwCourseInputValues();
-    if (!name && !code && !trainer && !signature) {
+    const { name, code, trainer } = mwCourseInputValues();
+    if (!name && !code && !trainer) {
         showToast(t('toast.courseNeeded'));
         return;
     }
-    const key = coursePresetKey({ name, code, trainer, signature });
+    if (mwEditingIndex >= 0 && mwCourseList[mwEditingIndex]) {
+        mwCourseList[mwEditingIndex].name = name;
+        mwCourseList[mwEditingIndex].code = code;
+        mwCourseList[mwEditingIndex].trainer = trainer;
+        mwCourseList[mwEditingIndex].signatureFile = mwSignatureFile;
+        mwSaveCourseList();
+        mwRenderCourseList();
+        mwPersistCourseForm({ name, code, trainer });
+        mwSetFormMode(-1);
+        showToast(t('toast.presetUpdated'));
+        return;
+    }
+    const key = coursePresetKey({ name, code, trainer });
     const existing = mwCourseList.findIndex((c) => coursePresetKey(c) === key);
     if (existing >= 0) {
         mwCourseList[existing].name = name;
         mwCourseList[existing].code = code;
         mwCourseList[existing].trainer = trainer;
-        mwCourseList[existing].signature = signature;
+        mwCourseList[existing].signatureFile = mwSignatureFile;
         mwSaveCourseList();
         mwRenderCourseList();
-        mwPersistCourseForm({ name, code, trainer, signature });
+        mwPersistCourseForm({ name, code, trainer });
         showToast(t('toast.presetUpdated'));
         return;
     }
-    mwCourseList.push({ name, code, trainer, signature });
+    mwCourseList.push({ name, code, trainer, signatureFile: mwSignatureFile });
     mwSaveCourseList();
     mwRenderCourseList();
-    mwPersistCourseForm({ name, code, trainer, signature });
+    mwPersistCourseForm({ name, code, trainer });
     showToast(t('toast.presetSaved'));
+}
+
+async function mwPickSignatureImage() {
+    if (!window.mainWindowAPI || typeof window.mainWindowAPI.pickSignatureImage !== 'function') {
+        showToast(t('toast.copyFail'));
+        return;
+    }
+    let result;
+    try {
+        result = await window.mainWindowAPI.pickSignatureImage();
+    } catch (e) {
+        showToast(t('toast.copyFail'));
+        return;
+    }
+    if (!result || !result.ok) {
+        if (result && result.error) showToast(result.error);
+        return;
+    }
+    mwSetSignatureFile(result.filePath);
+    mwPersistCourseForm();
 }
 
 function mwEditPreset(index) {
@@ -2229,10 +2317,11 @@ function mwEditPreset(index) {
     mwCourseName.value = item.name || '';
     mwCourseCode.value = item.code || '';
     mwTrainerName.value = item.trainer || '';
-    mwTrainerSignature.value = item.signature || '';
+    mwSetSignatureFile(item.signatureFile || '');
+    mwSetFormMode(index, item.name || item.code || item.trainer || '');
     mwPersistCourseForm();
     showToast(t('toast.presetLoaded'));
-    document.querySelector('[data-view-panel="settings"]').scrollIntoView({ block: 'start' });
+    setView('courses');
     mwCourseName.focus();
 }
 
@@ -2280,9 +2369,12 @@ function mwRemoveCourseItem(index) {
     const [removed] = mwCourseList.splice(index, 1);
     mwSaveCourseList();
     mwRenderCourseList();
+    if (mwEditingIndex >= 0) mwResetForm();
     mwPushPresetUndo(removed, index);
     mwShowPresetUndoToast(t('toast.presetRemoved'));
 }
+
+const MW_COURSES_EMPTY_ICON = '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5a1 1 0 0 1 1-1h2l.8 1.2a1 1 0 0 0 .8.4h2.4a1 1 0 0 1 1 1V12a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5Z"/><path d="M4 7.5h8M9 3.5h.01"/></svg>';
 
 const MW_COPY_ICON = '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>';
 
@@ -2300,7 +2392,9 @@ function mwRenderCourseList() {
     if (!mwCourseList.length) {
         const empty = document.createElement('div');
         empty.className = 'mw-course-empty';
-        empty.textContent = t('popup.courseListEmpty');
+        empty.innerHTML =
+            '<div class="mw-course-empty-icon" aria-hidden="true">' + MW_COURSES_EMPTY_ICON + '</div>' +
+            '<div class="mw-course-empty-text">' + escapeHtml(t('popup.courseListEmpty')) + '</div>';
         mwCourseListEl.appendChild(empty);
         return;
     }
@@ -2309,14 +2403,37 @@ function mwRenderCourseList() {
         row.className = 'mw-course-item';
         row.title = t('popup.courseItemTitle');
 
+        const main = document.createElement('div');
+        main.className = 'mw-course-item-main';
+
+        const titleLine = document.createElement('div');
+        titleLine.className = 'mw-course-item-title';
+        const titleText = document.createElement('span');
+        titleText.className = 'mw-course-item-title-text';
+        titleText.textContent = item.name || item.trainer || t('popup.untitledCourse');
+        titleLine.appendChild(titleText);
+        if (item.code) {
+            const codeBadge = document.createElement('span');
+            codeBadge.className = 'mw-course-item-code';
+            codeBadge.textContent = item.code;
+            titleLine.appendChild(codeBadge);
+        }
+        main.appendChild(titleLine);
+
+        if (item.trainer && item.trainer !== (item.name || item.trainer)) {
+            const sub = document.createElement('div');
+            sub.className = 'mw-course-item-sub';
+            sub.textContent = item.trainer;
+            main.appendChild(sub);
+        }
+
         const chips = document.createElement('div');
         chips.className = 'mw-course-item-chips';
 
-        const fields = [
-            { field: 'name', label: t('popup.courseName'), value: item.name || '' },
-            { field: 'code', label: t('popup.courseCode'), value: item.code || '' },
-            { field: 'trainer', label: t('popup.trainerName'), value: item.trainer || '' },
-        ];
+        const fields = [];
+        if (item.name) fields.push({ field: 'name', label: t('popup.courseName'), value: item.name, isImage: false });
+        if (item.code) fields.push({ field: 'code', label: t('popup.courseCode'), value: item.code, isImage: false });
+        if (item.trainer) fields.push({ field: 'trainer', label: t('popup.trainerName'), value: item.trainer, isImage: false });
         if (item.signature) {
             fields.push({ field: 'signature', label: t('popup.trainerSignature'), value: item.signature, isImage: false });
         }
@@ -2324,7 +2441,6 @@ function mwRenderCourseList() {
             fields.push({ field: 'signature', label: t('popup.signatureImage'), value: t('popup.signatureImage'), isImage: true });
         }
         fields.forEach((f) => {
-            if (!f.value) return;
             const chip = document.createElement('button');
             chip.type = 'button';
             chip.className = 'mw-course-chip';
@@ -2350,7 +2466,8 @@ function mwRenderCourseList() {
         });
         chips.appendChild(allBtn);
 
-        row.appendChild(chips);
+        main.appendChild(chips);
+        row.appendChild(main);
 
         const actions = document.createElement('div');
         actions.className = 'mw-course-item-actions';
@@ -2383,12 +2500,26 @@ function mwRenderCourseList() {
     });
 }
 
+// Re-apply translated bits onto the course UI that the generic i18n pass can't
+// cover (dynamic label, signature filename display, edit-mode banner).
+function mwRefreshCourseI18n() {
+    if (mwEditingIndex >= 0 && mwCourseModeBadge) {
+        mwCourseModeBadge.textContent = t('courses.editingBadge');
+    }
+    mwSetSignatureFile(mwSignatureFile);
+}
+
 let mwCourseFormTimer = null;
-[mwCourseName, mwCourseCode, mwTrainerName, mwTrainerSignature].forEach((el) => {
+[mwCourseName, mwCourseCode, mwTrainerName].forEach((el) => {
     el.addEventListener('input', () => {
         clearTimeout(mwCourseFormTimer);
         mwCourseFormTimer = setTimeout(() => mwPersistCourseForm(), 400);
     });
+});
+mwSignPick.addEventListener('click', mwPickSignatureImage);
+mwSignClear.addEventListener('click', () => {
+    mwSetSignatureFile('');
+    mwPersistCourseForm();
 });
 mwCourseSave.addEventListener('click', mwSaveCurrentAsPreset);
 mwCourseClear.addEventListener('click', mwClearCourseForm);
@@ -2418,6 +2549,7 @@ window.addEventListener('storage', (e) => {
     } else if (e.key === ACCENT_KEY) {
         loadAccentSetting();
     } else if (e.key === COURSES_KEY) {
+        if (mwEditingIndex >= 0) mwResetForm();
         mwLoadCourseList();
         mwRenderCourseList();
     } else if (e.key === COURSE_KEY) {

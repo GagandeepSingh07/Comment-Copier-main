@@ -4,6 +4,7 @@ contextBridge.exposeInMainWorld('mainWindowAPI', {
     copyText: (text) => ipcRenderer.invoke('comment-copier:copy', text, true),
     copySignature: (filename) => ipcRenderer.invoke('comment-copier:copy-signature', filename),
     copyCourseAll: (payload) => ipcRenderer.invoke('comment-copier:copy-course', payload),
+    pickSignatureImage: () => ipcRenderer.invoke('comment-copier:pick-signature'),
     getAppInfo: () => ipcRenderer.invoke('comment-copier:app-info'),
     checkForUpdates: (channel) => ipcRenderer.invoke('comment-copier:check-updates', channel),
     openExternal: (url) => ipcRenderer.invoke('comment-copier:open-external', url),

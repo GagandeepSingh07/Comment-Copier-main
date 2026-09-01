@@ -404,11 +404,24 @@ ipcMain.handle('comment-copier:copy', (event, text, count) => {
     return true;
 });
 
-ipcMain.handle('comment-copier:copy-signature', (event, filename) => {
-    if (typeof filename !== 'string' || !filename || filename.includes('..') || filename.includes('\\') || filename.includes('/')) {
-        return false;
+// Resolve a signature image source to a loadable path. Bundled signatures
+// live in /signatures and are referenced by bare filename; user-picked
+// signature images are stored as full file paths.
+function resolveSignaturePath(filename) {
+    if (typeof filename !== 'string' || !filename) return null;
+    if (filename.includes('..') || filename.includes('\\')) return null;
+    if (filename.includes('/')) {
+        // A user-picked signature stored as a full path.
+        if (!fs.existsSync(filename)) return null;
+        return filename;
     }
-    const p = path.join(__dirname, 'signatures', filename);
+    // Bare filename -> bundled /signatures.
+    return path.join(__dirname, 'signatures', filename);
+}
+
+ipcMain.handle('comment-copier:copy-signature', (event, filename) => {
+    const p = resolveSignaturePath(filename);
+    if (!p) return false;
     const img = nativeImage.createFromPath(p);
     if (img.isEmpty()) return false;
     clipboard.writeImage(img);
@@ -417,15 +430,40 @@ ipcMain.handle('comment-copier:copy-signature', (event, filename) => {
     return true;
 });
 
+// Open a file picker for a trainer signature image. Returns the chosen full
+// path (or null if cancelled). Used by the main-window Courses & Trainers form.
+ipcMain.handle('comment-copier:pick-signature', async (event) => {
+    const owner = mainWindow && !mainWindow.isDestroyed() ? mainWindow : popupWindow;
+    if (!owner) return { ok: false, canceled: true };
+    let result;
+    try {
+        result = await dialog.showOpenDialog(owner, {
+            title: 'Choose trainer signature image',
+            properties: ['openFile'],
+            filters: [{ name: 'Images', extensions: ['png', 'jpg', 'jpeg', 'bmp', 'gif', 'webp'] }],
+        });
+    } catch (e) {
+        return { ok: false, canceled: true };
+    }
+    if (result.canceled || !result.filePaths || !result.filePaths.length) {
+        return { ok: false, canceled: true };
+    }
+    const filePath = result.filePaths[0];
+    const img = nativeImage.createFromPath(filePath);
+    if (img.isEmpty()) return { ok: false, error: 'Could not read that image.' };
+    return { ok: true, filePath };
+});
+
 // Combined "Copy All" for a saved course preset: puts the plain-text details
-// and the bundled signature image on the clipboard in one write, so image-only
+// and the trainer signature image on the clipboard in one write, so image-only
 // presets (no text signature) aren't silently dropped.
 ipcMain.handle('comment-copier:copy-course', (event, payload) => {
     const text = payload && typeof payload.text === 'string' ? payload.text : '';
     const file = payload && typeof payload.image === 'string' ? payload.image : '';
     let img = null;
-    if (file && !file.includes('..') && !file.includes('\\') && !file.includes('/')) {
-        const shot = nativeImage.createFromPath(path.join(__dirname, 'signatures', file));
+    const p = resolveSignaturePath(file);
+    if (p) {
+        const shot = nativeImage.createFromPath(p);
         if (!shot.isEmpty()) img = shot;
     }
     if (!text && !img) return false;
@@ -1077,6 +1115,16 @@ function createPopup() {
                                     await mainWindow.webContents.executeJavaScript(`document.querySelector('.nav-item[data-view="settings"]').click()`);
                                     await new Promise((r) => setTimeout(r, 100));
                                     console.log('SMOKE main-settings-active:', await mainWindow.webContents.executeJavaScript(`document.querySelector('[data-view-panel="settings"]').classList.contains('active')`));
+
+                                    await mainWindow.webContents.executeJavaScript(`document.querySelector('.nav-item[data-view="courses"]').click()`);
+                                    await new Promise((r) => setTimeout(r, 100));
+                                    console.log('SMOKE main-courses:', await mainWindow.webContents.executeJavaScript(`JSON.stringify({
+                                        active: document.querySelector('[data-view-panel="courses"]').classList.contains('active'),
+                                        bannerHidden: document.getElementById('mw-course-banner').hidden,
+                                        inputs: document.querySelectorAll('#mw-course-name, #mw-course-code, #mw-trainer-name').length,
+                                        items: document.querySelectorAll('#mw-course-list .mw-course-item').length,
+                                        chips: document.querySelectorAll('#mw-course-list .mw-course-item')[0] ? document.querySelectorAll('#mw-course-list .mw-course-item .mw-course-chip').length : 0,
+                                    })`));
 
                                     await mainWindow.webContents.executeJavaScript(`document.querySelector('.nav-item[data-view="about"]').click()`);
                                     await new Promise((r) => setTimeout(r, 300));

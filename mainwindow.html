@@ -24,6 +24,10 @@
                 <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 4.754a3.246 3.246 0 1 0 0 6.492 3.246 3.246 0 0 0 0-6.492zM5.754 8a2.246 2.246 0 1 1 4.492 0 2.246 2.246 0 0 1-4.492 0z"/><path d="M9.796 1.343c-.527-1.79-3.065-1.79-3.592 0l-.094.319a.873.873 0 0 1-1.255.52l-.292-.16c-1.64-.892-3.433.902-2.54 2.541l.159.292a.873.873 0 0 1-.52 1.255l-.319.094c-1.79.527-1.79 3.065 0 3.592l.319.094a.873.873 0 0 1 .52 1.255l-.16.292c-.892 1.64.901 3.434 2.541 2.54l.292-.159a.873.873 0 0 1 1.255.52l.094.319c.527 1.79 3.065 1.79 3.592 0l.094-.319a.873.873 0 0 1 1.255-.52l.292.16c1.64.893 3.434-.902 2.54-2.541l-.159-.292a.873.873 0 0 1 .52-1.255l.319-.094c1.79-.527 1.79-3.065 0-3.592l-.319-.094a.873.873 0 0 1-.52-1.255l.16-.292c.893-1.64-.902-3.433-2.541-2.54l-.292.159a.873.873 0 0 1-1.255-.52l-.094-.319zm-2.633.283c.246-.835 1.428-.835 1.674 0l.094.319a1.873 1.873 0 0 0 2.693 1.115l.291-.16c.764-.415 1.6.42 1.184 1.185l-.159.292a1.873 1.873 0 0 0 1.116 2.692l.318.094c.835.246.835 1.428 0 1.674l-.319.094a1.873 1.873 0 0 0-1.115 2.693l.16.291c.415.764-.42 1.6-1.185 1.184l-.291-.159a1.873 1.873 0 0 0-2.693 1.116l-.094.318c-.246.835-1.428.835-1.674 0l-.094-.319a1.873 1.873 0 0 0-2.692-1.115l-.292.16c-.764.415-1.6-.42-1.184-1.185l.159-.291A1.873 1.873 0 0 0 1.945 8.93l-.319-.094c-.835-.246-.835-1.428 0-1.674l.319-.094A1.873 1.873 0 0 0 3.06 4.377l-.16-.292c-.415-.764.42-1.6 1.185-1.184l.292.159a1.873 1.873 0 0 0 2.692-1.115l.094-.319z"/></svg>
                 <span data-i18n="nav.settings">Settings</span>
             </button>
+            <button type="button" class="nav-item" data-view="courses">
+                <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5a1 1 0 0 1 1-1h2l.8 1.2a1 1 0 0 0 .8.4h2.4a1 1 0 0 1 1 1V12a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5Z"/><path d="M4 7.5h8M8 3.5h.01"/></svg>
+                <span data-i18n="nav.courses">Courses</span>
+            </button>
             <button type="button" class="nav-item" data-view="shortcuts">
                 <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><rect x="1.5" y="3.5" width="13" height="9" rx="1.5"/><path d="M4 6.2h.01M6.4 6.2h.01M8.8 6.2h.01M11.2 6.2h.01M4 8.6h.01M6.4 8.6h.01M8.8 8.6h.01M11.2 8.6h.01" stroke-linecap="round"/><path d="M4.5 11h7" stroke-linecap="round"/></svg>
                 <span data-i18n="nav.shortcuts">Shortcuts</span>
@@ -362,32 +366,53 @@
                 </div>
                 </div>
             </div>
+        </section>
+
+        <section class="view" data-view-panel="courses">
             <div class="settings-group">
                 <div class="settings-block-title" data-i18n="settings.catCourses">Courses &amp; Trainers</div>
                 <div class="settings-block">
-                    <div class="setting-row">
-                        <div class="setting-info">
-                            <div class="setting-title" data-i18n="courses.addNew">Add or update a preset</div>
-                            <div class="setting-desc" data-i18n="courses.addHint">Fill in the course details and click Save preset. Saving the same course with the same trainer updates that preset; different trainers for one course code are kept as separate presets.</div>
+                    <div id="mw-course-banner" class="mw-course-banner" hidden></div>
+                    <div class="mw-course-form">
+                        <div class="mw-course-form-head">
+                            <div class="mw-course-form-title" data-i18n="courses.addNew">Add a course preset</div>
+                            <div class="mw-course-form-badge" id="mw-course-mode-badge" hidden></div>
                         </div>
-                    </div>
-                    <div class="mw-course-body">
                         <div class="mw-course-fields">
-                            <input id="mw-course-name" data-i18n-placeholder="popup.courseName" placeholder="Course name">
-                            <input id="mw-course-code" data-i18n-placeholder="popup.courseCode" placeholder="Course code">
-                            <input id="mw-trainer-name" data-i18n-placeholder="popup.trainerName" placeholder="Trainer name">
-                            <input id="mw-trainer-signature" data-i18n-placeholder="popup.trainerSignature" placeholder="Trainer signature">
+                            <div class="mw-course-field">
+                                <label data-i18n="popup.courseName">Course name</label>
+                                <input id="mw-course-name" placeholder="e.g. Certificate III in Carpentry">
+                            </div>
+                            <div class="mw-course-field">
+                                <label data-i18n="popup.courseCode">Course code</label>
+                                <input id="mw-course-code" placeholder="e.g. CPC30220">
+                            </div>
+                            <div class="mw-course-field">
+                                <label data-i18n="popup.trainerName">Trainer name</label>
+                                <input id="mw-trainer-name" placeholder="Trainer's full name">
+                            </div>
+                            <div class="mw-course-field">
+                                <label data-i18n="popup.trainerSignature">Trainer signature</label>
+                                <div class="mw-course-signrow">
+                                    <button type="button" class="mw-sign-pick" id="mw-sign-pick">
+                                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+                                        <span data-i18n="courses.pickSign">Choose image</span>
+                                    </button>
+                                    <span class="mw-course-signrow-file is-empty" id="mw-sign-file" data-i18n="courses.noSign">No image selected</span>
+                                    <button type="button" class="mw-sign-clear" id="mw-sign-clear" title="Remove signature image" data-i18n-title="courses.clearSign" hidden>&times;</button>
+                                </div>
+                            </div>
                         </div>
                         <div class="mw-course-actions">
-                            <button type="button" class="btn-backup" id="mw-course-save" data-i18n="popup.savePreset">Save preset</button>
+                            <button type="button" class="btn-primary" id="mw-course-save" data-i18n="courses.save">Save preset</button>
                             <button type="button" class="btn-backup" id="mw-course-clear" data-i18n="popup.clear">Clear</button>
                         </div>
-                        <div class="mw-course-list-head">
-                            <span class="settings-block-title" data-i18n="popup.savedCourses">Saved Courses</span>
-                            <span class="mw-course-count" id="mw-course-count"></span>
-                        </div>
-                        <div class="mw-course-list" id="mw-course-list"></div>
                     </div>
+                    <div class="mw-course-list-head">
+                        <span class="settings-block-title" data-i18n="popup.savedCourses">Saved Courses</span>
+                        <span class="mw-course-count" id="mw-course-count"></span>
+                    </div>
+                    <div class="mw-course-list" id="mw-course-list"></div>
                 </div>
             </div>
         </section>

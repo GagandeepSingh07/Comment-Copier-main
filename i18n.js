@@ -28,6 +28,7 @@ I18N.en = {
     nav: {
         editor: 'Comment Editor',
         settings: 'Settings',
+        courses: 'Courses',
         shortcuts: 'Shortcuts',
         about: 'About',
     },
@@ -238,10 +239,17 @@ I18N.en = {
         total: '1 comment', // popup head total, not used directly; kept for invariants
     },
     courses: {
-        addNew: 'Add or update a preset',
-        addHint: 'Fill in the course details and click Save preset. Saving the same course with the same trainer updates that preset; different trainers for one course code are kept as separate presets.',
+        addNew: 'Add a course preset',
         edit: 'Edit',
         editTitle: 'Load this preset into the fields to edit',
+        save: 'Save preset',
+        update: 'Update preset',
+        editingBadge: 'Editing',
+        editingBanner: 'Editing "{name}"',
+        cancelEdit: 'Cancel',
+        pickSign: 'Choose image',
+        noSign: 'No image selected',
+        clearSign: 'Remove signature image',
     },
     org: {
         title: 'File Organizer',
