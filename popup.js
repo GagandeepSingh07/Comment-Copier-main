@@ -42,6 +42,14 @@ const sheetPasteTextarea = document.getElementById('sheet-paste-textarea');
 const sheetPasteImportBtn = document.getElementById('sheet-paste-import-btn');
 const sheetPasteCancelBtn = document.getElementById('sheet-paste-cancel');
 const sheetBtn = document.getElementById('sheet-btn');
+const courseName = document.getElementById('course-name');
+const courseCode = document.getElementById('course-code');
+const trainerName = document.getElementById('trainer-name');
+const trainerSignature = document.getElementById('trainer-signature');
+const courseReset = document.getElementById('course-reset');
+const courseSavePresetBtn = document.getElementById('course-save-preset');
+const courseListEl = document.getElementById('course-list');
+const courseListCount = document.getElementById('course-list-count');
 const organizerWrap = document.querySelector('.organizer-wrap');
 const organizerBtn = document.getElementById('organizer-btn');
 const organizerFolderRow = document.getElementById('organizer-folder-row');
@@ -59,6 +67,7 @@ let activeMainTab = 'comments';
 let layoutMode = 'cards';
 let sheetEntries = [];
 let selectedMark = 'Checked';
+let courseList = [];
 let organizerFolder = '';
 let organizerBusy = false;
 
@@ -675,6 +684,271 @@ function resetSheetData() {
     renderSheetPreview();
     syncHeight();
     showToast(t('toast.sheetCleared'));
+}
+
+function courseDataFromInputs() {
+    return {
+        courseName: courseName.value.trim(),
+        courseCode: courseCode.value.trim(),
+        trainerName: trainerName.value.trim(),
+        trainerSignature: trainerSignature.value.trim(),
+    };
+}
+
+function persistCourseData() {
+    localStorage.setItem(COURSE_KEY, JSON.stringify(courseDataFromInputs()));
+}
+
+function loadCourseInputs() {
+    let saved = null;
+    try {
+        saved = JSON.parse(localStorage.getItem(COURSE_KEY));
+    } catch (e) {
+        saved = null;
+    }
+    const data = Object.assign({}, defaultCourseData, saved || {});
+    courseName.value = data.courseName;
+    courseCode.value = data.courseCode;
+    trainerName.value = data.trainerName;
+    trainerSignature.value = data.trainerSignature;
+}
+
+function resetCourseData() {
+    courseName.value = defaultCourseData.courseName;
+    courseCode.value = defaultCourseData.courseCode;
+    trainerName.value = defaultCourseData.trainerName;
+    trainerSignature.value = defaultCourseData.trainerSignature;
+    persistCourseData();
+    showToast(t('toast.sheetCleared'));
+}
+
+/* ---------- Saved courses (quick-copy presets) ---------- */
+
+function courseKey(item) {
+    return (((item && item.name) || '') + '|' + ((item && item.code) || '')).trim().toLowerCase();
+}
+
+function loadCourseList() {
+    let saved = null;
+    try {
+        saved = JSON.parse(localStorage.getItem(COURSES_KEY));
+    } catch (e) {
+        saved = null;
+    }
+    if (Array.isArray(saved)) {
+        courseList = saved
+            .filter((c) => c && typeof c === 'object')
+            .map((c) => ({
+                name: typeof c.name === 'string' ? c.name : '',
+                code: typeof c.code === 'string' ? c.code : '',
+                trainer: typeof c.trainer === 'string' ? c.trainer : '',
+                signature: typeof c.signature === 'string' ? c.signature : '',
+                signatureFile: typeof c.signatureFile === 'string' ? c.signatureFile : '',
+            }))
+            .filter((c) => c.name || c.code || c.trainer || c.signature || c.signatureFile);
+        // Merge in newer built-in defaults so existing installs pick up
+        // newly-added fields (e.g. a trainer's signature image) without
+        // losing custom presets the user has saved.
+        const byCode = {};
+        courseList.forEach((c) => { if (c.code) byCode[c.code.toLowerCase()] = c; });
+        let mergedAny = false;
+        defaultCourses.forEach((d) => {
+            const found = d.code ? byCode[d.code.toLowerCase()] : null;
+            if (found) {
+                if (!found.signatureFile && d.signatureFile) {
+                    found.signatureFile = d.signatureFile;
+                    mergedAny = true;
+                }
+                if (!found.signature && d.signature) {
+                    found.signature = d.signature;
+                    mergedAny = true;
+                }
+            } else {
+                courseList.push(Object.assign({}, d));
+                mergedAny = true;
+            }
+        });
+        if (mergedAny) saveCourseList();
+    } else {
+        courseList = defaultCourses.map((c) => Object.assign({}, c));
+        saveCourseList();
+    }
+}
+
+function saveCourseList() {
+    localStorage.setItem(COURSES_KEY, JSON.stringify(courseList));
+}
+
+function courseItemText(item) {
+    return [item.name, item.code, item.trainer, item.signature].filter(Boolean).join(' - ');
+}
+
+async function copyCourseItem(item, fillFields) {
+    const text = courseItemText(item);
+    if (!text) return;
+    const ok = await writeClipboard(text);
+    if (fillFields) {
+        courseName.value = item.name || '';
+        courseCode.value = item.code || '';
+        trainerName.value = item.trainer || '';
+        trainerSignature.value = item.signature || '';
+        persistCourseData();
+    }
+    if (!ok) {
+        showToast(t('toast.copyFail'));
+        return;
+    }
+    showToast(t('toast.courseCopied', { name: item.name || item.code || item.trainer || '' }));
+}
+
+async function copyCourseField(item, field, label) {
+    let text = '';
+    if (field === 'name') text = item.name || '';
+    else if (field === 'code') text = item.code || '';
+    else if (field === 'trainer') text = item.trainer || '';
+    else if (field === 'signature') text = item.signature || '';
+    if (!text && !(field === 'signature' && item.signatureFile)) {
+        showToast(t('toast.courseFieldEmpty'));
+        return;
+    }
+    if (field === 'signature' && item.signatureFile) {
+        const ok = await writeClipboardImage(item.signatureFile);
+        if (!ok) {
+            showToast(t('toast.copyFail'));
+            return;
+        }
+        showToast(t('toast.courseFieldCopied', { field: label }));
+        return;
+    }
+    const ok = await writeClipboard(text);
+    if (!ok) {
+        showToast(t('toast.copyFail'));
+        return;
+    }
+    showToast(t('toast.courseFieldCopied', { field: label }));
+}
+
+async function writeClipboardImage(filename) {
+    if (window.popupAPI && typeof window.popupAPI.copySignature === 'function') {
+        try {
+            return await window.popupAPI.copySignature(filename);
+        } catch (e) {
+            return false;
+        }
+    }
+    return false;
+}
+
+function removeCourseItem(index) {
+    courseList.splice(index, 1);
+    saveCourseList();
+    renderCourseList();
+    syncHeight();
+    showToast(t('toast.presetRemoved'));
+}
+
+const COPY_ICON = '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>';
+
+const FIELD_ICONS = {
+    name: '<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7V4h16v3"></path><path d="M9 20h6"></path><path d="M12 4v16"></path></svg>',
+    code: '<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="8 6 2 12 8 18"></polyline><polyline points="16 6 22 12 16 18"></polyline></svg>',
+    trainer: '<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>',
+    signature: '<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>',
+};
+
+function renderCourseList() {
+    courseListCount.textContent = tN('count.entry', courseList.length, { n: courseList.length });
+    courseListEl.innerHTML = '';
+    if (!courseList.length) {
+        const empty = document.createElement('div');
+        empty.className = 'course-list-empty';
+        empty.textContent = t('popup.courseListEmpty');
+        courseListEl.appendChild(empty);
+        return;
+    }
+    courseList.forEach((item, i) => {
+        const row = document.createElement('div');
+        row.className = 'course-item';
+        row.title = t('popup.courseItemTitle');
+
+        const chips = document.createElement('div');
+        chips.className = 'course-item-chips';
+
+        const fields = [
+            { field: 'name', label: t('popup.courseName'), value: item.name || '' },
+            { field: 'code', label: t('popup.courseCode'), value: item.code || '' },
+            { field: 'trainer', label: t('popup.trainerName'), value: item.trainer || '' },
+            {
+                field: 'signature',
+                label: t('popup.trainerSignature'),
+                value: item.signature || (item.signatureFile ? t('popup.signatureImage') : ''),
+            },
+        ];
+        fields.forEach((f) => {
+            if (!f.value) return;
+            const chip = document.createElement('button');
+            chip.type = 'button';
+            chip.className = 'course-chip';
+            chip.title = t('popup.copyFieldTitle', { field: f.label });
+            chip.innerHTML =
+                '<span class="course-chip-icon" aria-hidden="true">' + (FIELD_ICONS[f.field] || '') + '</span>' +
+                '<span class="course-chip-text">' + escapeHtml(f.value) + '</span>';
+            chip.addEventListener('click', (e) => {
+                e.stopPropagation();
+                copyCourseField(item, f.field, f.label);
+            });
+            chips.appendChild(chip);
+        });
+
+        const allBtn = document.createElement('button');
+        allBtn.type = 'button';
+        allBtn.className = 'course-chip course-chip-all';
+        allBtn.title = t('popup.copyAllTitle');
+        allBtn.innerHTML = '<span class="course-chip-icon" aria-hidden="true">' + COPY_ICON + '</span><span class="course-chip-text">' + escapeHtml(t('popup.copyAllShort')) + '</span>';
+        allBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            copyCourseItem(item);
+        });
+        chips.appendChild(allBtn);
+
+        row.appendChild(chips);
+
+        const delBtn = document.createElement('button');
+        delBtn.type = 'button';
+        delBtn.className = 'course-item-del';
+        delBtn.title = t('popup.remove');
+        delBtn.textContent = '\u00d7';
+        delBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            removeCourseItem(i);
+        });
+        row.appendChild(delBtn);
+
+        row.addEventListener('click', () => copyCourseItem(item, true));
+        courseListEl.appendChild(row);
+    });
+}
+
+function saveCurrentAsPreset() {
+    const name = courseName.value.trim();
+    const code = courseCode.value.trim();
+    const trainer = trainerName.value.trim();
+    const signature = trainerSignature.value.trim();
+    if (!name && !code && !trainer && !signature) {
+        showToast(t('toast.courseNeeded'));
+        return;
+    }
+    const key = courseKey({ name, code });
+    const exists = courseList.some((c) => courseKey(c) === key);
+    if (exists) {
+        showToast(t('toast.presetExists'));
+        return;
+    }
+    courseList.push({ name, code, trainer, signature });
+    saveCourseList();
+    renderCourseList();
+    syncHeight();
+    showToast(t('toast.presetSaved'));
 }
 
 function normalizeCell(v) {
@@ -1314,6 +1588,15 @@ let sheetTimer = null;
     });
 });
 sheetReset.addEventListener('click', resetSheetData);
+let courseTimer = null;
+[courseName, courseCode, trainerName, trainerSignature].forEach((el) => {
+    el.addEventListener('input', () => {
+        clearTimeout(courseTimer);
+        courseTimer = setTimeout(persistCourseData, 400);
+    });
+});
+courseReset.addEventListener('click', resetCourseData);
+courseSavePresetBtn.addEventListener('click', saveCurrentAsPreset);
 sheetPasteBtn.addEventListener('click', pasteFromClipboard);
 sheetPasteToggle.addEventListener('click', () => toggleSheetPastePanel());
 sheetPasteCancelBtn.addEventListener('click', () => toggleSheetPastePanel(false));
@@ -1362,6 +1645,7 @@ function applyI18n() {
     renderRows();
     updateCounts();
     renderSheetPreview();
+    renderCourseList();
     selectMark(selectedMark);
     if (organizerRunBtn.querySelector('span')) {
         organizerRunBtn.querySelector('span').textContent = organizerBusy ? t('org.running') : t('org.run');
@@ -1373,6 +1657,9 @@ function applyI18n() {
 
 load();
 loadSheetInputs();
+loadCourseInputs();
+loadCourseList();
+renderCourseList();
 clearOrganizerFolder();
 renderSheetPreview();
 selectMark('Checked');

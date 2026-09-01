@@ -34,6 +34,7 @@
       "mainwindow.css",
       "mainwindow.js",
       "mainwindow-preload.js",
+      "signatures",
       "build/tray.png",
       "build/icon.png"
     ],

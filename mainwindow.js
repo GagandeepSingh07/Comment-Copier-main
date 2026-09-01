@@ -1594,6 +1594,12 @@ function buildBackupPayload() {
     try {
         payload[SHEET_KEY] = JSON.parse(localStorage.getItem(SHEET_KEY));
     } catch (e) {}
+    try {
+        payload[COURSE_KEY] = JSON.parse(localStorage.getItem(COURSE_KEY));
+    } catch (e) {}
+    try {
+        payload[COURSES_KEY] = JSON.parse(localStorage.getItem(COURSES_KEY));
+    } catch (e) {}
     payload[LAYOUT_KEY] = localStorage.getItem(LAYOUT_KEY);
     payload[TOOLTIP_DENSITY_KEY] = localStorage.getItem(TOOLTIP_DENSITY_KEY);
     payload[DATE_FIRST_KEY] = localStorage.getItem(DATE_FIRST_KEY);
@@ -1729,6 +1735,37 @@ function mergeUsage(backupRaw) {
     return changed;
 }
 
+function courseMergeKey(item) {
+    return (((item && item.name) || '') + '|' + ((item && item.code) || '')).trim().toLowerCase();
+}
+
+function mergeCourses(backupRaw) {
+    const backup = parseMaybe(backupRaw);
+    if (!Array.isArray(backup)) return false;
+    let current = [];
+    try {
+        const cur = JSON.parse(localStorage.getItem(COURSES_KEY));
+        if (Array.isArray(cur)) current = cur;
+    } catch (e) {}
+    const seen = new Set(current.map(courseMergeKey));
+    let changed = false;
+    backup.forEach((c) => {
+        if (!c || typeof c !== 'object') return;
+        const item = { name: c.name || '', code: c.code || '', trainer: c.trainer || '', signature: c.signature || '', signatureFile: c.signatureFile || '' };
+        if (!item.name && !item.code && !item.trainer && !item.signature && !item.signatureFile) return;
+        const key = courseMergeKey(item);
+        if (!seen.has(key)) {
+            current.push(item);
+            seen.add(key);
+            changed = true;
+        }
+    });
+    if (changed) {
+        try { localStorage.setItem(COURSES_KEY, JSON.stringify(current)); } catch (e) {}
+    }
+    return changed;
+}
+
 function mergeFill(key, raw) {
     if (raw === undefined || raw === null) return false;
     const current = localStorage.getItem(key);
@@ -1762,6 +1799,8 @@ function applyBackupData(data, mode) {
         replace(STORAGE_KEY, data[STORAGE_KEY]);
         replace(PROMPT_KEY, data[PROMPT_KEY]);
         replace(SHEET_KEY, data[SHEET_KEY]);
+        replace(COURSE_KEY, data[COURSE_KEY]);
+        replace(COURSES_KEY, data[COURSES_KEY]);
         replace(LAYOUT_KEY, data[LAYOUT_KEY]);
         replace(TOOLTIP_DENSITY_KEY, data[TOOLTIP_DENSITY_KEY]);
         replace(DATE_FIRST_KEY, data[DATE_FIRST_KEY]);
@@ -1781,6 +1820,8 @@ function applyBackupData(data, mode) {
     mergeComments(data[STORAGE_KEY]);
     mergeFill(PROMPT_KEY, data[PROMPT_KEY]);
     mergeFill(SHEET_KEY, data[SHEET_KEY]);
+    mergeFill(COURSE_KEY, data[COURSE_KEY]);
+    mergeCourses(data[COURSES_KEY]);
     mergeFill(LAYOUT_KEY, data[LAYOUT_KEY]);
     mergeFill(TOOLTIP_DENSITY_KEY, data[TOOLTIP_DENSITY_KEY]);
     mergeFill(DATE_FIRST_KEY, data[DATE_FIRST_KEY]);

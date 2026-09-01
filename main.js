@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, clipboard, Tray, screen, dialog, shell, globalShortcut } = require('electron');
+const { app, BrowserWindow, ipcMain, clipboard, nativeImage, Tray, screen, dialog, shell, globalShortcut } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const https = require('https');
@@ -401,6 +401,19 @@ ipcMain.handle('comment-copier:copy', (event, text, count) => {
         stats.copyCount++;
         saveStats();
     }
+    return true;
+});
+
+ipcMain.handle('comment-copier:copy-signature', (event, filename) => {
+    if (typeof filename !== 'string' || !filename || filename.includes('..') || filename.includes('\\') || filename.includes('/')) {
+        return false;
+    }
+    const p = path.join(__dirname, 'signatures', filename);
+    const img = nativeImage.createFromPath(p);
+    if (img.isEmpty()) return false;
+    clipboard.writeImage(img);
+    stats.copyCount++;
+    saveStats();
     return true;
 });
 
@@ -1001,6 +1014,29 @@ function createPopup() {
                     await new Promise((r) => setTimeout(r, 300));
                     console.log('SMOKE sheet-clipboard-html:', clipboard.readHTML().slice(0, 120));
                     console.log('SMOKE sheet-clipboard-text:', clipboard.readText().slice(0, 60));
+
+                    await popupWindow.webContents.executeJavaScript(`document.querySelector('.tab[data-tab="student"]').click()`);
+                    await new Promise((r) => setTimeout(r, 200));
+                    const courseSmoke = await popupWindow.webContents.executeJavaScript(`JSON.stringify({
+                        items: document.querySelectorAll('#course-list .course-item').length,
+                        first: document.querySelector('#course-list .course-item .course-chip-text').textContent,
+                        chips: document.querySelectorAll('#course-list .course-item').length
+                            ? [...document.querySelectorAll('#course-list .course-item')][0].querySelectorAll('.course-chip').length
+                            : 0,
+                    })`);
+                    console.log('SMOKE course-list:', courseSmoke);
+
+                    const sigRow = await popupWindow.webContents.executeJavaScript(`(() => {
+                        const items = document.querySelectorAll('#course-list .course-item');
+                        const row = [...items].find((it) => it.textContent.includes('Sukhjinder'));
+                        if (!row) return 'NO-ITEM';
+                        const chip = [...row.querySelectorAll('.course-chip')].find((f) => f.textContent.includes('signature'));
+                        if (!chip) return 'NO-SIG';
+                        chip.click();
+                        return 'CLICKED';
+                    })()`);
+                    await new Promise((r) => setTimeout(r, 500));
+                    console.log('SMOKE sig-click:', sigRow, 'clipboard-has-image:', !clipboard.readImage().isEmpty());
 
                     openMainWindow();
                     if (mainWindow && !mainWindow.isDestroyed()) {

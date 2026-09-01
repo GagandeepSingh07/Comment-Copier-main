@@ -1,6 +1,8 @@
 const STORAGE_KEY = 'comment-copier-data-v7';
 const PROMPT_KEY = 'comment-copier-prompt-v1';
 const SHEET_KEY = 'comment-copier-sheet-v3';
+const COURSE_KEY = 'comment-copier-course-v1';
+const COURSES_KEY = 'comment-copier-courses-v1';
 const LAYOUT_KEY = 'comment-copier-layout-v1';
 const ORGANIZER_KEY = 'comment-copier-organizer-path-v1';
 const DATE_FIRST_KEY = 'comment-copier-date-first-v1';
@@ -81,6 +83,27 @@ const defaultSheetData = {
     name: '',
     codes: [],
 };
+
+const defaultCourseData = {
+    courseName: '',
+    courseCode: '',
+    trainerName: '',
+    trainerSignature: '',
+};
+
+// Seed presets for the "Saved Courses" quick-copy list. Users can add,
+// remove, or fully replace these from the popup — this is only what a
+// brand-new install (or a Reset app data) starts with. `signatureFile` is
+// the bundled signature image (see /signatures) copied to the clipboard as
+// a picture; `signature` is optional plain-text.
+const defaultCourses = [
+    { name: 'Certificate III in Carpentry', code: 'CPC30220', trainer: 'Vikram Saini', signatureFile: 'carpentry-vikram-saini-sign.png' },
+    { name: 'Certificate III in Cabinet Making and Timber Technology', code: 'MSF30322', trainer: 'Jagjit Singh', signatureFile: 'cabinet-jagjit-singh-sign.png' },
+    { name: 'Certificate III in Painting and Decorating', code: 'CPC30620', trainer: 'Sukhjinder Singh', signatureFile: 'painting-sukhjinder-singh-sign.png' },
+    { name: 'Diploma of Building and Construction (Building)', code: 'CPC50220', trainer: 'Jaswant Singh' },
+    { name: 'Advanced Diploma of Hospitality Management', code: 'SIT60322', trainer: 'Pritpal Singh' },
+    { name: 'Graduate Diploma of Management (Learning)', code: 'BSB80120', trainer: 'Harjinder Singh' },
+];
 
 const defaultPrompt = `**TASK:**
 Create named folders in the target directory based on file names. The folder name should be the code/identifier extracted from the file's name. Then move each file into its corresponding folder.
