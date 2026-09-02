@@ -1095,16 +1095,16 @@ function createPopup() {
                     // selected, so no course cards render until one is picked.
                     const filterSmoke = await popupWindow.webContents.executeJavaScript(`(() => {
                         const trigger = document.getElementById('course-filter-trigger');
-                        const menu = document.getElementById('course-filter-menu');
+                        const modalOptions = document.getElementById('course-filter-modal-options');
                         trigger.click();
-                        const optionCount = [...menu.querySelectorAll('.course-filter-option')].length;
-                        const hasAll = [...menu.querySelectorAll('.course-filter-option')].some((o) => o.dataset.value === '__all__');
+                        const optionCount = [...modalOptions.querySelectorAll('.course-filter-option')].length;
+                        const hasAll = [...modalOptions.querySelectorAll('.course-filter-option')].some((o) => o.dataset.value === '__all__');
                         const defaultValue = document.getElementById('course-filter-value').textContent;
                         const defaultPrompt = document.querySelector('#course-list .course-filter-prompt')
                             ? document.querySelector('#course-list .course-filter-prompt').textContent
                             : '';
                         const defaultItems = document.querySelectorAll('#course-list .course-item').length;
-                        const painting = [...menu.querySelectorAll('.course-filter-option')].find((o) => o.textContent.includes('Painting'));
+                        const painting = [...modalOptions.querySelectorAll('.course-filter-option')].find((o) => o.textContent.includes('Painting'));
                         painting.click();
                         const filteredItems = document.querySelectorAll('#course-list .course-item').length;
                         const filteredHeader = document.querySelector('#course-list .course-item .course-item-header')
@@ -1112,13 +1112,13 @@ function createPopup() {
                             : '';
                         const count = document.getElementById('course-list-count').textContent;
                         trigger.click();
-                        const allOpt = [...menu.querySelectorAll('.course-filter-option')].find((o) => o.dataset.value === '__all__');
+                        const allOpt = [...modalOptions.querySelectorAll('.course-filter-option')].find((o) => o.dataset.value === '__all__');
                         allOpt.click();
                         const restored = document.querySelectorAll('#course-list .course-item').length;
                         // Return to the no-selection default and verify the list
                         // clears again (keeps repeat runs deterministic).
                         trigger.click();
-                        const noneOpt = [...menu.querySelectorAll('.course-filter-option')].find((o) => o.dataset.value === '');
+                        const noneOpt = [...modalOptions.querySelectorAll('.course-filter-option')].find((o) => o.dataset.value === '');
                         noneOpt.click();
                         const cleared = document.querySelectorAll('#course-list .course-item').length;
                         return JSON.stringify({
@@ -1142,10 +1142,10 @@ function createPopup() {
                     // Select the painting course first (nothing shows by default).
                     const copyAll = await popupWindow.webContents.executeJavaScript(`(() => {
                         const trigger = document.getElementById('course-filter-trigger');
-                        const menu = document.getElementById('course-filter-menu');
+                        const modalOptions = document.getElementById('course-filter-modal-options');
                         let res = 'NO-ITEM';
                         trigger.click();
-                        const painting = [...menu.querySelectorAll('.course-filter-option')].find((o) => o.textContent.includes('Painting'));
+                        const painting = [...modalOptions.querySelectorAll('.course-filter-option')].find((o) => o.textContent.includes('Painting'));
                         if (!painting) return 'NO-OPTION';
                         painting.click();
                         const row = [...document.querySelectorAll('#course-list .course-item')].find((it) => it.textContent.includes('Sukhjinder'));
@@ -1163,7 +1163,7 @@ function createPopup() {
                     await popupWindow.webContents.executeJavaScript(`(() => {
                         const trigger = document.getElementById('course-filter-trigger');
                         trigger.click();
-                        const noneOpt = [...trigger.nextElementSibling.querySelectorAll('.course-filter-option')].find((o) => o.dataset.value === '');
+                        const noneOpt = [...document.getElementById('course-filter-modal-options').querySelectorAll('.course-filter-option')].find((o) => o.dataset.value === '');
                         noneOpt.click();
                     })()`);
 

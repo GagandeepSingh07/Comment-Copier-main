@@ -84,11 +84,10 @@
             <span class="course-list-count" id="course-list-count"></span>
         </div>
         <div class="course-filter">
-            <button type="button" class="course-filter-trigger" id="course-filter-trigger" aria-haspopup="listbox" aria-expanded="false">
+            <button type="button" class="course-filter-trigger" id="course-filter-trigger" aria-haspopup="dialog" aria-expanded="false">
                 <span class="course-filter-value" id="course-filter-value"></span>
                 <svg class="course-filter-chevron" width="10" height="6" viewBox="0 0 10 6" aria-hidden="true"><path d="M0 0l5 6 5-6z"></path></svg>
             </button>
-            <div class="course-filter-menu hidden" id="course-filter-menu" role="listbox"></div>
         </div>
         <div class="course-list" id="course-list"></div>
     </div>
@@ -151,6 +150,15 @@
         <button type="button" class="main-btn" id="open-main-btn" data-i18n-title="popup.mainOpenTitle" title="Open the Comment Copier main window" aria-label="Open main window">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
         </button>
+    </div>
+</div>
+<div class="modal-overlay hidden" id="course-filter-modal">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="course-filter-modal-title">
+        <div class="modal-head">
+            <span class="modal-title" data-i18n="popup.courseDetail" id="course-filter-modal-title">Course Detail</span>
+            <button type="button" class="modal-close" id="course-filter-modal-close" data-i18n-aria="popup.cancel" aria-label="Cancel">&#215;</button>
+        </div>
+        <div class="modal-options" id="course-filter-modal-options" role="listbox"></div>
     </div>
 </div>
 <div class="toast" id="toast"></div>

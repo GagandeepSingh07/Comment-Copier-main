@@ -45,7 +45,9 @@ const sheetBtn = document.getElementById('sheet-btn');
 const courseListEl = document.getElementById('course-list');
 const courseListCount = document.getElementById('course-list-count');
 const courseFilterTrigger = document.getElementById('course-filter-trigger');
-const courseFilterMenu = document.getElementById('course-filter-menu');
+const courseFilterModal = document.getElementById('course-filter-modal');
+const courseFilterModalOptions = document.getElementById('course-filter-modal-options');
+const courseFilterModalClose = document.getElementById('course-filter-modal-close');
 const courseFilterValue = document.getElementById('course-filter-value');
 const organizerWrap = document.querySelector('.organizer-wrap');
 const organizerBtn = document.getElementById('organizer-btn');
@@ -755,8 +757,8 @@ function courseFilterLabel(key) {
 }
 
 function renderCourseFilter() {
-    if (!courseFilterMenu) return;
-    courseFilterMenu.innerHTML = '';
+    if (!courseFilterModalOptions) return;
+    courseFilterModalOptions.innerHTML = '';
     const makeOption = (value, label) => {
         const opt = document.createElement('button');
         opt.type = 'button';
@@ -766,7 +768,7 @@ function renderCourseFilter() {
         opt.setAttribute('aria-selected', courseFilter === value ? 'true' : 'false');
         opt.textContent = label;
         opt.addEventListener('click', () => selectCourseFilter(value));
-        courseFilterMenu.appendChild(opt);
+        courseFilterModalOptions.appendChild(opt);
     };
     makeOption('', t('popup.selectCourse'));
     makeOption(COURSE_FILTER_ALL, t('popup.allCourses'));
@@ -784,21 +786,21 @@ function renderCourseFilter() {
 }
 
 function openCourseFilterMenu() {
-    courseFilterMenu.classList.remove('hidden');
+    courseFilterModal.classList.remove('hidden');
     courseFilterTrigger.classList.add('open');
     courseFilterTrigger.setAttribute('aria-expanded', 'true');
-    syncHeight();
+    const selected = courseFilterModalOptions.querySelector('.course-filter-option.selected');
+    (selected || courseFilterModalOptions.querySelector('.course-filter-option') || courseFilterModalClose).focus();
 }
 
 function closeCourseFilterMenu() {
-    courseFilterMenu.classList.add('hidden');
+    courseFilterModal.classList.add('hidden');
     courseFilterTrigger.classList.remove('open');
     courseFilterTrigger.setAttribute('aria-expanded', 'false');
-    syncHeight();
 }
 
 function toggleCourseFilterMenu() {
-    if (courseFilterMenu.classList.contains('hidden')) openCourseFilterMenu();
+    if (courseFilterModal.classList.contains('hidden')) openCourseFilterMenu();
     else closeCourseFilterMenu();
 }
 
@@ -1695,7 +1697,7 @@ document.addEventListener('keydown', (e) => {
             markSelectTrigger.focus();
             return;
         }
-        if (!courseFilterMenu.classList.contains('hidden')) {
+        if (!courseFilterModal.classList.contains('hidden')) {
             closeCourseFilterMenu();
             courseFilterTrigger.focus();
             return;
@@ -1767,10 +1769,9 @@ courseFilterTrigger.addEventListener('click', (e) => {
     e.stopPropagation();
     toggleCourseFilterMenu();
 });
-document.addEventListener('click', (e) => {
-    if (!courseFilterMenu.classList.contains('hidden') && !courseFilterMenu.contains(e.target) && !courseFilterTrigger.contains(e.target)) {
-        closeCourseFilterMenu();
-    }
+courseFilterModalClose.addEventListener('click', () => closeCourseFilterMenu());
+courseFilterModal.addEventListener('click', (e) => {
+    if (e.target === courseFilterModal) closeCourseFilterMenu();
 });
 
 function applyI18n() {
