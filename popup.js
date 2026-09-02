@@ -891,15 +891,47 @@ function renderCourseList() {
         return;
     }
     courseList.forEach((item, i) => {
+        const label = item.name || item.trainer || t('popup.untitledCourse');
+
         const row = document.createElement('div');
         row.className = 'course-item';
-        row.title = t('popup.courseItemTitle');
 
+        // The name + code + trainer header is the sole "copy everything"
+        // trigger — a real <button> so reaching for Delete elsewhere on the
+        // card can't accidentally overwrite the clipboard.
+        const header = document.createElement('button');
+        header.type = 'button';
+        header.className = 'course-item-header';
+        header.title = t('popup.copyAllTitle');
+        header.setAttribute('aria-label', t('popup.copyAllTitle') + ': ' + label + (item.code ? ' (' + item.code + ')' : ''));
+
+        const titleLine = document.createElement('div');
+        titleLine.className = 'course-item-title';
+        const titleText = document.createElement('span');
+        titleText.className = 'course-item-title-text';
+        titleText.textContent = label;
+        titleLine.appendChild(titleText);
+        if (item.code) {
+            const codeBadge = document.createElement('span');
+            codeBadge.className = 'course-item-code';
+            codeBadge.textContent = item.code;
+            titleLine.appendChild(codeBadge);
+        }
+        header.appendChild(titleLine);
+        if (item.trainer) {
+            const trainerLine = document.createElement('div');
+            trainerLine.className = 'course-item-trainer';
+            trainerLine.textContent = item.trainer;
+            header.appendChild(trainerLine);
+        }
+        header.addEventListener('click', () => copyCourseItem(item));
+        row.appendChild(header);
+
+        // Each field gets its own chip so what's shown on a chip is what a
+        // click copies individually (name, code, trainer, signature).
         const chips = document.createElement('div');
         chips.className = 'course-item-chips';
 
-        // Text and image signatures are rendered as separate chips so what's
-        // displayed on a chip is always what a click copies.
         const fields = [
             { field: 'name', label: t('popup.courseName'), value: item.name || '' },
             { field: 'code', label: t('popup.courseCode'), value: item.code || '' },
@@ -909,7 +941,7 @@ function renderCourseList() {
             fields.push({ field: 'signature', label: t('popup.trainerSignature'), value: item.signature, isImage: false });
         }
         if (item.signatureFile) {
-            fields.push({ field: 'signature', label: t('popup.signatureImage'), value: t('popup.signatureImage'), isImage: true });
+            fields.push({ field: 'signature', label: t('popup.trainerSignature'), value: t('popup.signatureImage'), isImage: true });
         }
         fields.forEach((f) => {
             if (!f.value) return;
@@ -927,6 +959,10 @@ function renderCourseList() {
             chips.appendChild(chip);
         });
 
+        row.appendChild(chips);
+
+        // An explicit "Copy all" chip (the signature, if any, is included in
+        // the combined copy handled by copyCourseItem).
         const allBtn = document.createElement('button');
         allBtn.type = 'button';
         allBtn.className = 'course-chip course-chip-all';
@@ -936,9 +972,7 @@ function renderCourseList() {
             e.stopPropagation();
             copyCourseItem(item);
         });
-        chips.appendChild(allBtn);
-
-        row.appendChild(chips);
+        row.appendChild(allBtn);
 
         const delBtn = document.createElement('button');
         delBtn.type = 'button';
@@ -951,7 +985,6 @@ function renderCourseList() {
         });
         row.appendChild(delBtn);
 
-        row.addEventListener('click', () => copyCourseItem(item));
         courseListEl.appendChild(row);
     });
 }

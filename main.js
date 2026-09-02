@@ -1,7 +1,15 @@
-const { app, BrowserWindow, ipcMain, clipboard, nativeImage, Tray, screen, dialog, shell, globalShortcut } = require('electron');
+const { app, BrowserWindow, ipcMain, clipboard, nativeImage, Tray, screen, dialog, shell, globalShortcut, protocol, net } = require('electron');
 const path = require('path');
+const { pathToFileURL } = require('url');
 const fs = require('fs');
 const https = require('https');
+
+protocol.registerSchemesAsPrivileged([
+    {
+        scheme: 'signature',
+        privileges: { standard: true, secure: true, supportFetchAPI: true },
+    },
+]);
 
 app.commandLine.appendSwitch('disable-gpu-cache');
 app.commandLine.appendSwitch('disk-cache-size', '0');
@@ -1077,24 +1085,26 @@ function createPopup() {
                     await new Promise((r) => setTimeout(r, 200));
                     const courseSmoke = await popupWindow.webContents.executeJavaScript(`JSON.stringify({
                         items: document.querySelectorAll('#course-list .course-item').length,
-                        first: document.querySelector('#course-list .course-item .course-chip-text').textContent,
+                        header: document.querySelector('#course-list .course-item .course-item-header') ? document.querySelector('#course-list .course-item .course-item-header').textContent.trim() : '',
                         chips: document.querySelectorAll('#course-list .course-item').length
                             ? [...document.querySelectorAll('#course-list .course-item')][0].querySelectorAll('.course-chip').length
                             : 0,
                     })`);
                     console.log('SMOKE course-list:', courseSmoke);
 
-                    const sigRow = await popupWindow.webContents.executeJavaScript(`(() => {
+                    // A course with a bundled signature image copies text + the
+                    // image together when its header ("copy all") is clicked.
+                    const copyAll = await popupWindow.webContents.executeJavaScript(`(() => {
                         const items = document.querySelectorAll('#course-list .course-item');
                         const row = [...items].find((it) => it.textContent.includes('Sukhjinder'));
                         if (!row) return 'NO-ITEM';
-                        const chip = [...row.querySelectorAll('.course-chip')].find((f) => f.textContent.includes('signature'));
-                        if (!chip) return 'NO-SIG';
-                        chip.click();
+                        const header = row.querySelector('.course-item-header');
+                        if (!header) return 'NO-HEADER';
+                        header.click();
                         return 'CLICKED';
                     })()`);
                     await new Promise((r) => setTimeout(r, 500));
-                    console.log('SMOKE sig-click:', sigRow, 'clipboard-has-image:', !clipboard.readImage().isEmpty());
+                    console.log('SMOKE copy-all:', copyAll, 'clipboard-has-image:', !clipboard.readImage().isEmpty(), 'text:', clipboard.readText().slice(0, 60));
 
                     openMainWindow();
                     if (mainWindow && !mainWindow.isDestroyed()) {
@@ -1117,14 +1127,31 @@ function createPopup() {
                                     console.log('SMOKE main-settings-active:', await mainWindow.webContents.executeJavaScript(`document.querySelector('[data-view-panel="settings"]').classList.contains('active')`));
 
                                     await mainWindow.webContents.executeJavaScript(`document.querySelector('.nav-item[data-view="courses"]').click()`);
-                                    await new Promise((r) => setTimeout(r, 100));
+                                    await new Promise((r) => setTimeout(r, 500));
                                     console.log('SMOKE main-courses:', await mainWindow.webContents.executeJavaScript(`JSON.stringify({
                                         active: document.querySelector('[data-view-panel="courses"]').classList.contains('active'),
                                         bannerHidden: document.getElementById('mw-course-banner').hidden,
                                         inputs: document.querySelectorAll('#mw-course-name, #mw-course-code, #mw-trainer-name').length,
                                         items: document.querySelectorAll('#mw-course-list .mw-course-item').length,
-                                        chips: document.querySelectorAll('#mw-course-list .mw-course-item')[0] ? document.querySelectorAll('#mw-course-list .mw-course-item .mw-course-chip').length : 0,
+                                        copyTabs: document.querySelectorAll('#mw-course-list .mw-course-item')[0] ? document.querySelectorAll('#mw-course-list .mw-course-item .mw-course-mi').length : 0,
+                                        noOverflow: (() => { const p = document.querySelector('[data-view-panel="courses"]'); const c = document.getElementById('mw-course-list'); return p.scrollWidth <= p.clientWidth && c.scrollWidth <= c.clientWidth && Array.from(c.querySelectorAll('.mw-course-item')).every(x => x.getBoundingClientRect().right <= p.getBoundingClientRect().right + 1); })(),
+                                        firstTabs: Array.from(document.querySelectorAll('#mw-course-list .mw-course-item'))[0] ? Array.from(document.querySelectorAll('#mw-course-list .mw-course-item')[0].querySelectorAll('.mw-course-mi')).map(t => ({ label: t.querySelector('.mw-course-mi-label') ? t.querySelector('.mw-course-mi-label').textContent : '', value: t.querySelector('.mw-course-mi-value') ? t.querySelector('.mw-course-mi-value').textContent : '' })) : [],
+                                        header: Array.from(document.querySelectorAll('#mw-course-list .mw-course-item')).map(x => ({ title: x.querySelector('.mw-course-item-title-text') ? x.querySelector('.mw-course-item-title-text').textContent : '', trainer: x.querySelector('.mw-course-item-trainer') ? x.querySelector('.mw-course-item-trainer').textContent : '', code: x.querySelector('.mw-course-item-code') ? x.querySelector('.mw-course-item-code').textContent : '' })),
                                     })`));
+
+                                    if (process.env.SMOKE_PROBE) {
+                                        const recap = await mainWindow.webContents.executeJavaScript(`JSON.stringify({
+                                            header: Array.from(document.querySelectorAll('#mw-course-list .mw-course-item')).map(x => ({ title: x.querySelector('.mw-course-item-title-text') ? x.querySelector('.mw-course-item-title-text').textContent : '', trainer: x.querySelector('.mw-course-item-trainer') ? x.querySelector('.mw-course-item-trainer').textContent : '', code: x.querySelector('.mw-course-item-code') ? x.querySelector('.mw-course-item-code').textContent : '' })),
+                                            mi: Array.from(document.querySelectorAll('#mw-course-list .mw-course-item'))[0] ? Array.from(document.querySelectorAll('#mw-course-list .mw-course-item')[0].querySelectorAll('.mw-course-mi')).map(t => (t.querySelector('.mw-course-mi-label') ? t.querySelector('.mw-course-mi-label').textContent : '') + '=' + (t.querySelector('.mw-course-mi-value') ? t.querySelector('.mw-course-mi-value').textContent : '')) : [],
+                                        })`);
+                                        fs.writeFileSync(path.join(__dirname, 'courses-recap.json'), recap);
+                                    }
+
+                                    const beforeBounds = mainWindow.getBounds();
+                                    mainWindow.setSize(700, 900);
+                                    await new Promise((r) => setTimeout(r, 400));
+                                    console.log('SMOKE main-courses-narrow:', await mainWindow.webContents.executeJavaScript(`JSON.stringify((() => { const p = document.querySelector('[data-view-panel="courses"]'); const c = document.getElementById('mw-course-list'); return { listSW: c.scrollWidth, listCW: c.clientWidth, panelSW: p.scrollWidth, panelCW: p.clientWidth, cols: getComputedStyle(c).gridTemplateColumns, overflowedCards: Array.from(c.querySelectorAll('.mw-course-item')).filter(x => x.getBoundingClientRect().right > p.getBoundingClientRect().right).length }; })())`));
+                                    mainWindow.setBounds(beforeBounds);
 
                                     await mainWindow.webContents.executeJavaScript(`document.querySelector('.nav-item[data-view="about"]').click()`);
                                     await new Promise((r) => setTimeout(r, 300));
@@ -1250,6 +1277,17 @@ app.on('second-instance', (event, argv) => {
 });
 
 app.whenReady().then(() => {
+    protocol.handle('signature', (request) => {
+        try {
+            const url = new URL(request.url);
+            const decoded = decodeURIComponent(url.pathname.replace(/^\//, ''));
+            const p = resolveSignaturePath(decoded);
+            if (!p || !fs.existsSync(p)) return new Response('Not found', { status: 404 });
+            return net.fetch(pathToFileURL(p).toString());
+        } catch (e) {
+            return new Response('Bad request', { status: 400 });
+        }
+    });
     loadStats();
     createPopup();
     createTray();

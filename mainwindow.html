@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'; script-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' signature:; style-src 'self'; script-src 'self'">
 <link rel="stylesheet" href="mainwindow.css">
 </head>
 <body>
@@ -411,6 +411,9 @@
                     <div class="mw-course-list-head">
                         <span class="settings-block-title" data-i18n="popup.savedCourses">Saved Courses</span>
                         <span class="mw-course-count" id="mw-course-count"></span>
+                    </div>
+                    <div class="mw-course-search-row">
+                        <input type="search" id="mw-course-search" class="mw-course-search" data-i18n-placeholder="courses.search" placeholder="Search courses, codes, or trainers\u2026" spellcheck="false" autocomplete="off">
                     </div>
                     <div class="mw-course-list" id="mw-course-list"></div>
                 </div>

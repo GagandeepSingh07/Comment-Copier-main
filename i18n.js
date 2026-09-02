@@ -250,6 +250,8 @@ I18N.en = {
         pickSign: 'Choose image',
         noSign: 'No image selected',
         clearSign: 'Remove signature image',
+        search: 'Search courses, codes, or trainers\u2026',
+        searchEmpty: 'No saved courses match “{query}”.',
     },
     org: {
         title: 'File Organizer',

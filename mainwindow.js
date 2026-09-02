@@ -93,6 +93,7 @@ const mwCourseBanner = document.getElementById('mw-course-banner');
 const mwCourseModeBadge = document.getElementById('mw-course-mode-badge');
 const mwCourseListEl = document.getElementById('mw-course-list');
 const mwCourseCount = document.getElementById('mw-course-count');
+const mwCourseSearch = document.getElementById('mw-course-search');
 
 let skipExtList = [];
 
@@ -2036,6 +2037,16 @@ let mwPresetUndoTimer = null;
 let mwSignatureFile = '';
 // When editing an existing preset, its index in mwCourseList; -1 means "add new".
 let mwEditingIndex = -1;
+// Live filter typed into the Saved Courses search box.
+let mwCourseQuery = '';
+
+function mwFilteredCourseList() {
+    const q = mwCourseQuery.trim().toLowerCase();
+    if (!q) return mwCourseList.map((item, index) => ({ item, index }));
+    return mwCourseList
+        .map((item, index) => ({ item, index }))
+        .filter(({ item }) => [item.name, item.code, item.trainer].some((v) => (v || '').toLowerCase().includes(q)));
+}
 
 function mwLoadCourseList() {
     let saved = null;
@@ -2398,10 +2409,32 @@ function mwRenderCourseList() {
         mwCourseListEl.appendChild(empty);
         return;
     }
-    mwCourseList.forEach((item, i) => {
+    const visible = mwFilteredCourseList();
+    if (!visible.length) {
+        const empty = document.createElement('div');
+        empty.className = 'mw-course-empty';
+        empty.innerHTML =
+            '<div class="mw-course-empty-icon" aria-hidden="true">' + MW_COURSES_EMPTY_ICON + '</div>' +
+            '<div class="mw-course-empty-text">' + escapeHtml(t('courses.searchEmpty', { query: mwCourseQuery.trim() })) + '</div>';
+        mwCourseListEl.appendChild(empty);
+        return;
+    }
+    visible.forEach(({ item, index: i }) => {
+        const label = item.name || item.trainer || t('popup.untitledCourse');
+
         const row = document.createElement('div');
         row.className = 'mw-course-item';
-        row.title = t('popup.courseItemTitle');
+
+        // The avatar + title area is the sole "copy everything" trigger — a
+        // real <button> (not the whole card) so reaching for Edit/Delete
+        // elsewhere on the card can't accidentally overwrite the clipboard,
+        // and so it's keyboard-reachable (Enter/Space) with a screen-reader
+        // label instead of relying on a hover title.
+        const header = document.createElement('button');
+        header.type = 'button';
+        header.className = 'mw-course-item-header';
+        header.title = t('popup.copyAllTitle');
+        header.setAttribute('aria-label', t('popup.copyAllTitle') + ': ' + label + (item.code ? ' (' + item.code + ')' : ''));
 
         const main = document.createElement('div');
         main.className = 'mw-course-item-main';
@@ -2410,7 +2443,7 @@ function mwRenderCourseList() {
         titleLine.className = 'mw-course-item-title';
         const titleText = document.createElement('span');
         titleText.className = 'mw-course-item-title-text';
-        titleText.textContent = item.name || item.trainer || t('popup.untitledCourse');
+        titleText.textContent = label;
         titleLine.appendChild(titleText);
         if (item.code) {
             const codeBadge = document.createElement('span');
@@ -2419,55 +2452,63 @@ function mwRenderCourseList() {
             titleLine.appendChild(codeBadge);
         }
         main.appendChild(titleLine);
-
-        if (item.trainer && item.trainer !== (item.name || item.trainer)) {
-            const sub = document.createElement('div');
-            sub.className = 'mw-course-item-sub';
-            sub.textContent = item.trainer;
-            main.appendChild(sub);
+        if (item.trainer) {
+            const trainerLine = document.createElement('div');
+            trainerLine.className = 'mw-course-item-trainer';
+            trainerLine.textContent = item.trainer;
+            main.appendChild(trainerLine);
         }
+        header.appendChild(main);
+        header.addEventListener('click', () => mwCopyCourseItem(item));
+        row.appendChild(header);
 
-        const chips = document.createElement('div');
-        chips.className = 'mw-course-item-chips';
+        // Name and code are already shown in the header above, so the chip
+        // row below only surfaces fields that AREN'T already visible —
+        // trainer (when there's no room to show it as a subtitle) and the
+        // signature — plus the explicit "Copy all" chip.
+        const copyLine = document.createElement('div');
+        copyLine.className = 'mw-course-copylist';
 
         const fields = [];
-        if (item.name) fields.push({ field: 'name', label: t('popup.courseName'), value: item.name, isImage: false });
-        if (item.code) fields.push({ field: 'code', label: t('popup.courseCode'), value: item.code, isImage: false });
-        if (item.trainer) fields.push({ field: 'trainer', label: t('popup.trainerName'), value: item.trainer, isImage: false });
         if (item.signature) {
             fields.push({ field: 'signature', label: t('popup.trainerSignature'), value: item.signature, isImage: false });
         }
         if (item.signatureFile) {
-            fields.push({ field: 'signature', label: t('popup.signatureImage'), value: t('popup.signatureImage'), isImage: true });
+            fields.push({ field: 'signature', label: t('popup.trainerSignature'), value: t('popup.signatureImage'), isImage: true });
         }
-        fields.forEach((f) => {
-            const chip = document.createElement('button');
-            chip.type = 'button';
-            chip.className = 'mw-course-chip';
-            chip.title = t('popup.copyFieldTitle', { field: f.label });
-            chip.innerHTML =
-                '<span class="mw-course-chip-icon" aria-hidden="true">' + (MW_FIELD_ICONS[f.field] || '') + '</span>' +
-                '<span class="mw-course-chip-text">' + escapeHtml(f.value) + '</span>';
-            chip.addEventListener('click', (e) => {
+        // The signature is copied by the "Copy all" chip below, and the avatar
+        // already shows it, so a separate per-field signature chip is redundant.
+        // Show only the non-signature fields (e.g. trainer) in the copy row.
+        const editableFields = fields.filter((f) => f.field !== 'signature');
+        editableFields.forEach((f) => {
+            const mi = document.createElement('button');
+            mi.type = 'button';
+            mi.className = 'mw-course-mi';
+            mi.title = t('popup.copyFieldTitle', { field: f.label });
+            mi.setAttribute('aria-label', t('popup.copyFieldTitle', { field: f.label }));
+            mi.innerHTML =
+                '<span class="mw-course-mi-icon" aria-hidden="true">' + (MW_FIELD_ICONS[f.field] || '') + '</span>' +
+                '<span class="mw-course-mi-label">' + escapeHtml(f.label) + '</span>' +
+                '<span class="mw-course-mi-value">' + escapeHtml(f.value) + '</span>';
+            mi.addEventListener('click', (e) => {
                 e.stopPropagation();
                 mwCopyCourseField(item, f.field, f.label, f.isImage);
             });
-            chips.appendChild(chip);
+            copyLine.appendChild(mi);
         });
 
-        const allBtn = document.createElement('button');
-        allBtn.type = 'button';
-        allBtn.className = 'mw-course-chip mw-course-chip-all';
-        allBtn.title = t('popup.copyAllTitle');
-        allBtn.innerHTML = '<span class="mw-course-chip-icon" aria-hidden="true">' + MW_COPY_ICON + '</span><span class="mw-course-chip-text">' + escapeHtml(t('popup.copyAllShort')) + '</span>';
-        allBtn.addEventListener('click', (e) => {
+        const allMi = document.createElement('button');
+        allMi.type = 'button';
+        allMi.className = 'mw-course-mi mw-course-mi-all';
+        allMi.title = t('popup.copyAllTitle');
+        allMi.innerHTML = '<span class="mw-course-mi-icon" aria-hidden="true">' + MW_COPY_ICON + '</span><span class="mw-course-mi-label">' + escapeHtml(t('popup.copyAllShort')) + '</span>';
+        allMi.addEventListener('click', (e) => {
             e.stopPropagation();
             mwCopyCourseItem(item);
         });
-        chips.appendChild(allBtn);
+        copyLine.appendChild(allMi);
 
-        main.appendChild(chips);
-        row.appendChild(main);
+        row.appendChild(copyLine);
 
         const actions = document.createElement('div');
         actions.className = 'mw-course-item-actions';
@@ -2495,7 +2536,6 @@ function mwRenderCourseList() {
         actions.appendChild(delBtn);
 
         row.appendChild(actions);
-        row.addEventListener('click', () => mwCopyCourseItem(item));
         mwCourseListEl.appendChild(row);
     });
 }
@@ -2523,6 +2563,12 @@ mwSignClear.addEventListener('click', () => {
 });
 mwCourseSave.addEventListener('click', mwSaveCurrentAsPreset);
 mwCourseClear.addEventListener('click', mwClearCourseForm);
+if (mwCourseSearch) {
+    mwCourseSearch.addEventListener('input', () => {
+        mwCourseQuery = mwCourseSearch.value;
+        mwRenderCourseList();
+    });
+}
 
 // Keep in sync with data edited in the tray popup.
 window.addEventListener('storage', (e) => {
