@@ -44,6 +44,9 @@ const sheetPasteCancelBtn = document.getElementById('sheet-paste-cancel');
 const sheetBtn = document.getElementById('sheet-btn');
 const courseListEl = document.getElementById('course-list');
 const courseListCount = document.getElementById('course-list-count');
+const courseFilterTrigger = document.getElementById('course-filter-trigger');
+const courseFilterMenu = document.getElementById('course-filter-menu');
+const courseFilterValue = document.getElementById('course-filter-value');
 const organizerWrap = document.querySelector('.organizer-wrap');
 const organizerBtn = document.getElementById('organizer-btn');
 const organizerFolderRow = document.getElementById('organizer-folder-row');
@@ -62,6 +65,10 @@ let layoutMode = 'cards';
 let sheetEntries = [];
 let selectedMark = 'Checked';
 let courseList = [];
+// '' = no course selected (show nothing), '__all__' = show every course,
+// otherwise the preset key of the single course to show.
+const COURSE_FILTER_ALL = '__all__';
+let courseFilter = '';
 let organizerFolder = '';
 let organizerBusy = false;
 
@@ -733,6 +740,77 @@ function saveCourseList() {
     localStorage.setItem(COURSES_KEY, JSON.stringify(courseList));
 }
 
+function loadCourseFilter() {
+    courseFilter = localStorage.getItem(COURSE_FILTER_KEY) || '';
+}
+
+function saveCourseFilter() {
+    localStorage.setItem(COURSE_FILTER_KEY, courseFilter);
+}
+
+function courseFilterLabel(key) {
+    if (key === COURSE_FILTER_ALL) return t('popup.allCourses');
+    const item = courseList.find((c) => coursePresetKey(c) === key);
+    return item ? (courseItemText(item) || t('popup.untitledCourse')) : '';
+}
+
+function renderCourseFilter() {
+    if (!courseFilterMenu) return;
+    courseFilterMenu.innerHTML = '';
+    const makeOption = (value, label) => {
+        const opt = document.createElement('button');
+        opt.type = 'button';
+        opt.className = 'course-filter-option' + (courseFilter === value ? ' selected' : '');
+        opt.dataset.value = value;
+        opt.setAttribute('role', 'option');
+        opt.setAttribute('aria-selected', courseFilter === value ? 'true' : 'false');
+        opt.textContent = label;
+        opt.addEventListener('click', () => selectCourseFilter(value));
+        courseFilterMenu.appendChild(opt);
+    };
+    makeOption('', t('popup.selectCourse'));
+    makeOption(COURSE_FILTER_ALL, t('popup.allCourses'));
+    courseList.forEach((item) => {
+        makeOption(coursePresetKey(item), courseItemText(item) || t('popup.untitledCourse'));
+    });
+    // A saved single-course filter whose preset was since removed falls back
+    // to no selection rather than pointing at a ghost option.
+    if (courseFilter !== COURSE_FILTER_ALL && courseFilter && !courseList.some((c) => coursePresetKey(c) === courseFilter)) {
+        courseFilter = '';
+        saveCourseFilter();
+    }
+    courseFilterValue.textContent = courseFilter ? courseFilterLabel(courseFilter) : t('popup.selectCourse');
+    courseFilterValue.classList.toggle('placeholder', !courseFilter);
+}
+
+function openCourseFilterMenu() {
+    courseFilterMenu.classList.remove('hidden');
+    courseFilterTrigger.classList.add('open');
+    courseFilterTrigger.setAttribute('aria-expanded', 'true');
+    syncHeight();
+}
+
+function closeCourseFilterMenu() {
+    courseFilterMenu.classList.add('hidden');
+    courseFilterTrigger.classList.remove('open');
+    courseFilterTrigger.setAttribute('aria-expanded', 'false');
+    syncHeight();
+}
+
+function toggleCourseFilterMenu() {
+    if (courseFilterMenu.classList.contains('hidden')) openCourseFilterMenu();
+    else closeCourseFilterMenu();
+}
+
+function selectCourseFilter(value) {
+    courseFilter = value;
+    saveCourseFilter();
+    renderCourseFilter();
+    closeCourseFilterMenu();
+    renderCourseList();
+    syncHeight();
+}
+
 function courseItemText(item) {
     return [item.name, item.code, item.trainer, item.signature].filter(Boolean).join(' - ');
 }
@@ -881,24 +959,47 @@ const FIELD_ICONS = {
 };
 
 function renderCourseList() {
-    courseListCount.textContent = tN('count.entry', courseList.length, { n: courseList.length });
     courseListEl.innerHTML = '';
     if (!courseList.length) {
+        courseListCount.textContent = tN('count.entry', 0, { n: 0 });
         const empty = document.createElement('div');
         empty.className = 'course-list-empty';
         empty.textContent = t('popup.courseListEmpty');
         courseListEl.appendChild(empty);
         return;
     }
-    courseList.forEach((item, i) => {
+    if (!courseFilter) {
+        courseListCount.textContent = '';
+        const prompt = document.createElement('div');
+        prompt.className = 'course-filter-prompt';
+        prompt.textContent = t('popup.courseSelectHint');
+        courseListEl.appendChild(prompt);
+        return;
+    }
+    let filtered = courseFilter === COURSE_FILTER_ALL
+        ? courseList.slice()
+        : courseList.filter((item) => coursePresetKey(item) === courseFilter);
+    if (!filtered.length) {
+        courseFilter = '';
+        saveCourseFilter();
+        renderCourseFilter();
+        courseListCount.textContent = '';
+        const prompt = document.createElement('div');
+        prompt.className = 'course-filter-prompt';
+        prompt.textContent = t('popup.courseSelectHint');
+        courseListEl.appendChild(prompt);
+        return;
+    }
+    courseListCount.textContent = tN('count.entry', filtered.length, { n: filtered.length });
+    filtered.forEach((item) => {
         const label = item.name || item.trainer || t('popup.untitledCourse');
 
         const row = document.createElement('div');
         row.className = 'course-item';
 
-        // The name + code + trainer header is the sole "copy everything"
-        // trigger — a real <button> so reaching for Delete elsewhere on the
-        // card can't accidentally overwrite the clipboard.
+        // The name + code + trainer header is the "copy everything" trigger —
+        // a real <button> so reaching for Delete elsewhere on the card can't
+        // accidentally overwrite the clipboard.
         const header = document.createElement('button');
         header.type = 'button';
         header.className = 'course-item-header';
@@ -981,7 +1082,7 @@ function renderCourseList() {
         delBtn.textContent = '\u00d7';
         delBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            removeCourseItem(i);
+            removeCourseItem(courseList.indexOf(item));
         });
         row.appendChild(delBtn);
 
@@ -1605,6 +1706,11 @@ document.addEventListener('keydown', (e) => {
             markSelectTrigger.focus();
             return;
         }
+        if (!courseFilterMenu.classList.contains('hidden')) {
+            closeCourseFilterMenu();
+            courseFilterTrigger.focus();
+            return;
+        }
         if (window.popupAPI) window.popupAPI.close();
     }
 });
@@ -1668,12 +1774,22 @@ organizerFolderRow.addEventListener('click', pickOrganizerFolder);
 organizerRunBtn.addEventListener('click', () => runOrganizer(false));
 organizerPreviewBtn.addEventListener('click', () => runOrganizer(true));
 organizerClearBtn.addEventListener('click', clearOrganizerFolder);
+courseFilterTrigger.addEventListener('click', (e) => {
+    e.stopPropagation();
+    toggleCourseFilterMenu();
+});
+document.addEventListener('click', (e) => {
+    if (!courseFilterMenu.classList.contains('hidden') && !courseFilterMenu.contains(e.target) && !courseFilterTrigger.contains(e.target)) {
+        closeCourseFilterMenu();
+    }
+});
 
 function applyI18n() {
     i18nApply(document);
     renderRows();
     updateCounts();
     renderSheetPreview();
+    renderCourseFilter();
     renderCourseList();
     selectMark(selectedMark);
     if (organizerRunBtn.querySelector('span')) {
@@ -1687,6 +1803,8 @@ function applyI18n() {
 load();
 loadSheetInputs();
 loadCourseList();
+loadCourseFilter();
+renderCourseFilter();
 renderCourseList();
 clearOrganizerFolder();
 renderSheetPreview();
@@ -1714,6 +1832,7 @@ window.addEventListener('storage', (e) => {
         cardTooltip.classList.remove('active');
     } else if (e.key === COURSES_KEY) {
         loadCourseList();
+        renderCourseFilter();
         renderCourseList();
         syncHeight();
     }

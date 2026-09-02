@@ -3,6 +3,7 @@ const PROMPT_KEY = 'comment-copier-prompt-v1';
 const SHEET_KEY = 'comment-copier-sheet-v3';
 const COURSE_KEY = 'comment-copier-course-v1';
 const COURSES_KEY = 'comment-copier-courses-v1';
+const COURSE_FILTER_KEY = 'comment-copier-course-filter-v1';
 const LAYOUT_KEY = 'comment-copier-layout-v1';
 const ORGANIZER_KEY = 'comment-copier-organizer-path-v1';
 const DATE_FIRST_KEY = 'comment-copier-date-first-v1';

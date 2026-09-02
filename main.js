@@ -1092,19 +1092,82 @@ function createPopup() {
                     })`);
                     console.log('SMOKE course-list:', courseSmoke);
 
+                    // The Course Detail dropdown shows the user a choice of
+                    // courses (plus "All courses"); by default nothing is
+                    // selected, so no course cards render until one is picked.
+                    const filterSmoke = await popupWindow.webContents.executeJavaScript(`(() => {
+                        const trigger = document.getElementById('course-filter-trigger');
+                        const menu = document.getElementById('course-filter-menu');
+                        trigger.click();
+                        const optionCount = [...menu.querySelectorAll('.course-filter-option')].length;
+                        const hasAll = [...menu.querySelectorAll('.course-filter-option')].some((o) => o.dataset.value === '__all__');
+                        const defaultValue = document.getElementById('course-filter-value').textContent;
+                        const defaultPrompt = document.querySelector('#course-list .course-filter-prompt')
+                            ? document.querySelector('#course-list .course-filter-prompt').textContent
+                            : '';
+                        const defaultItems = document.querySelectorAll('#course-list .course-item').length;
+                        const painting = [...menu.querySelectorAll('.course-filter-option')].find((o) => o.textContent.includes('Painting'));
+                        painting.click();
+                        const filteredItems = document.querySelectorAll('#course-list .course-item').length;
+                        const filteredHeader = document.querySelector('#course-list .course-item .course-item-header')
+                            ? document.querySelector('#course-list .course-item .course-item-header').textContent.trim()
+                            : '';
+                        const count = document.getElementById('course-list-count').textContent;
+                        trigger.click();
+                        const allOpt = [...menu.querySelectorAll('.course-filter-option')].find((o) => o.dataset.value === '__all__');
+                        allOpt.click();
+                        const restored = document.querySelectorAll('#course-list .course-item').length;
+                        // Return to the no-selection default and verify the list
+                        // clears again (keeps repeat runs deterministic).
+                        trigger.click();
+                        const noneOpt = [...menu.querySelectorAll('.course-filter-option')].find((o) => o.dataset.value === '');
+                        noneOpt.click();
+                        const cleared = document.querySelectorAll('#course-list .course-item').length;
+                        return JSON.stringify({
+                            optionCount,
+                            hasAll,
+                            hasNone: !!noneOpt,
+                            defaultValue,
+                            defaultPrompt,
+                            defaultItems,
+                            filteredItems,
+                            isPainting: filteredHeader.indexOf('Painting') !== -1,
+                            count,
+                            restored,
+                            cleared,
+                        });
+                    })()`);
+                    console.log('SMOKE course-filter:', filterSmoke);
+
                     // A course with a bundled signature image copies text + the
                     // image together when its header ("copy all") is clicked.
+                    // Select the painting course first (nothing shows by default).
                     const copyAll = await popupWindow.webContents.executeJavaScript(`(() => {
-                        const items = document.querySelectorAll('#course-list .course-item');
-                        const row = [...items].find((it) => it.textContent.includes('Sukhjinder'));
+                        const trigger = document.getElementById('course-filter-trigger');
+                        const menu = document.getElementById('course-filter-menu');
+                        let res = 'NO-ITEM';
+                        trigger.click();
+                        const painting = [...menu.querySelectorAll('.course-filter-option')].find((o) => o.textContent.includes('Painting'));
+                        if (!painting) return 'NO-OPTION';
+                        painting.click();
+                        const row = [...document.querySelectorAll('#course-list .course-item')].find((it) => it.textContent.includes('Sukhjinder'));
                         if (!row) return 'NO-ITEM';
                         const header = row.querySelector('.course-item-header');
                         if (!header) return 'NO-HEADER';
                         header.click();
-                        return 'CLICKED';
+                        res = 'CLICKED';
+                        return res;
                     })()`);
                     await new Promise((r) => setTimeout(r, 500));
                     console.log('SMOKE copy-all:', copyAll, 'clipboard-has-image:', !clipboard.readImage().isEmpty(), 'text:', clipboard.readText().slice(0, 60));
+                    // Leave the popup back on the no-selection default so repeat
+                    // runs see the same initial state.
+                    await popupWindow.webContents.executeJavaScript(`(() => {
+                        const trigger = document.getElementById('course-filter-trigger');
+                        trigger.click();
+                        const noneOpt = [...trigger.nextElementSibling.querySelectorAll('.course-filter-option')].find((o) => o.dataset.value === '');
+                        noneOpt.click();
+                    })()`);
 
                     openMainWindow();
                     if (mainWindow && !mainWindow.isDestroyed()) {
