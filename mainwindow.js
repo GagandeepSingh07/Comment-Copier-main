@@ -2436,6 +2436,29 @@ function mwRenderCourseList() {
         header.title = t('popup.copyAllTitle');
         header.setAttribute('aria-label', t('popup.copyAllTitle') + ': ' + label + (item.code ? ' (' + item.code + ')' : ''));
 
+        const labelInitial = (label.trim().charAt(0) || '?').toUpperCase();
+        const avatar = document.createElement('div');
+        avatar.className = 'mw-course-avatar';
+        if (item.signatureFile) {
+            const img = document.createElement('img');
+            img.alt = '';
+            img.draggable = false;
+            // Listener attached before .src is set: a failed/blocked/404 load
+            // must always fall back to the initial letter, with no window for
+            // the 'error' event to fire before anything is listening for it.
+            img.addEventListener('error', () => {
+                avatar.classList.add('mw-course-avatar-fallback');
+                avatar.innerHTML = '';
+                avatar.textContent = labelInitial;
+            });
+            img.src = 'signature://sigs/' + encodeURI(item.signatureFile);
+            avatar.appendChild(img);
+        } else {
+            avatar.classList.add('mw-course-avatar-fallback');
+            avatar.textContent = labelInitial;
+        }
+        header.appendChild(avatar);
+
         const main = document.createElement('div');
         main.className = 'mw-course-item-main';
 
@@ -2469,7 +2492,13 @@ function mwRenderCourseList() {
         const copyLine = document.createElement('div');
         copyLine.className = 'mw-course-copylist';
 
+        // Name and code get their own chips too, even though they're already
+        // shown in the header — the header truncates long titles/codes and
+        // isn't clickable per-field, so a dedicated one-click copy for just
+        // the name or just the code is still worth having.
         const fields = [];
+        if (item.name) fields.push({ field: 'name', label: t('popup.courseName'), value: item.name, isImage: false });
+        if (item.code) fields.push({ field: 'code', label: t('popup.courseCode'), value: item.code, isImage: false });
         if (item.signature) {
             fields.push({ field: 'signature', label: t('popup.trainerSignature'), value: item.signature, isImage: false });
         }

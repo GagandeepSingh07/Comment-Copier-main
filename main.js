@@ -103,6 +103,33 @@ const PLATFORM_NAMES = { win32: 'Windows', darwin: 'macOS', linux: 'Linux' };
 
 const CHANGELOG = [
     {
+        version: '1.16.1',
+        categories: [
+            {
+                heading: 'Improved',
+                notes: [
+                    'Saved Courses cards (tray popup and main window) are decluttered — name/code/trainer/signature are each their own compact one-click copy chip, with icons instead of spelled-out labels so more fits without wrapping or truncating.',
+                    'The main window\'s Saved Courses grid now has a live search box and a responsive column layout, and the tray popup\'s course cards got more breathing room.',
+                    '"Copy All" on a saved course now includes the trainer\'s signature image in the same clipboard write instead of silently dropping it for image-only presets.',
+                ],
+            },
+            {
+                heading: 'Fixed',
+                notes: [
+                    'Fixed the trainer signature avatar showing as a blank box instead of the image or a fallback initial in the main window\'s Saved Courses cards.',
+                    'Saving a course preset now keys on trainer as well as course, so the same course taught by two different trainers can both be saved instead of colliding.',
+                    'Deleting a saved course preset now asks for confirmation (respecting the existing "Confirm before delete" setting) and offers Undo.',
+                ],
+            },
+            {
+                heading: 'Other',
+                notes: [
+                    '`npm run build` now produces just the main Windows installer and the portable build by default; the arm64 installer remains available via `npm run build:arm64`.',
+                ],
+            },
+        ],
+    },
+    {
         version: '1.15.8',
         categories: [
             {
