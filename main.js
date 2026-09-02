@@ -1086,9 +1086,7 @@ function createPopup() {
                     const courseSmoke = await popupWindow.webContents.executeJavaScript(`JSON.stringify({
                         items: document.querySelectorAll('#course-list .course-item').length,
                         header: document.querySelector('#course-list .course-item .course-item-header') ? document.querySelector('#course-list .course-item .course-item-header').textContent.trim() : '',
-                        chips: document.querySelectorAll('#course-list .course-item').length
-                            ? [...document.querySelectorAll('#course-list .course-item')][0].querySelectorAll('.course-chip').length
-                            : 0,
+                        del: document.querySelector('#course-list .course-item .course-item-del') ? 1 : 0,
                     })`);
                     console.log('SMOKE course-list:', courseSmoke);
 

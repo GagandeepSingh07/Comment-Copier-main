@@ -949,14 +949,7 @@ function removeCourseItem(index) {
     showPresetUndoToast(t('toast.presetRemoved'));
 }
 
-const COPY_ICON = '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>';
-
-const FIELD_ICONS = {
-    name: '<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7V4h16v3"></path><path d="M9 20h6"></path><path d="M12 4v16"></path></svg>',
-    code: '<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="8 6 2 12 8 18"></polyline><polyline points="16 6 22 12 16 18"></polyline></svg>',
-    trainer: '<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>',
-    signature: '<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>',
-};
+const COURSE_COPY_ICON = '<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>';
 
 function renderCourseList() {
     courseListEl.innerHTML = '';
@@ -997,83 +990,35 @@ function renderCourseList() {
         const row = document.createElement('div');
         row.className = 'course-item';
 
-        // The name + code + trainer header is the "copy everything" trigger —
-        // a real <button> so reaching for Delete elsewhere on the card can't
-        // accidentally overwrite the clipboard.
+        // Top row: a "copy everything" header (name + code) and the delete
+        // button. Clicking the header copies all fields plus any signature
+        // image in one combined clipboard write.
+        const top = document.createElement('div');
+        top.className = 'course-item-top';
+
         const header = document.createElement('button');
         header.type = 'button';
         header.className = 'course-item-header';
         header.title = t('popup.copyAllTitle');
         header.setAttribute('aria-label', t('popup.copyAllTitle') + ': ' + label + (item.code ? ' (' + item.code + ')' : ''));
 
-        const titleLine = document.createElement('div');
-        titleLine.className = 'course-item-title';
         const titleText = document.createElement('span');
         titleText.className = 'course-item-title-text';
         titleText.textContent = label;
-        titleLine.appendChild(titleText);
+        titleText.title = label;
+        header.appendChild(titleText);
         if (item.code) {
             const codeBadge = document.createElement('span');
             codeBadge.className = 'course-item-code';
             codeBadge.textContent = item.code;
-            titleLine.appendChild(codeBadge);
+            header.appendChild(codeBadge);
         }
-        header.appendChild(titleLine);
-        if (item.trainer) {
-            const trainerLine = document.createElement('div');
-            trainerLine.className = 'course-item-trainer';
-            trainerLine.textContent = item.trainer;
-            header.appendChild(trainerLine);
-        }
+        const allLabel = document.createElement('span');
+        allLabel.className = 'course-item-copy-all';
+        allLabel.innerHTML = COURSE_COPY_ICON + '<span>' + escapeHtml(t('popup.copyAllShort')) + '</span>';
+        header.appendChild(allLabel);
         header.addEventListener('click', () => copyCourseItem(item));
-        row.appendChild(header);
-
-        // Each field gets its own chip so what's shown on a chip is what a
-        // click copies individually (name, code, trainer, signature).
-        const chips = document.createElement('div');
-        chips.className = 'course-item-chips';
-
-        const fields = [
-            { field: 'name', label: t('popup.courseName'), value: item.name || '' },
-            { field: 'code', label: t('popup.courseCode'), value: item.code || '' },
-            { field: 'trainer', label: t('popup.trainerName'), value: item.trainer || '' },
-        ];
-        if (item.signature) {
-            fields.push({ field: 'signature', label: t('popup.trainerSignature'), value: item.signature, isImage: false });
-        }
-        if (item.signatureFile) {
-            fields.push({ field: 'signature', label: t('popup.trainerSignature'), value: t('popup.signatureImage'), isImage: true });
-        }
-        fields.forEach((f) => {
-            if (!f.value) return;
-            const chip = document.createElement('button');
-            chip.type = 'button';
-            chip.className = 'course-chip';
-            chip.title = t('popup.copyFieldTitle', { field: f.label });
-            chip.innerHTML =
-                '<span class="course-chip-icon" aria-hidden="true">' + (FIELD_ICONS[f.field] || '') + '</span>' +
-                '<span class="course-chip-text">' + escapeHtml(f.value) + '</span>';
-            chip.addEventListener('click', (e) => {
-                e.stopPropagation();
-                copyCourseField(item, f.field, f.label, f.isImage);
-            });
-            chips.appendChild(chip);
-        });
-
-        row.appendChild(chips);
-
-        // An explicit "Copy all" chip (the signature, if any, is included in
-        // the combined copy handled by copyCourseItem).
-        const allBtn = document.createElement('button');
-        allBtn.type = 'button';
-        allBtn.className = 'course-chip course-chip-all';
-        allBtn.title = t('popup.copyAllTitle');
-        allBtn.innerHTML = '<span class="course-chip-icon" aria-hidden="true">' + COPY_ICON + '</span><span class="course-chip-text">' + escapeHtml(t('popup.copyAllShort')) + '</span>';
-        allBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            copyCourseItem(item);
-        });
-        row.appendChild(allBtn);
+        top.appendChild(header);
 
         const delBtn = document.createElement('button');
         delBtn.type = 'button';
@@ -1084,7 +1029,51 @@ function renderCourseList() {
             e.stopPropagation();
             removeCourseItem(courseList.indexOf(item));
         });
-        row.appendChild(delBtn);
+        top.appendChild(delBtn);
+        row.appendChild(top);
+
+        // Each field is its own flat button — copy exactly that one piece of
+        // data (name, code, trainer, or signature). One click, one value.
+        const fieldsEl = document.createElement('div');
+        fieldsEl.className = 'course-item-fields';
+
+        const fields = [
+            { field: 'name', label: t('popup.courseName'), value: item.name || '' },
+            { field: 'code', label: t('popup.courseCode'), value: item.code || '' },
+            { field: 'trainer', label: t('popup.trainerName'), value: item.trainer || '' },
+        ];
+        if (item.signature) {
+            fields.push({ field: 'signature', label: t('popup.trainerSignature'), value: item.signature });
+        }
+        if (item.signatureFile) {
+            fields.push({ field: 'signature', label: t('popup.trainerSignature'), value: t('popup.signatureImage'), isImage: true });
+        }
+        fields.forEach((f) => {
+            if (!f.value) return;
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'course-field';
+            btn.title = t('popup.copyFieldTitle', { field: f.label });
+            btn.setAttribute('aria-label', t('popup.copyFieldTitle', { field: f.label }));
+            const labelEl = document.createElement('span');
+            labelEl.className = 'course-field-label';
+            labelEl.textContent = f.label;
+            const valueEl = document.createElement('span');
+            valueEl.className = 'course-field-value';
+            valueEl.textContent = f.value;
+            valueEl.title = f.value;
+            const copyIcon = document.createElement('span');
+            copyIcon.className = 'course-field-copy';
+            copyIcon.setAttribute('aria-hidden', 'true');
+            copyIcon.innerHTML = COURSE_COPY_ICON;
+            btn.appendChild(labelEl);
+            btn.appendChild(valueEl);
+            btn.appendChild(copyIcon);
+            btn.addEventListener('click', () => copyCourseField(item, f.field, f.label, f.isImage));
+            fieldsEl.appendChild(btn);
+        });
+
+        row.appendChild(fieldsEl);
 
         courseListEl.appendChild(row);
     });
