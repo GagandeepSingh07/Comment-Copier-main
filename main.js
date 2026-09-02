@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, clipboard, nativeImage, Tray, screen, dialog, shell, globalShortcut, protocol, net } = require('electron');
+const { app, BrowserWindow, ipcMain, clipboard, nativeImage, Tray, screen, dialog, shell, globalShortcut, protocol, net, desktopCapturer } = require('electron');
 const path = require('path');
 const { pathToFileURL } = require('url');
 const fs = require('fs');
@@ -932,19 +932,28 @@ function saveConfig(partial) {
     } catch (e) {}
 }
 
+// Convert a user-facing accelerator (which may display the Windows key as
+// "Win") into the token Electron's globalShortcut understands ("Super").
+// The displayed/stored form is kept as-is so it round-trips to the UI.
+function toElectronAccel(a) {
+    return String(a || '').replace(/\bwin\b/gi, 'Super').replace(/\bsuper\b/gi, 'Super');
+}
+
 function registerHotkey(accelerator) {
     const previous = registeredHotkey;
+    const prevElectron = previous ? toElectronAccel(previous) : '';
     if (!accelerator) {
-        if (previous) {
+        if (prevElectron) {
             try {
-                if (globalShortcut.isRegistered(previous)) globalShortcut.unregister(previous);
+                if (globalShortcut.isRegistered(prevElectron)) globalShortcut.unregister(prevElectron);
             } catch (e) {}
         }
         registeredHotkey = null;
         return { ok: true, registered: false, accelerator: '' };
     }
+    const acc = toElectronAccel(accelerator);
     try {
-        const ok = globalShortcut.register(String(accelerator), () => {
+        const ok = globalShortcut.register(acc, () => {
             if (popupWindow && !popupWindow.isDestroyed()) {
                 togglePopup();
             }
@@ -957,7 +966,7 @@ function registerHotkey(accelerator) {
         // New accelerator registered successfully — now it's safe to release the old one.
         if (previous && previous !== String(accelerator)) {
             try {
-                if (globalShortcut.isRegistered(previous)) globalShortcut.unregister(previous);
+                if (globalShortcut.isRegistered(prevElectron)) globalShortcut.unregister(prevElectron);
             } catch (e) {}
         }
         registeredHotkey = String(accelerator);
@@ -975,6 +984,272 @@ ipcMain.handle('hotkey:set', (event, accelerator) => {
 });
 
 ipcMain.handle('hotkey:get', () => registeredHotkey || loadConfig().globalHotkey || '');
+
+/* ---------- Fixed-area screenshot ---------- */
+// The fixed screenshot area is stored in config.json as an object
+// { x, y, width, height } using global ("virtual desktop") coordinates in DIPs.
+// Defining the area opens a transparent full-screen overlay where the user drags
+// a rectangle. Capturing copies the cropped region to the clipboard AND saves a
+// PNG into the configured folder.
+
+let overlayWindow = null;
+let registeredScreenshotHotkey = null;
+let defineAreaResolve = null;
+
+function getScreenshotArea() {
+    const a = loadConfig().screenshotArea;
+    if (a && Number.isFinite(a.x) && Number.isFinite(a.y) && Number.isFinite(a.width) && Number.isFinite(a.height)
+        && a.width > 0 && a.height > 0) {
+        return { x: Math.round(a.x), y: Math.round(a.y), width: Math.round(a.width), height: Math.round(a.height) };
+    }
+    return null;
+}
+
+function getScreenshotSaveDir() {
+    const dir = loadConfig().screenshotSaveDir;
+    return typeof dir === 'string' && dir && fs.existsSync(dir) ? dir : '';
+}
+
+ipcMain.handle('screenshot:get-area', () => (getScreenshotArea() || null));
+
+ipcMain.handle('screenshot:clear-area', () => {
+    try { saveConfig({ screenshotArea: null }); } catch (e) {}
+    return { ok: true };
+});
+
+ipcMain.handle('screenshot:get-save-dir', () => getScreenshotSaveDir() || null);
+
+ipcMain.handle('screenshot:set-save-dir', async (event) => {
+    const owner = mainWindow && !mainWindow.isDestroyed() ? mainWindow : popupWindow;
+    if (!owner) return { ok: false, canceled: true };
+    let result;
+    try {
+        result = await dialog.showOpenDialog(owner, {
+            title: 'Choose a folder to save screenshots',
+            properties: ['openDirectory', 'createDirectory'],
+        });
+    } catch (e) {
+        return { ok: false, canceled: true };
+    }
+    if (result.canceled || !result.filePaths || !result.filePaths.length) {
+        return { ok: false, canceled: true };
+    }
+    const dir = result.filePaths[0];
+    saveConfig({ screenshotSaveDir: dir });
+    return { ok: true, dir };
+});
+
+// Open the overlay so the user can drag a new fixed area.
+ipcMain.handle('screenshot:define-area', async (event) => {
+    if (overlayWindow && !overlayWindow.isDestroyed()) return { ok: false, error: 'already-open' };
+    const displays = screen.getAllDisplays();
+    if (!displays.length) return { ok: false, error: 'no-display' };
+    // Union of all display bounds (DIPs) -> the overlay spans the virtual desktop.
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    for (const d of displays) {
+        if (d.bounds.x < minX) minX = d.bounds.x;
+        if (d.bounds.y < minY) minY = d.bounds.y;
+        if (d.bounds.x + d.bounds.width > maxX) maxX = d.bounds.x + d.bounds.width;
+        if (d.bounds.y + d.bounds.height > maxY) maxY = d.bounds.y + d.bounds.height;
+    }
+    const originX = minX, originY = minY;
+    const winW = maxX - minX, winH = maxY - minY;
+
+    const area = getScreenshotArea();
+    try {
+        overlayWindow = new BrowserWindow({
+            x: originX,
+            y: originY,
+            width: winW,
+            height: winH,
+            frame: false,
+            transparent: true,
+            alwaysOnTop: true,
+            resizable: false,
+            movable: false,
+            minimizable: false,
+            maximizable: false,
+            fullscreenable: false,
+            skipTaskbar: true,
+            hasShadow: false,
+            roundedCorners: false,
+            focusable: true,
+            webPreferences: {
+                preload: path.join(__dirname, 'overlay-preload.js'),
+                contextIsolation: true,
+                nodeIntegration: false,
+                spellcheck: false,
+                sandbox: true,
+            },
+        });
+    } catch (e) {
+        return { ok: false, error: 'overlay-failed' };
+    }
+
+    overlayWindow.on('closed', () => {
+        overlayWindow = null;
+        if (defineAreaResolve) {
+            const cb = defineAreaResolve;
+            defineAreaResolve = null;
+            cb({ ok: false, area: null });
+        }
+    });
+
+    await overlayWindow.loadFile('overlay.html');
+    await overlayWindow.webContents.send('overlay:init', {
+        originX,
+        originY,
+        width: winW,
+        height: winH,
+        existing: area ? {
+            x: area.x - originX,
+            y: area.y - originY,
+            width: area.width,
+            height: area.height,
+        } : null,
+    });
+    overlayWindow.show();
+
+    return new Promise((resolve) => {
+        defineAreaResolve = resolve;
+    }).then((result) => {
+        overlayWindow = null;
+        return result;
+    });
+});
+
+// The overlay renderer reports the selected rectangle (relative to the overlay
+// origin, in DIPs). Main converts it to global coordinates and stores it.
+ipcMain.on('overlay:selected', (event, rect) => {
+    const w = overlayWindow && !overlayWindow.isDestroyed() ? overlayWindow : null;
+    if (!w) return;
+    const origin = w.getBounds();
+    const a = {
+        x: Math.round(origin.x + (rect && rect.x || 0)),
+        y: Math.round(origin.y + (rect && rect.y || 0)),
+        width: Math.round(rect && rect.width || 0),
+        height: Math.round(rect && rect.height || 0),
+    };
+    const ok = a.width > 0 && a.height > 0;
+    if (ok) saveConfig({ screenshotArea: a });
+    try { w.destroy(); } catch (e) {}
+    if (defineAreaResolve) {
+        const cb = defineAreaResolve;
+        defineAreaResolve = null;
+        cb({ ok, area: ok ? a : null });
+    }
+});
+
+ipcMain.on('overlay:cancel', () => {
+    const w = overlayWindow && !overlayWindow.isDestroyed() ? overlayWindow : null;
+    if (!w) return;
+    try { w.destroy(); } catch (e) {}
+    if (defineAreaResolve) {
+        const cb = defineAreaResolve;
+        defineAreaResolve = null;
+        cb({ ok: false, area: null });
+    }
+});
+
+// Register/replace the global screenshot hotkey. When pressed it takes the
+// fixed-area screenshot (capture + save). Returns {ok, error?} like the popup
+// hotkey so a conflict can be reported back to the renderer.
+function registerScreenshotHotkey(accelerator) {
+    const previous = registeredScreenshotHotkey;
+    const prevElectron = previous ? toElectronAccel(previous) : '';
+    if (!accelerator) {
+        if (prevElectron) {
+            try { if (globalShortcut.isRegistered(prevElectron)) globalShortcut.unregister(prevElectron); } catch (e) {}
+        }
+        registeredScreenshotHotkey = null;
+        return { ok: true, registered: false, accelerator: '' };
+    }
+    const acc = toElectronAccel(accelerator);
+    try {
+        const ok = globalShortcut.register(acc, () => {
+            takeFixedScreenshot();
+        });
+        if (!ok) {
+            return { ok: false, error: 'That shortcut is already in use or not available.', current: previous || '' };
+        }
+        if (previous && previous !== String(accelerator)) {
+            try { if (globalShortcut.isRegistered(prevElectron)) globalShortcut.unregister(prevElectron); } catch (e) {}
+        }
+        registeredScreenshotHotkey = String(accelerator);
+        saveConfig({ screenshotHotkey: String(accelerator) });
+        return { ok: true, registered: true, accelerator: String(accelerator) };
+    } catch (e) {
+        return { ok: false, error: 'That shortcut is not valid.', current: previous || '' };
+    }
+}
+
+ipcMain.handle('screenshot:set-hotkey', (event, accelerator) => {
+    const result = registerScreenshotHotkey(accelerator);
+    if (!accelerator) saveConfig({ screenshotHotkey: '' });
+    return result;
+});
+
+ipcMain.handle('screenshot:get-hotkey', () => registeredScreenshotHotkey || loadConfig().screenshotHotkey || '');
+
+// Capture the fixed area: crop it from a screenshot of the display that contains
+// the area's centre, then copy to clipboard and save a PNG to the save folder.
+ipcMain.handle('screenshot:take', async (event) => {
+    return takeFixedScreenshot();
+});
+
+async function takeFixedScreenshot() {
+    const area = getScreenshotArea();
+    if (!area) return { ok: false, error: 'no-area' };
+    const display = screen.getDisplayNearestPoint({ x: area.x + Math.floor(area.width / 2), y: area.y + Math.floor(area.height / 2) });
+    try {
+        // Request the thumbnail at native physical resolution so HiDPI captures
+        // stay crisp; the crop coordinates are then scaled by the same factor.
+        const sX = display.scaleFactor || 1;
+        const sY = display.scaleFactor || 1;
+        const sources = await desktopCapturer.getSources({
+            types: ['screen'],
+            thumbnailSize: { width: Math.round(display.bounds.width * sX), height: Math.round(display.bounds.height * sY) },
+        });
+        const source = sources.find((s) => s.display_id === String(display.id))
+            || sources[0]
+            || (sources.length ? sources[sources.length - 1] : null);
+        if (!source) return { ok: false, error: 'no-source' };
+        const thumb = source.thumbnail;
+        if (thumb.isEmpty()) return { ok: false, error: 'empty-capture' };
+        // Account for any discrepancy between the requested size and the actual
+        // thumbnail produced (e.g. the OS capping resolution).
+        const scaleX = thumb.getSize().width / display.bounds.width;
+        const scaleY = thumb.getSize().height / display.bounds.height;
+        const crop = {
+            x: Math.max(0, Math.round((area.x - display.bounds.x) * scaleX)),
+            y: Math.max(0, Math.round((area.y - display.bounds.y) * scaleY)),
+            width: Math.round(area.width * scaleX),
+            height: Math.round(area.height * scaleY),
+        };
+        const img = thumb.crop(crop);
+        if (img.isEmpty()) return { ok: false, error: 'empty-crop' };
+        clipboard.writeImage(img);
+
+        const dir = getScreenshotSaveDir();
+        let savedPath = null;
+        if (dir) {
+            try {
+                fs.mkdirSync(dir, { recursive: true });
+                const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+                const name = `comment-screenshot-${stamp}.png`;
+                savedPath = path.join(dir, name);
+                fs.writeFileSync(savedPath, img.toPNG());
+            } catch (e) {
+                savedPath = null;
+            }
+        }
+        return { ok: true, saved: !!savedPath, path: savedPath };
+    } catch (e) {
+        return { ok: false, error: 'capture-failed' };
+    }
+}
+
+/* ---------- (previous section) ---------- */
 
 ipcMain.on('comment-copier:quick-state', (event, payload) => {
     if (Array.isArray(payload)) {
@@ -1378,6 +1653,7 @@ app.whenReady().then(() => {
     createPopup();
     createTray();
     registerHotkey(loadConfig().globalHotkey || '');
+    registerScreenshotHotkey(loadConfig().screenshotHotkey || '');
 });
 
 }

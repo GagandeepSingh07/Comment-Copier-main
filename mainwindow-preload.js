@@ -21,4 +21,12 @@ contextBridge.exposeInMainWorld('mainWindowAPI', {
     choosePortableDir: (title) => ipcRenderer.invoke('comment-copier:choose-portable-dir', title),
     enablePortableMode: (dir) => ipcRenderer.invoke('comment-copier:enable-portable-mode', dir),
     disablePortableMode: () => ipcRenderer.invoke('comment-copier:disable-portable-mode'),
+    defineScreenshotArea: () => ipcRenderer.invoke('screenshot:define-area'),
+    getScreenshotArea: () => ipcRenderer.invoke('screenshot:get-area'),
+    clearScreenshotArea: () => ipcRenderer.invoke('screenshot:clear-area'),
+    getScreenshotSaveDir: () => ipcRenderer.invoke('screenshot:get-save-dir'),
+    setScreenshotSaveDir: () => ipcRenderer.invoke('screenshot:set-save-dir'),
+    takeScreenshot: () => ipcRenderer.invoke('screenshot:take'),
+    setScreenshotHotkey: (accelerator) => ipcRenderer.invoke('screenshot:set-hotkey', accelerator),
+    getScreenshotHotkey: () => ipcRenderer.invoke('screenshot:get-hotkey'),
 });
