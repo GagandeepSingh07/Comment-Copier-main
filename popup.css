@@ -672,16 +672,6 @@ body.layout-stack .tab-panel + .tab-panel {
     letter-spacing: 0.04em;
 }
 
-.course-list-count {
-    color: var(--muted);
-    font-size: 10px;
-    font-weight: 500;
-    background: #010409;
-    border: 1px solid #30363d;
-    border-radius: 999px;
-    padding: 1px 8px;
-}
-
 .course-list {
     display: flex;
     flex-direction: column;

@@ -43,7 +43,6 @@ const sheetPasteImportBtn = document.getElementById('sheet-paste-import-btn');
 const sheetPasteCancelBtn = document.getElementById('sheet-paste-cancel');
 const sheetBtn = document.getElementById('sheet-btn');
 const courseListEl = document.getElementById('course-list');
-const courseListCount = document.getElementById('course-list-count');
 const courseFilterTrigger = document.getElementById('course-filter-trigger');
 const courseFilterModal = document.getElementById('course-filter-modal');
 const courseFilterModalOptions = document.getElementById('course-filter-modal-options');
@@ -956,7 +955,6 @@ const COURSE_COPY_ICON = '<svg viewBox="0 0 24 24" width="11" height="11" fill="
 function renderCourseList() {
     courseListEl.innerHTML = '';
     if (!courseList.length) {
-        courseListCount.textContent = tN('count.entry', 0, { n: 0 });
         const empty = document.createElement('div');
         empty.className = 'course-list-empty';
         empty.textContent = t('popup.courseListEmpty');
@@ -964,7 +962,6 @@ function renderCourseList() {
         return;
     }
     if (!courseFilter) {
-        courseListCount.textContent = '';
         const prompt = document.createElement('div');
         prompt.className = 'course-filter-prompt';
         prompt.textContent = t('popup.courseSelectHint');
@@ -978,14 +975,12 @@ function renderCourseList() {
         courseFilter = '';
         saveCourseFilter();
         renderCourseFilter();
-        courseListCount.textContent = '';
         const prompt = document.createElement('div');
         prompt.className = 'course-filter-prompt';
         prompt.textContent = t('popup.courseSelectHint');
         courseListEl.appendChild(prompt);
         return;
     }
-    courseListCount.textContent = tN('count.entry', filtered.length, { n: filtered.length });
     filtered.forEach((item) => {
         const label = item.name || item.trainer || t('popup.untitledCourse');
 

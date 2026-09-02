@@ -1110,7 +1110,6 @@ function createPopup() {
                         const filteredHeader = document.querySelector('#course-list .course-item .course-item-header')
                             ? document.querySelector('#course-list .course-item .course-item-header').textContent.trim()
                             : '';
-                        const count = document.getElementById('course-list-count').textContent;
                         trigger.click();
                         const allOpt = [...modalOptions.querySelectorAll('.course-filter-option')].find((o) => o.dataset.value === '__all__');
                         allOpt.click();
@@ -1130,7 +1129,6 @@ function createPopup() {
                             defaultItems,
                             filteredItems,
                             isPainting: filteredHeader.indexOf('Painting') !== -1,
-                            count,
                             restored,
                             cleared,
                         });
