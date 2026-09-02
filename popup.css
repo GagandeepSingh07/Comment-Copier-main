@@ -658,7 +658,7 @@ body.layout-stack .tab-panel + .tab-panel {
 
 .course-list-head {
     display: flex;
-    align-items: baseline;
+    align-items: center;
     justify-content: space-between;
     gap: 6px;
     padding: 10px 2px 6px;
@@ -672,11 +672,36 @@ body.layout-stack .tab-panel + .tab-panel {
     letter-spacing: 0.04em;
 }
 
+.course-filter-trigger {
+    flex-shrink: 0;
+    background-color: #21262d;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    padding: 4px 11px;
+    font-family: inherit;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text);
+    cursor: pointer;
+    transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.course-filter-trigger:hover,
+.course-filter-trigger.open {
+    background-color: #30363d;
+    border-color: #484f58;
+}
+
+.course-filter-trigger:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(88, 166, 255, 0.4);
+}
+
 .course-list {
     display: flex;
     flex-direction: column;
     gap: 4px;
-    max-height: 200px;
+    max-height: 210px;
     overflow-y: auto;
     overscroll-behavior: contain;
 }
@@ -691,10 +716,10 @@ body.layout-stack .tab-panel + .tab-panel {
     background: #0d1117;
     border: 1px solid #30363d;
     border-radius: 9px;
-    padding: 5px 7px 4px;
+    padding: 6px 7px 5px;
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: 4px;
     transition: border-color 0.15s ease, background-color 0.15s ease;
 }
 
@@ -743,8 +768,8 @@ body.layout-stack .tab-panel + .tab-panel {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    flex-shrink: 0;
-    max-width: 55%;
+    flex: 0 1 auto;
+    min-width: 0;
     font-size: 11px;
     font-weight: 700;
     color: var(--text);
@@ -763,7 +788,7 @@ body.layout-stack .tab-panel + .tab-panel {
 }
 
 .course-item-copy-all {
-    margin-left: auto;
+    margin-left: 4px;
     flex-shrink: 0;
     display: inline-flex;
     align-items: center;
@@ -779,7 +804,7 @@ body.layout-stack .tab-panel + .tab-panel {
     flex-direction: row;
     flex-wrap: wrap;
     align-items: center;
-    gap: 3px 6px;
+    gap: 4px 6px;
 }
 
 .course-field {
@@ -789,19 +814,22 @@ body.layout-stack .tab-panel + .tab-panel {
     flex: 0 1 auto;
     min-width: 0;
     max-width: 100%;
-    background: transparent;
-    border: none;
-    border-radius: 5px;
-    padding: 3px 4px;
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    padding: 2px 5px 2px 6px;
     font-family: inherit;
     font-size: 10px;
     color: var(--text);
     text-align: left;
     cursor: pointer;
-    transition: background-color 0.15s ease;
+    transition: background-color 0.15s ease, border-color 0.15s ease;
 }
 
-.course-field:hover { background: #21262d; }
+.course-field:hover {
+    background: #21262d;
+    border-color: #484f58;
+}
 
 .course-field:active { background: #30363d; }
 
@@ -843,64 +871,6 @@ body.layout-stack .tab-panel + .tab-panel {
 
 .course-field:hover .course-field-copy { color: var(--accent); }
 
-.course-filter {
-    position: relative;
-    padding: 2px 2px 6px;
-}
-
-.course-filter-trigger {
-    width: 100%;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    background-color: #21262d;
-    border: 1px solid #30363d;
-    border-radius: 6px;
-    padding: 6px 8px;
-    font-family: inherit;
-    font-size: 10px;
-    font-weight: 600;
-    color: var(--text);
-    cursor: pointer;
-    transition: background-color 0.15s ease, border-color 0.15s ease;
-}
-
-.course-filter-trigger:hover,
-.course-filter-trigger.open {
-    background-color: #30363d;
-    border-color: #484f58;
-}
-
-.course-filter-trigger:focus-visible,
-.course-filter-option:focus-visible {
-    outline: none;
-    box-shadow: 0 0 0 2px rgba(88, 166, 255, 0.4);
-}
-
-.course-filter-value {
-    flex: 1;
-    min-width: 0;
-    text-align: left;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.course-filter-value.placeholder {
-    color: var(--muted);
-    font-weight: 500;
-}
-
-.course-filter-chevron {
-    flex-shrink: 0;
-    fill: var(--muted);
-    transition: transform 0.15s ease;
-}
-
-.course-filter-trigger.open .course-filter-chevron {
-    transform: rotate(180deg);
-}
-
 .course-filter-option {
     width: 100%;
     display: block;
@@ -925,6 +895,11 @@ body.layout-stack .tab-panel + .tab-panel {
 .course-filter-option.selected {
     background-color: rgba(88, 166, 255, 0.14);
     color: var(--accent);
+}
+
+.course-filter-option:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(88, 166, 255, 0.4);
 }
 
 /* ---------- Course filter modal ---------- */

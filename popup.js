@@ -47,7 +47,6 @@ const courseFilterTrigger = document.getElementById('course-filter-trigger');
 const courseFilterModal = document.getElementById('course-filter-modal');
 const courseFilterModalOptions = document.getElementById('course-filter-modal-options');
 const courseFilterModalClose = document.getElementById('course-filter-modal-close');
-const courseFilterValue = document.getElementById('course-filter-value');
 const organizerWrap = document.querySelector('.organizer-wrap');
 const organizerBtn = document.getElementById('organizer-btn');
 const organizerFolderRow = document.getElementById('organizer-folder-row');
@@ -749,12 +748,6 @@ function saveCourseFilter() {
     localStorage.setItem(COURSE_FILTER_KEY, courseFilter);
 }
 
-function courseFilterLabel(key) {
-    if (key === COURSE_FILTER_ALL) return t('popup.allCourses');
-    const item = courseList.find((c) => coursePresetKey(c) === key);
-    return item ? (courseItemText(item) || t('popup.untitledCourse')) : '';
-}
-
 function renderCourseFilter() {
     if (!courseFilterModalOptions) return;
     courseFilterModalOptions.innerHTML = '';
@@ -780,8 +773,6 @@ function renderCourseFilter() {
         courseFilter = '';
         saveCourseFilter();
     }
-    courseFilterValue.textContent = courseFilter ? courseFilterLabel(courseFilter) : t('popup.selectCourse');
-    courseFilterValue.classList.toggle('placeholder', !courseFilter);
 }
 
 function openCourseFilterMenu() {

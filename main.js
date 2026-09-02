@@ -1099,7 +1099,7 @@ function createPopup() {
                         trigger.click();
                         const optionCount = [...modalOptions.querySelectorAll('.course-filter-option')].length;
                         const hasAll = [...modalOptions.querySelectorAll('.course-filter-option')].some((o) => o.dataset.value === '__all__');
-                        const defaultValue = document.getElementById('course-filter-value').textContent;
+                        const triggerLabel = trigger.textContent.trim();
                         const defaultPrompt = document.querySelector('#course-list .course-filter-prompt')
                             ? document.querySelector('#course-list .course-filter-prompt').textContent
                             : '';
@@ -1124,7 +1124,7 @@ function createPopup() {
                             optionCount,
                             hasAll,
                             hasNone: !!noneOpt,
-                            defaultValue,
+                            triggerLabel,
                             defaultPrompt,
                             defaultItems,
                             filteredItems,

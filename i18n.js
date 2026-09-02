@@ -228,6 +228,7 @@ I18N.en = {
         courseDetail: 'Course Detail',
         allCourses: 'All courses',
         selectCourse: 'Select a course\u2026',
+        chooseData: 'Choose Data',
         courseSelectHint: 'Choose a course above to see its details',
         courseListEmpty: 'No saved courses yet \u2014 add presets from the main window (Settings \u00b7 Courses & Trainers).',
         courseItemTitle: 'Click to copy \u2014 name, code and trainer',
@@ -559,6 +560,7 @@ I18N.es = {
         noCommentsYet: '(a\u00fan no hay comentarios)',
         sheetEmpty: 'A\u00fan no hay c\u00f3digos \u2014 a\u00f1ade arriba un c\u00f3digo y una marca.',
         mainOpenTitle: 'Abrir la ventana principal de Comment Copier',
+        chooseData: 'Elegir datos',
         total: '1 comentario',
     },
     org: {
@@ -844,6 +846,7 @@ I18N.fr = {
         noCommentsYet: '(pas encore de commentaires)',
         sheetEmpty: 'Aucun code pour l\u2019instant \u2014 ajoutez un code et une marque ci-dessus.',
         mainOpenTitle: 'Ouvrir la fen\u00eatre principale de Comment Copier',
+        chooseData: 'Choisir les donn\u00e9es',
         total: '1 commentaire',
     },
     org: {
@@ -1129,6 +1132,7 @@ I18N.de = {
         noCommentsYet: '(noch keine Kommentare)',
         sheetEmpty: 'Noch keine Codes \u2014 oben einen Code und eine Markierung hinzuf\u00fcgen.',
         mainOpenTitle: 'Hauptfenster von Comment Copier \u00f6ffnen',
+        chooseData: 'Daten w\u00e4hlen',
         total: '1 Kommentar',
     },
     org: {
@@ -1414,6 +1418,7 @@ I18N.ar = {
         noCommentsYet: '(\u0644\u0627 \u062a\u0639\u0644\u064a\u0642\u0627\u062a \u0628\u0639\u062f)',
         sheetEmpty: '\u0644\u0627 \u0631\u0645\u0648\u0632 \u0628\u0639\u062f \u2014 \u0623\u0636\u0641 \u0631\u0645\u0632\u064b\u0627 \u0648\u0639\u0644\u0627\u0645\u0629 \u0641\u0648\u0642.',
         mainOpenTitle: '\u0641\u062a\u062d \u0627\u0644\u0646\u0627\u0641\u0630\u0629 \u0627\u0644\u0631\u0626\u064a\u0633\u064a\u0629 \u0644\u0640 Comment Copier',
+        chooseData: '\u0627\u062e\u062a\u064a\u0627\u0631 \u0627\u0644\u0628\u064a\u0627\u0646\u0627\u062a',
         total: '\u062a\u0639\u0644\u064a\u0642 \u0648\u0627\u062d\u062f',
     },
     org: {
