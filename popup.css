@@ -1461,24 +1461,24 @@ body.layout-cards .tab-panel[data-panel="student"].active {
 body.layout-cards .rows {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
-    padding: 5px 14px 7px;
+    gap: 6px;
+    padding: 4px 14px 6px;
     align-items: stretch;
 }
 
 body.layout-cards .row {
     position: relative;
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     align-items: center;
-    justify-content: center;
-    text-align: center;
-    gap: 4px;
+    justify-content: flex-start;
+    text-align: left;
+    gap: 9px;
     background: #0d1117;
     border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 12px 8px 22px;
-    min-height: 96px;
+    border-radius: 11px;
+    padding: 11px 10px;
+    min-height: 0;
     transition: transform 0.15s ease, border-color 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
 }
 
@@ -1491,18 +1491,19 @@ body.layout-cards .row:hover {
 body.layout-cards .row:active { transform: translateY(0); box-shadow: none; }
 
 body.layout-cards .row-icon {
+    flex-shrink: 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 42px;
-    height: 42px;
-    border-radius: 13px;
+    width: 36px;
+    height: 36px;
+    border-radius: 11px;
     color: #1a1a1a;
 }
 
 body.layout-cards .row-icon svg {
-    width: 20px;
-    height: 20px;
+    width: 17px;
+    height: 17px;
 }
 
 body.layout-cards .row[data-key="accept"] .row-icon { background: #C6E0B4; }
@@ -1515,23 +1516,28 @@ body.layout-cards .row.disabled .row-icon { opacity: 0.4; }
 
 body.layout-cards .row-line {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     align-items: center;
-    gap: 3px;
-    width: 100%;
+    gap: 4px;
+    flex: 1 1 auto;
+    min-width: 0;
 }
 
 body.layout-cards .name {
-    font-size: 10px;
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 10.5px;
     font-weight: 700;
 }
 
 body.layout-cards .pos {
-    position: absolute;
-    top: 8px;
-    right: 8px;
-    min-width: 18px;
-    height: 18px;
+    position: static;
+    flex-shrink: 0;
+    min-width: 16px;
+    height: 16px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1539,26 +1545,28 @@ body.layout-cards .pos {
     border: 1px solid var(--border);
     border-radius: 999px;
     padding: 0 5px;
-    font-size: 9.5px;
+    font-size: 9px;
     font-weight: 600;
     color: var(--muted);
 }
 
 body.layout-cards .row-actions {
     position: absolute;
-    left: 50%;
-    bottom: 6px;
-    width: 50px;
-    margin-left: -25px;
+    right: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: auto;
+    margin-left: 0;
     display: flex;
     flex-direction: row;
-    justify-content: space-between;
+    gap: 1px;
     align-items: center;
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.15s ease;
     border-top: none;
     padding-top: 0;
+    background: #0d1117;
 }
 
 body.layout-cards .row:hover .row-actions {
@@ -1566,10 +1574,14 @@ body.layout-cards .row:hover .row-actions {
     pointer-events: auto;
 }
 
+body.layout-cards .row:hover .pos {
+    opacity: 0;
+}
+
 body.layout-cards .row-actions .mini {
     flex: none;
-    width: 22px;
-    height: 22px;
+    width: 20px;
+    height: 20px;
     padding: 0;
     display: flex;
     align-items: center;
