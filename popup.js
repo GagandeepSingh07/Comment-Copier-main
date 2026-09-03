@@ -882,66 +882,6 @@ async function writeClipboardImage(filename) {
     return false;
 }
 
-function confirmDeleteEnabled() {
-    const saved = localStorage.getItem(CONFIRM_DELETE_KEY);
-    return saved === null ? true : saved !== '0';
-}
-
-let presetUndo = null;
-let presetUndoExpire = 0;
-let presetUndoTimer = null;
-
-function pushPresetUndo(item, index) {
-    presetUndo = { item, index };
-    presetUndoExpire = Date.now() + 5000;
-}
-
-function popPresetUndo() {
-    if (!presetUndo) return;
-    courseList.splice(presetUndo.index, 0, presetUndo.item);
-    presetUndo = null;
-    saveCourseList();
-    renderCourseList();
-    syncHeight();
-    showToast(t('toast.presetRestored'));
-}
-
-function showPresetUndoToast(message) {
-    toastEl.innerHTML = '';
-    toastEl.textContent = message + ' ';
-    const undo = document.createElement('button');
-    undo.type = 'button';
-    undo.className = 'toast-undo';
-    undo.textContent = t('editor.undo');
-    undo.addEventListener('click', () => {
-        popPresetUndo();
-        clearTimeout(presetUndoTimer);
-        toastEl.classList.remove('show');
-    });
-    toastEl.appendChild(undo);
-    toastEl.classList.add('show');
-    clearTimeout(presetUndoTimer);
-    presetUndoTimer = setTimeout(() => {
-        toastEl.classList.remove('show');
-        if (presetUndo && Date.now() > presetUndoExpire) presetUndo = null;
-    }, 4000);
-}
-
-function removeCourseItem(index) {
-    const item = courseList[index];
-    if (!item) return;
-    if (confirmDeleteEnabled() && !window.confirm(t('confirm.deletePreset'))) {
-        return;
-    }
-    const [removed] = courseList.splice(index, 1);
-    saveCourseList();
-    renderCourseList();
-    syncHeight();
-    pushPresetUndo(removed, index);
-    showPresetUndoToast(t('toast.presetRemoved'));
-}
-
-const COURSE_COPY_ICON = '<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>';
 
 function renderCourseList() {
     courseListEl.innerHTML = '';
@@ -978,26 +918,6 @@ function renderCourseList() {
         const row = document.createElement('div');
         row.className = 'course-item';
 
-        // Delete button sits in the corner of the whole card, revealed on
-        // hover — the card no longer has a separate header row to host it.
-        const delBtn = document.createElement('button');
-        delBtn.type = 'button';
-        delBtn.className = 'course-item-del';
-        delBtn.title = t('popup.remove');
-        delBtn.textContent = '\u00d7';
-        delBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            removeCourseItem(courseList.indexOf(item));
-        });
-        row.appendChild(delBtn);
-
-        // Top row: the "Course Detail" label + title on the left, the
-        // accent "All" copy-everything chip pinned to the right of that
-        // same row — matches the reference certificate-card layout instead
-        // of letting the All chip wrap onto its own line.
-        const top = document.createElement('div');
-        top.className = 'course-item-top';
-
         const info = document.createElement('div');
         info.className = 'course-item-info';
         const infoLabel = document.createElement('div');
@@ -1009,52 +929,51 @@ function renderCourseList() {
         titleText.textContent = label;
         titleText.title = label;
         info.appendChild(titleText);
-        top.appendChild(info);
+        row.appendChild(info);
 
-        const allBtn = document.createElement('button');
-        allBtn.type = 'button';
-        allBtn.className = 'course-item-copy-all';
-        allBtn.title = t('popup.copyAllTitle');
-        allBtn.setAttribute('aria-label', t('popup.copyAllTitle') + ': ' + label + (item.code ? ' (' + item.code + ')' : ''));
-        allBtn.innerHTML = COURSE_COPY_ICON + '<span>' + escapeHtml(t('popup.copyAllShort')) + '</span>';
-        allBtn.addEventListener('click', () => copyCourseItem(item));
-        top.appendChild(allBtn);
-
-        row.appendChild(top);
-
-        // Bottom row: the field chips, wrapping freely on their own line at
-        // full card width instead of competing with the title/All chip for
-        // horizontal space.
         const fieldsEl = document.createElement('div');
         fieldsEl.className = 'course-item-fields';
 
         const fields = [];
-        if (item.code) fields.push({ field: 'code', label: t('popup.courseCode'), value: item.code });
-        if (item.trainer) fields.push({ field: 'trainer', label: t('popup.trainerName'), value: item.trainer });
+        if (item.code) fields.push({ field: 'code', label: t('popup.courseCode'), value: item.code, cssClass: 'course-field code' });
+        if (item.trainer) fields.push({ field: 'trainer', label: t('popup.trainerName'), value: item.trainer, cssClass: 'course-field person' });
         if (item.signature) {
-            fields.push({ field: 'signature', label: t('popup.trainerSignature'), value: item.signature });
+            fields.push({ field: 'signature', label: t('popup.trainerSignature'), value: item.signature, cssClass: 'course-field person' });
         }
         if (item.signatureFile) {
-            fields.push({ field: 'signature', label: t('popup.trainerSignature'), value: t('popup.signatureImage'), isImage: true });
+            fields.push({ field: 'signature', label: t('popup.trainerSignature'), value: t('popup.signatureImage'), isImage: true, cssClass: 'course-field person' });
         }
         fields.forEach((f) => {
             if (!f.value) return;
             const btn = document.createElement('button');
             btn.type = 'button';
-            btn.className = 'course-field' + (f.field === 'signature' ? ' course-field-signature' : '');
+            btn.className = f.cssClass + (f.field === 'signature' ? ' course-field-signature' : '');
             btn.title = t('popup.copyFieldTitle', { field: f.label });
             btn.setAttribute('aria-label', t('popup.copyFieldTitle', { field: f.label }));
-            const labelEl = document.createElement('span');
+            const fieldBody = document.createElement('div');
+            fieldBody.className = 'field-body';
+            const labelEl = document.createElement('div');
             labelEl.className = 'course-field-label';
             labelEl.textContent = f.label;
-            const valueEl = document.createElement('span');
+            const valueEl = document.createElement('div');
             valueEl.className = 'course-field-value';
             valueEl.textContent = f.value;
-            btn.appendChild(labelEl);
-            btn.appendChild(valueEl);
+            fieldBody.appendChild(labelEl);
+            fieldBody.appendChild(valueEl);
+            btn.appendChild(fieldBody);
             btn.addEventListener('click', () => copyCourseField(item, f.field, f.label, f.isImage));
             fieldsEl.appendChild(btn);
         });
+
+        const allBtn = document.createElement('button');
+        allBtn.type = 'button';
+        allBtn.className = 'course-field course-item-copy-all';
+        allBtn.title = t('popup.copyAllTitle');
+        allBtn.setAttribute('aria-label', t('popup.copyAllTitle') + ': ' + label + (item.code ? ' (' + item.code + ')' : ''));
+        allBtn.innerHTML = '<span class="copy-icon" aria-hidden="true"></span>';
+        allBtn.addEventListener('click', () => copyCourseItem(item));
+        fieldsEl.appendChild(allBtn);
+
         row.appendChild(fieldsEl);
 
         courseListEl.appendChild(row);
