@@ -10,6 +10,15 @@
     let current = null;
 
     function resize() {
+        // Pin the canvas's on-screen (CSS) size to the viewport explicitly.
+        // Without this, setting canvas.width/height to physical-pixel values
+        // (for a crisp backing store on HiDPI/scaled displays) also becomes
+        // the canvas's default LAYOUT size when no CSS size is set — at 125%
+        // scaling that made the canvas render ~25% larger than the actual
+        // screen in each direction, overflowing the window and making the
+        // overlay scrollable/draggable past the real screen edge.
+        canvas.style.width = window.innerWidth + 'px';
+        canvas.style.height = window.innerHeight + 'px';
         canvas.width = Math.round(window.innerWidth * dpr);
         canvas.height = Math.round(window.innerHeight * dpr);
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);

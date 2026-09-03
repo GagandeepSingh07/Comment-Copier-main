@@ -31,7 +31,7 @@ function defaultDataRoot() {
     return path.join(app.getPath('appData'), 'comment-copier');
 }
 // Old (buggy) default: data used to live under the OS temp folder, which
-// the OS/antivirus/cleanup tools can wipe at any time — this is what was
+// the OS/antivirus/cleanup tools can wipe at any time Ã¢â‚¬â€ this is what was
 // causing all settings/comments to appear "erased". Kept only so existing
 // installs can be migrated forward one time to the real appData location.
 function legacyTempDataRoot() {
@@ -82,7 +82,7 @@ if (!portableMode.enabled) {
         if (legacyHasData && !newHasData) {
             migrateData(legacy, resolvedDataRoot);
         }
-    } catch (e) { /* ignore — fall through to a fresh data root */ }
+    } catch (e) { /* ignore Ã¢â‚¬â€ fall through to a fresh data root */ }
 }
 app.setPath('userData', resolvedDataRoot);
 
@@ -108,7 +108,7 @@ const CHANGELOG = [
             {
                 heading: 'Improved',
                 notes: [
-                    'Saved Courses cards (tray popup and main window) are decluttered — name/code/trainer/signature are each their own compact one-click copy chip, with icons instead of spelled-out labels so more fits without wrapping or truncating.',
+                    'Saved Courses cards (tray popup and main window) are decluttered Ã¢â‚¬â€ name/code/trainer/signature are each their own compact one-click copy chip, with icons instead of spelled-out labels so more fits without wrapping or truncating.',
                     'The main window\'s Saved Courses grid now has a live search box and a responsive column layout, and the tray popup\'s course cards got more breathing room.',
                     '"Copy All" on a saved course now includes the trainer\'s signature image in the same clipboard write instead of silently dropping it for image-only presets.',
                 ],
@@ -224,7 +224,7 @@ const CHANGELOG = [
             {
                 heading: 'Improvements',
                 notes: [
-                    'Paste / Paste box: the stacked Student Id / Name / Assessment Code block layout is now recognized even without the literal "Student Id"/"Name" header text — a real Excel roster export (codes start straight away, no header row) now imports correctly instead of being misread as a single stray code.',
+                    'Paste / Paste box: the stacked Student Id / Name / Assessment Code block layout is now recognized even without the literal "Student Id"/"Name" header text Ã¢â‚¬â€ a real Excel roster export (codes start straight away, no header row) now imports correctly instead of being misread as a single stray code.',
                 ],
             },
         ],
@@ -235,7 +235,7 @@ const CHANGELOG = [
             {
                 heading: 'Improvements',
                 notes: [
-                    'Paste / Paste box: a plain Code/Mark list no longer needs to be tab-separated — comma-separated, multiple-spaced, or single-spaced "CODE, Mark" lines are now understood too, so a whole list of unit codes and marks can be typed or pasted in and imported in one go.',
+                    'Paste / Paste box: a plain Code/Mark list no longer needs to be tab-separated Ã¢â‚¬â€ comma-separated, multiple-spaced, or single-spaced "CODE, Mark" lines are now understood too, so a whole list of unit codes and marks can be typed or pasted in and imported in one go.',
                 ],
             },
         ],
@@ -246,7 +246,7 @@ const CHANGELOG = [
             {
                 heading: 'Changed',
                 notes: [
-                    'Student Details: "Import Excel" (file picker) replaced with "Paste" — copy a range of cells in Excel (Ctrl+C), then click Paste to import directly from the clipboard, no file dialog needed.',
+                    'Student Details: "Import Excel" (file picker) replaced with "Paste" Ã¢â‚¬â€ copy a range of cells in Excel (Ctrl+C), then click Paste to import directly from the clipboard, no file dialog needed.',
                     'Added a "Paste box" fallback: opens a text area to paste into manually, for when clipboard access isn\'t available or the data needs a quick edit before importing.',
                 ],
             },
@@ -258,7 +258,7 @@ const CHANGELOG = [
             {
                 heading: 'Bug Fixes',
                 notes: [
-                    'Import Excel: fixed only the first block of unit codes being imported when a student\'s Student Id/Name cells are merged across several stacked code/mark tables — all blocks for that student are now combined.',
+                    'Import Excel: fixed only the first block of unit codes being imported when a student\'s Student Id/Name cells are merged across several stacked code/mark tables Ã¢â‚¬â€ all blocks for that student are now combined.',
                 ],
             },
         ],
@@ -269,7 +269,7 @@ const CHANGELOG = [
             {
                 heading: 'New',
                 notes: [
-                    'Student Details: added an "Import Excel" button to load a student\'s Unit Code & Mark table straight from an .xlsx file — no more retyping data that already exists in a spreadsheet.',
+                    'Student Details: added an "Import Excel" button to load a student\'s Unit Code & Mark table straight from an .xlsx file Ã¢â‚¬â€ no more retyping data that already exists in a spreadsheet.',
                     'Import understands the app\'s own "Copy Sheet" table layout (Student Id / Name / Assessment Code), and will find and load the matching student if the file has several.',
                 ],
             },
@@ -292,7 +292,7 @@ const CHANGELOG = [
             {
                 heading: 'Improvements',
                 notes: [
-                    'Tab and Side-by-side layouts now match the Card layout sizing — larger padding, headings, and input/button dimensions across all sections.',
+                    'Tab and Side-by-side layouts now match the Card layout sizing Ã¢â‚¬â€ larger padding, headings, and input/button dimensions across all sections.',
                     'Tab layout window width increased to 400px to match the Card layout.',
                 ],
             },
@@ -307,10 +307,10 @@ const CHANGELOG = [
     {
         version: '1.12.0',
         notes: [
-            'New Card layout: a third view (Tabs → Side by side → Cards) with quick actions shown as icon cards and Student Details stacked underneath.',
+            'New Card layout: a third view (Tabs Ã¢â€ â€™ Side by side Ã¢â€ â€™ Cards) with quick actions shown as icon cards and Student Details stacked underneath.',
             'Quick action icons redrawn as crisp SVGs (checkmark, AI sparkle, copy) instead of text/arrow glyphs.',
-            'Unit Code & Mark list restyled as full-width rows with a rounded status pill and remove button on the right — applies to every layout.',
-            'Student Details heading hierarchy clarified: “Student details” is now the main heading, “Unit Code & Mark” a smaller sub-heading.',
+            'Unit Code & Mark list restyled as full-width rows with a rounded status pill and remove button on the right Ã¢â‚¬â€ applies to every layout.',
+            'Student Details heading hierarchy clarified: Ã¢â‚¬Å“Student detailsÃ¢â‚¬Â is now the main heading, Ã¢â‚¬Å“Unit Code & MarkÃ¢â‚¬Â a smaller sub-heading.',
             'Student ID, Name, and Copy Sheet now sit on a single row in the Card layout.',
         ],
     },
@@ -932,6 +932,20 @@ function saveConfig(partial) {
     } catch (e) {}
 }
 
+// Temporary diagnostic log for the fixed-area screenshot pipeline (area
+// selection + capture crop math). Appends one JSON line per event so an
+// intermittent misalignment can be compared across repeated captures
+// instead of guessed at. Written next to main.js (not userData) purely so
+// it's easy to read during debugging. Safe to remove once the screenshot
+// area/offset issue is confirmed fixed.
+const screenshotDebugFile = () => path.join(__dirname, 'screenshot-debug.log');
+function screenshotDebugLog(event, data) {
+    try {
+        const line = JSON.stringify({ t: new Date().toISOString(), event, ...data }) + '\n';
+        fs.appendFileSync(screenshotDebugFile(), line, 'utf8');
+    } catch (e) { /* ignore */ }
+}
+
 // Convert a user-facing accelerator (which may display the Windows key as
 // "Win") into the token Electron's globalShortcut understands ("Super").
 // The displayed/stored form is kept as-is so it round-trips to the UI.
@@ -959,11 +973,11 @@ function registerHotkey(accelerator) {
             }
         });
         if (!ok) {
-            // Registration failed — leave the previously-working hotkey (if any)
+            // Registration failed Ã¢â‚¬â€ leave the previously-working hotkey (if any)
             // registered and untouched rather than leaving the app with none.
             return { ok: false, error: 'That shortcut is already in use or not available.', current: previous || '' };
         }
-        // New accelerator registered successfully — now it's safe to release the old one.
+        // New accelerator registered successfully Ã¢â‚¬â€ now it's safe to release the old one.
         if (previous && previous !== String(accelerator)) {
             try {
                 if (globalShortcut.isRegistered(prevElectron)) globalShortcut.unregister(prevElectron);
@@ -1055,6 +1069,20 @@ ipcMain.handle('screenshot:define-area', async (event) => {
     const originX = minX, originY = minY;
     const winW = maxX - minX, winH = maxY - minY;
 
+    screenshotDebugLog('overlay-open', {
+        displayCount: displays.length,
+        displays: displays.map((d) => ({
+            id: d.id,
+            bounds: d.bounds,
+            workArea: d.workArea,
+            scaleFactor: d.scaleFactor,
+            internal: d.internal,
+            label: d.label,
+        })),
+        primaryDisplayId: screen.getPrimaryDisplay().id,
+        unionBounds: { x: originX, y: originY, width: winW, height: winH },
+    });
+
     const area = getScreenshotArea();
     try {
         overlayWindow = new BrowserWindow({
@@ -1130,6 +1158,12 @@ ipcMain.on('overlay:selected', (event, rect) => {
         width: Math.round(rect && rect.width || 0),
         height: Math.round(rect && rect.height || 0),
     };
+    screenshotDebugLog('area-selected', {
+        localRect: rect,
+        windowBounds: origin,
+        computedArea: a,
+        displays: screen.getAllDisplays().map((d) => ({ id: d.id, bounds: d.bounds, scaleFactor: d.scaleFactor })),
+    });
     const ok = a.width > 0 && a.height > 0;
     if (ok) saveConfig({ screenshotArea: a });
     try { w.destroy(); } catch (e) {}
@@ -1167,7 +1201,7 @@ function registerScreenshotHotkey(accelerator) {
     const acc = toElectronAccel(accelerator);
     try {
         const ok = globalShortcut.register(acc, () => {
-            takeFixedScreenshot();
+            performScreenshot();
         });
         if (!ok) {
             return { ok: false, error: 'That shortcut is already in use or not available.', current: previous || '' };
@@ -1191,31 +1225,50 @@ ipcMain.handle('screenshot:set-hotkey', (event, accelerator) => {
 
 ipcMain.handle('screenshot:get-hotkey', () => registeredScreenshotHotkey || loadConfig().screenshotHotkey || '');
 
-// Capture the fixed area: crop it from a screenshot of the display that contains
-// the area's centre, then copy to clipboard and save a PNG to the save folder.
-ipcMain.handle('screenshot:take', async (event) => {
-    return takeFixedScreenshot();
-});
-
-async function takeFixedScreenshot() {
+// Crop the fixed area from a screenshot of the display that contains the area's
+// centre. Returns the cropped nativeImage, or null on failure. The coordinates
+// are DIPs in the global virtual-desktop space; they are mapped to the display's
+// physical pixels so HiDPI captures stay crisp.
+async function captureAreaImage() {
     const area = getScreenshotArea();
-    if (!area) return { ok: false, error: 'no-area' };
+    if (!area) return { error: 'no-area', img: null };
     const display = screen.getDisplayNearestPoint({ x: area.x + Math.floor(area.width / 2), y: area.y + Math.floor(area.height / 2) });
     try {
-        // Request the thumbnail at native physical resolution so HiDPI captures
-        // stay crisp; the crop coordinates are then scaled by the same factor.
         const sX = display.scaleFactor || 1;
         const sY = display.scaleFactor || 1;
         const sources = await desktopCapturer.getSources({
             types: ['screen'],
             thumbnailSize: { width: Math.round(display.bounds.width * sX), height: Math.round(display.bounds.height * sY) },
         });
-        const source = sources.find((s) => s.display_id === String(display.id))
-            || sources[0]
-            || (sources.length ? sources[sources.length - 1] : null);
-        if (!source) return { ok: false, error: 'no-source' };
+        // Prefer an exact display_id match. Only fall back to position-based
+        // guessing (sources[0]/last) when the id genuinely can't be matched
+        // (some Windows configs return display_id in a different format), and
+        // NEVER when there's exactly one source — with a single screen there's
+        // nothing to disambiguate, so id-format quirks shouldn't matter.
+        let source = null;
+        let matchedBy = 'none';
+        if (sources.length === 1) {
+            source = sources[0];
+            matchedBy = 'only-source';
+        } else {
+            source = sources.find((s) => s.display_id === String(display.id));
+            if (source) matchedBy = 'display_id';
+        }
+        if (!source) {
+            source = sources[0] || (sources.length ? sources[sources.length - 1] : null);
+            matchedBy = 'fallback';
+        }
+        screenshotDebugLog('capture-source', {
+            area,
+            targetDisplay: { id: display.id, bounds: display.bounds, scaleFactor: display.scaleFactor },
+            sourceCount: sources.length,
+            sourceIds: sources.map((s) => ({ id: s.id, display_id: s.display_id, name: s.name })),
+            matchedBy,
+            chosenSourceId: source ? source.id : null,
+        });
+        if (!source) return { error: 'no-source', img: null };
         const thumb = source.thumbnail;
-        if (thumb.isEmpty()) return { ok: false, error: 'empty-capture' };
+        if (thumb.isEmpty()) return { error: 'empty-capture', img: null };
         // Account for any discrepancy between the requested size and the actual
         // thumbnail produced (e.g. the OS capping resolution).
         const scaleX = thumb.getSize().width / display.bounds.width;
@@ -1226,28 +1279,80 @@ async function takeFixedScreenshot() {
             width: Math.round(area.width * scaleX),
             height: Math.round(area.height * scaleY),
         };
+        screenshotDebugLog('capture-crop', {
+            thumbSize: thumb.getSize(),
+            scaleX,
+            scaleY,
+            crop,
+        });
         const img = thumb.crop(crop);
-        if (img.isEmpty()) return { ok: false, error: 'empty-crop' };
-        clipboard.writeImage(img);
-
-        const dir = getScreenshotSaveDir();
-        let savedPath = null;
-        if (dir) {
-            try {
-                fs.mkdirSync(dir, { recursive: true });
-                const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
-                const name = `comment-screenshot-${stamp}.png`;
-                savedPath = path.join(dir, name);
-                fs.writeFileSync(savedPath, img.toPNG());
-            } catch (e) {
-                savedPath = null;
-            }
-        }
-        return { ok: true, saved: !!savedPath, path: savedPath };
+        if (img.isEmpty()) return { error: 'empty-crop', img: null };
+        return { error: null, img };
     } catch (e) {
-        return { ok: false, error: 'capture-failed' };
+        screenshotDebugLog('capture-error', { message: e && e.message });
+        return { error: 'capture-failed', img: null };
     }
 }
+
+// Produce a small PNG data URL of the defined area for a live preview thumbnail.
+ipcMain.handle('screenshot:preview', async () => {
+    const res = await captureAreaImage();
+    if (!res.img) return { ok: false, error: res.error || 'no-area' };
+    try {
+        const thumb = res.img.getSize();
+        const maxDim = 220;
+        const scale = Math.min(1, maxDim / Math.max(thumb.width, thumb.height));
+        const resized = res.img.resize({ width: Math.max(1, Math.round(thumb.width * scale)), height: Math.max(1, Math.round(thumb.height * scale)) });
+        return { ok: true, dataUrl: resized.toDataURL() };
+    } catch (e) {
+        return { ok: false, error: 'preview-failed' };
+    }
+});
+
+// Capture the fixed area: copy to clipboard and save a PNG to the save folder.
+// Capture the fixed area, copy it to the clipboard, and save a PNG to the
+// configured folder (when one is chosen). Used by the Capture-now button and the
+// global screenshot hotkey.
+async function performScreenshot() {
+    const res = await captureAreaImage();
+    if (!res.img) return { ok: false, error: res.error || 'no-area' };
+    const img = res.img;
+    try { clipboard.writeImage(img); } catch (e) { return { ok: false, error: 'copy-failed' }; }
+
+    const dir = getScreenshotSaveDir();
+    let savedPath = null;
+    if (dir) {
+        try {
+            fs.mkdirSync(dir, { recursive: true });
+            const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+            const name = `comment-screenshot-${stamp}.png`;
+            savedPath = path.join(dir, name);
+            fs.writeFileSync(savedPath, img.toPNG());
+        } catch (e) {
+            savedPath = null;
+        }
+    }
+    return { ok: true, saved: !!savedPath, path: savedPath };
+}
+
+ipcMain.handle('screenshot:take', async () => performScreenshot());
+
+// Set the screenshot area from manually-entered values (global DIP coordinates).
+ipcMain.handle('screenshot:set-area', (event, a) => {
+    const area = a && {
+        x: Math.round(Number(a.x)),
+        y: Math.round(Number(a.y)),
+        width: Math.round(Number(a.width)),
+        height: Math.round(Number(a.height)),
+    };
+    if (!area || !Number.isFinite(area.x) || !Number.isFinite(area.y)
+        || !Number.isFinite(area.width) || !Number.isFinite(area.height)
+        || area.width <= 0 || area.height <= 0) {
+        return { ok: false, error: 'invalid' };
+    }
+    saveConfig({ screenshotArea: area });
+    return { ok: true, area: getScreenshotArea() };
+});
 
 /* ---------- (previous section) ---------- */
 
