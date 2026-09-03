@@ -1055,7 +1055,7 @@ function renderCourseList() {
             if (!f.value) return;
             const btn = document.createElement('button');
             btn.type = 'button';
-            btn.className = 'course-field';
+            btn.className = 'course-field' + (f.field === 'signature' ? ' course-field-signature' : '');
             btn.title = t('popup.copyFieldTitle', { field: f.label });
             btn.setAttribute('aria-label', t('popup.copyFieldTitle', { field: f.label }));
             const iconEl = document.createElement('span');

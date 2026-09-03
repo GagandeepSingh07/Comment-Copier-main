@@ -561,10 +561,12 @@ body.layout-stack .tab-panel + .tab-panel {
 .sheet-preview-list {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
+    grid-auto-rows: minmax(34px, auto);
     gap: 5px;
     padding: 5px 4px 5px 0;
     margin-top: 6px;
-    max-height: 170px;
+    /* Exactly 3 rows visible at a time; the rest scrolls */
+    max-height: calc(3 * 34px + 2 * 5px + 10px);
     overflow-y: auto;
     overscroll-behavior: contain;
 }
@@ -857,6 +859,27 @@ body.layout-stack .tab-panel + .tab-panel {
     text-overflow: ellipsis;
     white-space: nowrap;
 }
+
+/* Signature chip stands out from the other plain-data fields — it carries
+   an image, not just text, so it gets an accent border, tinted background
+   and a bolder icon to draw the eye. */
+.course-field-signature {
+    background: rgba(88, 166, 255, 0.1);
+    border-color: rgba(88, 166, 255, 0.45);
+    font-weight: 700;
+}
+
+.course-field-signature .course-field-icon {
+    color: var(--accent);
+}
+
+.course-field-signature:hover {
+    background: rgba(88, 166, 255, 0.18);
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px rgba(88, 166, 255, 0.25);
+}
+
+.course-field-signature:active { background: rgba(88, 166, 255, 0.26); }
 
 .course-filter-option {
     width: 100%;
@@ -1450,12 +1473,12 @@ body.layout-cards .row {
     align-items: center;
     justify-content: center;
     text-align: center;
-    gap: 5px;
+    gap: 4px;
     background: #0d1117;
     border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 18px 8px 30px;
-    min-height: 130px;
+    border-radius: 12px;
+    padding: 12px 8px 22px;
+    min-height: 96px;
     transition: transform 0.15s ease, border-color 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
 }
 
@@ -1471,15 +1494,15 @@ body.layout-cards .row-icon {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 56px;
-    height: 56px;
-    border-radius: 16px;
+    width: 42px;
+    height: 42px;
+    border-radius: 13px;
     color: #1a1a1a;
 }
 
 body.layout-cards .row-icon svg {
-    width: 26px;
-    height: 26px;
+    width: 20px;
+    height: 20px;
 }
 
 body.layout-cards .row[data-key="accept"] .row-icon { background: #C6E0B4; }
@@ -1499,7 +1522,7 @@ body.layout-cards .row-line {
 }
 
 body.layout-cards .name {
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 700;
 }
 
