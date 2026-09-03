@@ -916,6 +916,24 @@ ipcMain.handle('app:get-login-item', () => {
     }
 });
 
+ipcMain.handle('app:set-start-in-tray', (event, enabled) => {
+    try {
+        saveConfig({ startInTray: !!enabled });
+        return { ok: true, startInTray: !!enabled };
+    } catch (e) {
+        return { ok: false, error: 'Couldn\u2019t update the start-in-tray setting.' };
+    }
+});
+
+ipcMain.handle('app:get-start-in-tray', () => {
+    try {
+        const cfg = loadConfig();
+        return { startInTray: !!cfg.startInTray };
+    } catch (e) {
+        return { startInTray: false };
+    }
+});
+
 let registeredHotkey = null;
 const configFile = () => path.join(app.getPath('userData'), 'config.json');
 function loadConfig() {
