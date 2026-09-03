@@ -237,6 +237,7 @@ I18N.en = {
         copyFieldTitle: 'Copy {field}',
         copyAllTitle: 'Copy all (name, code, trainer, signature)',
         copyAllShort: 'All',
+        copyAll: 'Copy all',
         signatureImage: '(signature image)',
         copy: 'Copy',
         remove: 'Remove',

@@ -2387,14 +2387,19 @@ function mwRemoveCourseItem(index) {
 
 const MW_COURSES_EMPTY_ICON = '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5a1 1 0 0 1 1-1h2l.8 1.2a1 1 0 0 0 .8.4h2.4a1 1 0 0 1 1 1V12a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5Z"/><path d="M4 7.5h8M9 3.5h.01"/></svg>';
 
-const MW_COPY_ICON = '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>';
+// Same glyph as the empty-state icon, sized for the small icon chip on each
+// saved-course card.
+const MW_COURSE_ICON = '<svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5a1 1 0 0 1 1-1h2l.8 1.2a1 1 0 0 0 .8.4h2.4a1 1 0 0 1 1 1V12a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5Z"/><path d="M4 7.5h8M8 3.5h.01"/></svg>';
+const MW_SIGNATURE_ICON = '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>';
 
-const MW_FIELD_ICONS = {
-    name: '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7V4h16v3"></path><path d="M9 20h6"></path><path d="M12 4v16"></path></svg>',
-    code: '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="8 6 2 12 8 18"></polyline><polyline points="16 6 22 12 16 18"></polyline></svg>',
-    trainer: '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>',
-    signature: '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>',
-};
+// Two-letter initials for a trainer's avatar chip — first + last name
+// initial, or the first two letters of a single-word name.
+function mwInitials(name) {
+    const parts = String(name || '').trim().split(/\s+/).filter(Boolean);
+    if (!parts.length) return '?';
+    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
 
 function mwRenderCourseList() {
     if (!mwCourseListEl) return;
@@ -2425,119 +2430,46 @@ function mwRenderCourseList() {
         const row = document.createElement('div');
         row.className = 'mw-course-item';
 
-        // The avatar + title area is the sole "copy everything" trigger — a
-        // real <button> (not the whole card) so reaching for Edit/Delete
-        // elsewhere on the card can't accidentally overwrite the clipboard,
-        // and so it's keyboard-reachable (Enter/Space) with a screen-reader
-        // label instead of relying on a hover title.
-        const header = document.createElement('button');
-        header.type = 'button';
-        header.className = 'mw-course-item-header';
-        header.title = t('popup.copyAllTitle');
-        header.setAttribute('aria-label', t('popup.copyAllTitle') + ': ' + label + (item.code ? ' (' + item.code + ')' : ''));
+        // ---- Top row: category icon, title + code pill, edit/delete ----
+        const top = document.createElement('div');
+        top.className = 'mw-course-item-top';
 
-        const labelInitial = (label.trim().charAt(0) || '?').toUpperCase();
-        const avatar = document.createElement('div');
-        avatar.className = 'mw-course-avatar';
-        if (item.signatureFile) {
-            const img = document.createElement('img');
-            img.alt = '';
-            img.draggable = false;
-            // Listener attached before .src is set: a failed/blocked/404 load
-            // must always fall back to the initial letter, with no window for
-            // the 'error' event to fire before anything is listening for it.
-            img.addEventListener('error', () => {
-                avatar.classList.add('mw-course-avatar-fallback');
-                avatar.innerHTML = '';
-                avatar.textContent = labelInitial;
-            });
-            img.src = 'signature://sigs/' + encodeURI(item.signatureFile);
-            avatar.appendChild(img);
-        } else {
-            avatar.classList.add('mw-course-avatar-fallback');
-            avatar.textContent = labelInitial;
-        }
-        header.appendChild(avatar);
+        const icon = document.createElement('div');
+        icon.className = 'mw-course-item-icon';
+        icon.innerHTML = MW_COURSE_ICON;
+        top.appendChild(icon);
 
-        const main = document.createElement('div');
-        main.className = 'mw-course-item-main';
+        const titlewrap = document.createElement('div');
+        titlewrap.className = 'mw-course-item-titlewrap';
 
-        const titleLine = document.createElement('div');
-        titleLine.className = 'mw-course-item-title';
-        const titleText = document.createElement('span');
-        titleText.className = 'mw-course-item-title-text';
-        titleText.textContent = label;
-        titleLine.appendChild(titleText);
+        // The title is a "copy everything" trigger — a real <button> (not the
+        // whole card) so reaching for the code pill or Edit/Delete elsewhere on
+        // the card can't accidentally overwrite the clipboard, and so it's
+        // keyboard-reachable (Enter/Space) with a screen-reader label instead
+        // of relying on a hover title.
+        const titleBtn = document.createElement('button');
+        titleBtn.type = 'button';
+        titleBtn.className = 'mw-course-item-title';
+        titleBtn.title = t('popup.copyAllTitle');
+        titleBtn.setAttribute('aria-label', t('popup.copyAllTitle') + ': ' + label + (item.code ? ' (' + item.code + ')' : ''));
+        titleBtn.textContent = label;
+        titleBtn.addEventListener('click', () => mwCopyCourseItem(item));
+        titlewrap.appendChild(titleBtn);
+
         if (item.code) {
-            const codeBadge = document.createElement('span');
-            codeBadge.className = 'mw-course-item-code';
-            codeBadge.textContent = item.code;
-            titleLine.appendChild(codeBadge);
-        }
-        main.appendChild(titleLine);
-        if (item.trainer) {
-            const trainerLine = document.createElement('div');
-            trainerLine.className = 'mw-course-item-trainer';
-            trainerLine.textContent = item.trainer;
-            main.appendChild(trainerLine);
-        }
-        header.appendChild(main);
-        header.addEventListener('click', () => mwCopyCourseItem(item));
-        row.appendChild(header);
-
-        // Name and code are already shown in the header above, so the chip
-        // row below only surfaces fields that AREN'T already visible —
-        // trainer (when there's no room to show it as a subtitle) and the
-        // signature — plus the explicit "Copy all" chip.
-        const copyLine = document.createElement('div');
-        copyLine.className = 'mw-course-copylist';
-
-        // Name and code get their own chips too, even though they're already
-        // shown in the header — the header truncates long titles/codes and
-        // isn't clickable per-field, so a dedicated one-click copy for just
-        // the name or just the code is still worth having.
-        const fields = [];
-        if (item.name) fields.push({ field: 'name', label: t('popup.courseName'), value: item.name, isImage: false });
-        if (item.code) fields.push({ field: 'code', label: t('popup.courseCode'), value: item.code, isImage: false });
-        if (item.signature) {
-            fields.push({ field: 'signature', label: t('popup.trainerSignature'), value: item.signature, isImage: false });
-        }
-        if (item.signatureFile) {
-            fields.push({ field: 'signature', label: t('popup.trainerSignature'), value: t('popup.signatureImage'), isImage: true });
-        }
-        // The signature is copied by the "Copy all" chip below, and the avatar
-        // already shows it, so a separate per-field signature chip is redundant.
-        // Show only the non-signature fields (e.g. trainer) in the copy row.
-        const editableFields = fields.filter((f) => f.field !== 'signature');
-        editableFields.forEach((f) => {
-            const mi = document.createElement('button');
-            mi.type = 'button';
-            mi.className = 'mw-course-mi';
-            mi.title = t('popup.copyFieldTitle', { field: f.label });
-            mi.setAttribute('aria-label', t('popup.copyFieldTitle', { field: f.label }));
-            mi.innerHTML =
-                '<span class="mw-course-mi-icon" aria-hidden="true">' + (MW_FIELD_ICONS[f.field] || '') + '</span>' +
-                '<span class="mw-course-mi-label">' + escapeHtml(f.label) + '</span>' +
-                '<span class="mw-course-mi-value">' + escapeHtml(f.value) + '</span>';
-            mi.addEventListener('click', (e) => {
+            const codeBtn = document.createElement('button');
+            codeBtn.type = 'button';
+            codeBtn.className = 'mw-course-item-code';
+            codeBtn.title = t('popup.copyFieldTitle', { field: t('popup.courseCode') });
+            codeBtn.setAttribute('aria-label', t('popup.copyFieldTitle', { field: t('popup.courseCode') }));
+            codeBtn.textContent = item.code;
+            codeBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
-                mwCopyCourseField(item, f.field, f.label, f.isImage);
+                mwCopyCourseField(item, 'code', t('popup.courseCode'), false);
             });
-            copyLine.appendChild(mi);
-        });
-
-        const allMi = document.createElement('button');
-        allMi.type = 'button';
-        allMi.className = 'mw-course-mi mw-course-mi-all';
-        allMi.title = t('popup.copyAllTitle');
-        allMi.innerHTML = '<span class="mw-course-mi-icon" aria-hidden="true">' + MW_COPY_ICON + '</span><span class="mw-course-mi-label">' + escapeHtml(t('popup.copyAllShort')) + '</span>';
-        allMi.addEventListener('click', (e) => {
-            e.stopPropagation();
-            mwCopyCourseItem(item);
-        });
-        copyLine.appendChild(allMi);
-
-        row.appendChild(copyLine);
+            titlewrap.appendChild(codeBtn);
+        }
+        top.appendChild(titlewrap);
 
         const actions = document.createElement('div');
         actions.className = 'mw-course-item-actions';
@@ -2564,7 +2496,68 @@ function mwRenderCourseList() {
         });
         actions.appendChild(delBtn);
 
-        row.appendChild(actions);
+        top.appendChild(actions);
+        row.appendChild(top);
+
+        // ---- Bottom row: trainer avatar + name, signature, copy-all ----
+        const bottom = document.createElement('div');
+        bottom.className = 'mw-course-item-bottom';
+
+        const trainerBtn = document.createElement('button');
+        trainerBtn.type = 'button';
+        trainerBtn.className = 'mw-course-item-trainer';
+        trainerBtn.disabled = !item.trainer;
+        if (item.trainer) {
+            trainerBtn.title = t('popup.copyFieldTitle', { field: t('popup.trainerName') });
+            trainerBtn.setAttribute('aria-label', t('popup.copyFieldTitle', { field: t('popup.trainerName') }) + ': ' + item.trainer);
+            trainerBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                mwCopyCourseField(item, 'trainer', t('popup.trainerName'), false);
+            });
+        }
+
+        const avatar = document.createElement('span');
+        avatar.className = 'mw-course-item-avatar';
+        avatar.textContent = item.trainer ? mwInitials(item.trainer) : '?';
+        trainerBtn.appendChild(avatar);
+
+        const trainerName = document.createElement('span');
+        trainerName.className = 'mw-course-item-trainer-name';
+        trainerName.textContent = item.trainer || '\u2014';
+        trainerBtn.appendChild(trainerName);
+
+        bottom.appendChild(trainerBtn);
+
+        if (item.signatureFile) {
+            const sigBtn = document.createElement('button');
+            sigBtn.type = 'button';
+            sigBtn.className = 'mw-course-item-sig';
+            sigBtn.title = t('popup.copyFieldTitle', { field: t('popup.trainerSignature') });
+            sigBtn.setAttribute('aria-label', t('popup.copyFieldTitle', { field: t('popup.trainerSignature') }));
+            sigBtn.innerHTML = MW_SIGNATURE_ICON;
+            sigBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                mwCopyCourseField(item, 'signature', t('popup.trainerSignature'), true);
+            });
+            bottom.appendChild(sigBtn);
+        }
+
+        const allBtn = document.createElement('button');
+        allBtn.type = 'button';
+        allBtn.className = 'mw-course-item-copyall';
+        allBtn.title = t('popup.copyAllTitle');
+        allBtn.setAttribute('aria-label', t('popup.copyAllTitle') + ': ' + label + (item.code ? ' (' + item.code + ')' : ''));
+        allBtn.innerHTML = '<span class="copy-icon" aria-hidden="true"></span>';
+        const allLabel = document.createElement('span');
+        allLabel.textContent = t('popup.copyAll');
+        allBtn.appendChild(allLabel);
+        allBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            mwCopyCourseItem(item);
+        });
+        bottom.appendChild(allBtn);
+
+        row.appendChild(bottom);
         mwCourseListEl.appendChild(row);
     });
 }

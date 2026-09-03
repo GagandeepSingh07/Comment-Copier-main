@@ -683,6 +683,7 @@ function resetSheetData() {
     sheetEntries = [];
     persistSheetData();
     renderSheetPreview();
+    selectCourseFilter('');
     syncHeight();
     showToast(t('toast.sheetCleared'));
 }
@@ -763,10 +764,10 @@ function renderCourseFilter() {
         courseFilterModalOptions.appendChild(opt);
     };
     makeOption('', t('popup.selectCourse'));
-    makeOption(COURSE_FILTER_ALL, t('popup.allCourses'));
     courseList.forEach((item) => {
         makeOption(coursePresetKey(item), courseItemText(item) || t('popup.untitledCourse'));
     });
+    makeOption(COURSE_FILTER_ALL, t('popup.allCourses'));
     // A saved single-course filter whose preset was since removed falls back
     // to no selection rather than pointing at a ghost option.
     if (courseFilter !== COURSE_FILTER_ALL && courseFilter && !courseList.some((c) => coursePresetKey(c) === courseFilter)) {
