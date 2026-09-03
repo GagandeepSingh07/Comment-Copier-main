@@ -34,9 +34,6 @@
       "mainwindow.css",
       "mainwindow.js",
       "mainwindow-preload.js",
-      "overlay.html",
-      "overlay.js",
-      "overlay-preload.js",
       "signatures",
       "build/tray.png",
       "build/icon.png"

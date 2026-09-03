@@ -68,14 +68,6 @@ const updateChannelOptions = document.querySelectorAll('#mw-update-channel .layo
 const portableToggle = document.getElementById('mw-portable-mode');
 const hotkeyInput = document.getElementById('mw-hotkey-input');
 const hotkeyClear = document.getElementById('mw-hotkey-clear');
-const shotDefine = document.getElementById('mw-shot-define');
-const shotStatus = document.getElementById('mw-shot-status');
-const shotClear = document.getElementById('mw-shot-clear');
-const shotDir = document.getElementById('mw-shot-dir');
-const shotFolder = document.getElementById('mw-shot-folder');
-const shotHotkey = document.getElementById('mw-shot-hotkey');
-const shotHotkeyClear = document.getElementById('mw-shot-hotkey-clear');
-const shotTake = document.getElementById('mw-shot-take');
 const backupBtn = document.getElementById('mw-backup');
 const restoreBtn2 = document.getElementById('mw-restore');
 const restoreModeOptions = document.querySelectorAll('#mw-restore-mode .restore-mode-option');
@@ -1602,170 +1594,6 @@ function handleGlobalCaptureKey(e) {
     applyHotkey(displayAccel(accel));
 }
 
-/* ---------- Fixed-area screenshot ---------- */
-
-let shotCapturing = false;
-let shotArea = null; // {x,y,width,height} from main
-
-function renderShotArea() {
-    const hasArea = !!(shotArea && shotArea.width > 0 && shotArea.height > 0);
-    shotStatus.classList.toggle('has-area', hasArea);
-    shotStatus.textContent = hasArea
-        ? `${shotArea.width} \u00d7 ${shotArea.height} px`
-        : t('shot.notSet');
-    shotClear.disabled = !hasArea;
-    shotTake.disabled = !hasArea;
-}
-
-function renderShotDir(dir) {
-    shotDir.textContent = dir ? dir : t('shot.noFolder');
-    shotDir.title = dir || '';
-}
-
-function renderShotHotkey() {
-    if (shotCapturing) return;
-    const acc = shotHotkey.dataset.acc || '';
-    shotHotkey.textContent = acc ? displayAccel(acc) : t('sc.clickToSet');
-    shotHotkeyClear.disabled = !acc;
-}
-
-async function loadShotSettings() {
-    if (!window.mainWindowAPI) return;
-    try {
-        shotArea = (await window.mainWindowAPI.getScreenshotArea()) || null;
-        renderShotArea();
-    } catch (e) {}
-    try {
-        const dir = await window.mainWindowAPI.getScreenshotSaveDir();
-        renderShotDir(dir || '');
-    } catch (e) {}
-    try {
-        const acc = await window.mainWindowAPI.getScreenshotHotkey();
-        shotHotkey.dataset.acc = acc || '';
-        renderShotHotkey();
-    } catch (e) {}
-}
-
-async function defineShotArea() {
-    if (!window.mainWindowAPI || typeof window.mainWindowAPI.defineScreenshotArea !== 'function') {
-        showToast('Screenshot area is not available.');
-        return;
-    }
-    try {
-        const res = await window.mainWindowAPI.defineScreenshotArea();
-        if (res && res.ok) {
-            shotArea = res.area;
-            renderShotArea();
-            showToast(t('shot.defined', { dim: res.area ? `${res.area.width} \u00d7 ${res.area.height}` : '' }));
-        }
-    } catch (e) {
-        showToast(t('shot.defineError'));
-    }
-}
-
-async function clearShotArea() {
-    if (!window.mainWindowAPI) return;
-    try {
-        await window.mainWindowAPI.clearScreenshotArea();
-        shotArea = null;
-        renderShotArea();
-        showToast(t('shot.cleared'));
-    } catch (e) {}
-}
-
-async function takeShotNow() {
-    if (!window.mainWindowAPI) return;
-    const btn = shotTake;
-    const original = btn.textContent;
-    btn.disabled = true;
-    btn.textContent = t('shot.capturing');
-    try {
-        const res = await window.mainWindowAPI.takeScreenshot();
-        if (res && res.ok) {
-            showToast(res.saved
-                ? t('shot.saved', { path: res.path })
-                : t('shot.copied'));
-        } else if (res && res.error === 'no-area') {
-            showToast(t('shot.notSet'));
-        } else {
-            showToast(t('shot.captureError'));
-        }
-    } catch (e) {
-        showToast(t('shot.captureError'));
-    } finally {
-        btn.disabled = !(shotArea && shotArea.width > 0 && shotArea.height > 0);
-        btn.textContent = original;
-    }
-}
-
-async function chooseShotDir() {
-    if (!window.mainWindowAPI) return;
-    try {
-        const res = await window.mainWindowAPI.setScreenshotSaveDir();
-        if (res && res.ok && res.dir) renderShotDir(res.dir);
-    } catch (e) {}
-}
-
-function startShotCapture() {
-    if (shotCapturing) return;
-    // End any other in-progress capture so they don't conflict.
-    if (globalCapturing) stopGlobalCapture();
-    if (capturingAction) stopCapture();
-    shotCapturing = true;
-    shotHotkey.classList.add('capturing');
-    shotHotkey.textContent = t('sc.pressKeys');
-}
-
-function stopShotCapture() {
-    if (!shotCapturing) return;
-    shotCapturing = false;
-    renderShotHotkey();
-}
-
-function handleShotCaptureKey(e) {
-    if (!shotCapturing) return;
-    e.preventDefault();
-    e.stopPropagation();
-    if (e.key === 'Escape') {
-        stopShotCapture();
-        shotHotkey.focus();
-        return;
-    }
-    const hasMod = e.ctrlKey || e.metaKey || e.shiftKey || e.altKey;
-    if (!hasMod) {
-        showToast(t('sc.includeModifier'));
-        return;
-    }
-    const accel = eventToAccel(e);
-    if (!accel) return;
-    stopShotCapture();
-    applyShotHotkey(displayAccel(accel));
-}
-
-async function applyShotHotkey(acc) {
-    if (!window.mainWindowAPI || typeof window.mainWindowAPI.setScreenshotHotkey !== 'function') return;
-    try {
-        const result = await window.mainWindowAPI.setScreenshotHotkey(acc || '');
-        if (result && result.ok) {
-            shotHotkey.dataset.acc = result.accelerator || '';
-            renderShotHotkey();
-            showToast(acc ? t('sc.set', { acc: displayAccel(acc) }) : t('sc.removed'));
-        } else if (result && result.error) {
-            showToast(result.error);
-            if (result.current) shotHotkey.dataset.acc = result.current;
-            renderShotHotkey();
-        }
-    } catch (e) {}
-}
-
-shotDefine.addEventListener('click', defineShotArea);
-shotClear.addEventListener('click', clearShotArea);
-shotFolder.addEventListener('click', chooseShotDir);
-shotTake.addEventListener('click', takeShotNow);
-shotHotkey.addEventListener('click', (e) => { e.stopPropagation(); startShotCapture(); });
-shotHotkey.addEventListener('blur', () => { if (shotCapturing) stopShotCapture(); });
-shotHotkeyClear.addEventListener('click', (e) => { e.stopPropagation(); applyShotHotkey(''); });
-
 /* ---------- Backup / Restore ---------- */
 
 function buildBackupPayload() {
@@ -2041,7 +1869,6 @@ function reloadAfterRestore() {
     loadAutoCheckUpdatesSetting();
     syncUpdateChannelPicker();
     loadHotkeySetting();
-    loadShotSettings();
     loadStartInTraySetting();
     loadReduceMotionSetting();
     syncRestoreModePicker();
@@ -3223,11 +3050,6 @@ document.addEventListener('keydown', (e) => {
         handleGlobalCaptureKey(e);
         return;
     }
-    // If we're capturing the screenshot hotkey, consume the keystroke entirely.
-    if (shotCapturing) {
-        handleShotCaptureKey(e);
-        return;
-    }
     const action = matchShortcut(e);
     if (action && runShortcut(action)) e.preventDefault();
 });
@@ -3258,7 +3080,6 @@ loadStartInTraySetting();
 loadReduceMotionSetting();
 loadAccentSetting();
 loadHotkeySetting();
-loadShotSettings();
 loadOrgSettingsUI();
 mwLoadCourseList();
 mwRenderCourseList();

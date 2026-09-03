@@ -1827,58 +1827,6 @@ body.theme-light .color-rgb-field input { background: #f6f8fa; }
     justify-content: center;
 }
 
-.screenshot-block {
-    margin-top: 16px;
-    padding: 4px 0;
-}
-
-/* The screenshots block reuses the shortcuts headings, so give them the same
-   spacing as the "Keyboard shortcuts" block (which pads 16px top / 20px sides).
-   The block itself only pads 4px, so the title needs a 12px top margin to reach
-   the same 16px offset. */
-.screenshot-block .shortcuts-title {
-    margin: 12px 20px 12px 20px;
-}
-.screenshot-block .shortcuts-subtitle {
-    margin: 0 20px 12px;
-}
-
-/* Let the description shrink instead of forcing the row to overflow. */
-.screenshot-block .setting-info {
-    min-width: 0;
-}
-
-.shot-area-control,
-.shot-dir-control {
-    flex: 0 1 auto;
-    min-width: 0;
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 8px;
-    flex-wrap: wrap;
-}
-
-.shot-area-status,
-.shot-dir-status {
-    color: var(--muted);
-    font-size: 12px;
-    max-width: 220px;
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.shot-area-status.has-area { color: var(--accent); }
-
-.shot-btn {
-    flex-shrink: 0;
-    padding: 7px 14px;
-    font-size: 12.5px;
-    white-space: nowrap;
-}
-
 .backup-actions {
     flex: 0 0 auto;
     display: flex;
