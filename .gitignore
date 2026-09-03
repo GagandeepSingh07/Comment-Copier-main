@@ -3,6 +3,8 @@ node_modules/
 
 # Build output
 dist/
+release/
+release2/
 *.local
 *.log
 npm-debug.log*

@@ -7,7 +7,7 @@
   "license": "MIT",
   "scripts": {
     "start": "electron .",
-    "build": "electron-builder --win",
+    "build": "electron-builder --win --config.directories.output=\"%TEMP%\\comment-copier-build\"",
     "build:x64": "electron-builder --win nsis --x64",
     "build:arm64": "electron-builder --win nsis --arm64",
     "build:portable": "electron-builder --win portable --x64"

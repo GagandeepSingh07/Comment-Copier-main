@@ -37,6 +37,8 @@ Copy unique accept/reject comments for grading, straight from a system-tray app.
 npm run build
 ```
 
+On Windows, the build output is written to `%TEMP%\comment-copier-build` to avoid file-locking issues in the repository folder.
+
 If the build fails due to code-signing certificate lookup (Windows), disable signing-certificate auto-discovery first:
 
 ```powershell
@@ -101,13 +103,13 @@ Other targets: `rpm`, `snap`, `flatpak`, `pacman`, `tar.gz`. Snap builds require
 
 To build installers for all platforms without owning each OS, use a CI service (e.g. GitHub Actions) with a matrix for `windows-latest`, `macos-latest`, and `ubuntu-latest` runners, running the matching electron-builder command above.
 
-Windows installers are written to the `dist/` folder (see above for the exact filenames).
+Windows installers are written to `%TEMP%\comment-copier-build` (see above for the exact filenames).
 
 ## Sharing the software
 
-- For most users, share the installer matching their CPU: `dist/Comment Copier Setup {version} x64.exe` (most Windows PCs) or the `arm64` variant (ARM-based Windows devices). They run it, install, and the app appears in the system tray.
-- If you'd rather give a single **portable** .exe (no install needed), share `dist/Comment Copier {version} Portable.exe` instead.
-- Other files in `dist/` (e.g. `win-unpacked`, `.blockmap`) are build artifacts and don't need to be shared.
+- For most users, share `%TEMP%\comment-copier-build\Comment Copier Setup {version} x64.exe`. They run it, install, and the app appears in the system tray.
+- If you'd rather give a single **portable** .exe (no install needed), share `%TEMP%\comment-copier-build\Comment Copier {version} Portable.exe` instead.
+- Other files in `%TEMP%\comment-copier-build` (e.g. `win-unpacked`, `.blockmap`) are build artifacts and don't need to be shared.
 
 ## Project structure
 
