@@ -561,12 +561,12 @@ body.layout-stack .tab-panel + .tab-panel {
 .sheet-preview-list {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    grid-auto-rows: minmax(34px, auto);
+    grid-auto-rows: minmax(27px, auto);
     gap: 5px;
     padding: 5px 4px 5px 0;
     margin-top: 6px;
     /* Exactly 3 rows visible at a time; the rest scrolls */
-    max-height: calc(3 * 34px + 2 * 5px + 10px);
+    max-height: calc(3 * 27px + 2 * 5px + 10px);
     overflow-y: auto;
     overscroll-behavior: contain;
 }
@@ -579,16 +579,16 @@ body.layout-stack .tab-panel + .tab-panel {
 
 .sheet-preview-item {
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     justify-content: space-between;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     gap: 5px;
     width: 100%;
     min-width: 0;
     background: #0d1117;
     border: 1px solid #30363d;
-    border-radius: 8px;
-    padding: 6px 5px 6px 8px;
+    border-radius: 7px;
+    padding: 3px 4px 3px 7px;
     font-size: 10px;
     transition: border-color 0.15s ease, background-color 0.15s ease;
 }
@@ -604,17 +604,17 @@ body.layout-stack .tab-panel + .tab-panel {
     font-weight: 700;
     flex: 1 1 auto;
     min-width: 0;
-    padding-top: 2px;
-    white-space: normal;
-    overflow-wrap: break-word;
-    word-break: break-word;
+    padding-top: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .sheet-preview-right {
     display: inline-flex;
-    align-items: flex-start;
-    gap: 5px;
-    flex: 1 1 auto;
+    align-items: center;
+    gap: 4px;
+    flex: 0 0 auto;
     min-width: 0;
     justify-content: flex-end;
 }
@@ -628,11 +628,9 @@ body.layout-stack .tab-panel + .tab-panel {
     color: #1a1a1a;
     font-size: 9.5px;
     font-weight: 700;
-    padding: 2px 8px;
+    padding: 1px 7px;
     border-radius: 12px;
-    white-space: normal;
-    overflow-wrap: break-word;
-    word-break: break-word;
+    white-space: nowrap;
 }
 
 .sheet-preview-mark .mark-symbol {
@@ -648,10 +646,10 @@ body.layout-stack .tab-panel + .tab-panel {
     font-size: 13px;
     line-height: 1;
     cursor: pointer;
-    padding: 2px 3px;
+    padding: 1px 2px;
     border-radius: 3px;
     flex-shrink: 0;
-    align-self: flex-start;
+    align-self: center;
 }
 
 .sheet-preview-del:hover { color: #f85149; }
