@@ -942,16 +942,6 @@ function removeCourseItem(index) {
 }
 
 const COURSE_COPY_ICON = '<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>';
-// Small field-type icons shown instead of a spelled-out label ("TRAINER
-// NAME", "TRAINER SIGNATURE") on each chip — the popup is too narrow for
-// that text without wrapping/truncating; the icon plus a hover/aria title
-// carries the same meaning far more compactly.
-const COURSE_FIELD_ICONS = {
-    name: '<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7V4h16v3"></path><path d="M9 20h6"></path><path d="M12 4v16"></path></svg>',
-    code: '<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="8 6 2 12 8 18"></polyline><polyline points="16 6 22 12 16 18"></polyline></svg>',
-    trainer: '<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.4"></circle><path d="M4.5 20c1.4-4 5-6 7.5-6s6.1 2 7.5 6"></path></svg>',
-    signature: '<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17c3-1 4.5-3 5.5-5.5C10 7.5 11 4 13 4s2 2.5 1 5-3 4-5.5 5.5C6 16 4.5 17.5 3 21"></path><path d="M13 15.5 16 12l4 4-3.5 3.5z"></path><path d="m15 13.5 3 3"></path></svg>',
-};
 
 function renderCourseList() {
     courseListEl.innerHTML = '';
@@ -988,36 +978,8 @@ function renderCourseList() {
         const row = document.createElement('div');
         row.className = 'course-item';
 
-        // Top row: a "copy everything" header (name + code) and the delete
-        // button. Clicking the header copies all fields plus any signature
-        // image in one combined clipboard write.
-        const top = document.createElement('div');
-        top.className = 'course-item-top';
-
-        const header = document.createElement('button');
-        header.type = 'button';
-        header.className = 'course-item-header';
-        header.title = t('popup.copyAllTitle');
-        header.setAttribute('aria-label', t('popup.copyAllTitle') + ': ' + label + (item.code ? ' (' + item.code + ')' : ''));
-
-        const titleText = document.createElement('span');
-        titleText.className = 'course-item-title-text';
-        titleText.textContent = label;
-        titleText.title = label;
-        header.appendChild(titleText);
-        if (item.code) {
-            const codeBadge = document.createElement('span');
-            codeBadge.className = 'course-item-code';
-            codeBadge.textContent = item.code;
-            header.appendChild(codeBadge);
-        }
-        const allLabel = document.createElement('span');
-        allLabel.className = 'course-item-copy-all';
-        allLabel.innerHTML = COURSE_COPY_ICON + '<span>' + escapeHtml(t('popup.copyAllShort')) + '</span>';
-        header.appendChild(allLabel);
-        header.addEventListener('click', () => copyCourseItem(item));
-        top.appendChild(header);
-
+        // Delete button sits in the corner of the whole card, revealed on
+        // hover — the card no longer has a separate header row to host it.
         const delBtn = document.createElement('button');
         delBtn.type = 'button';
         delBtn.className = 'course-item-del';
@@ -1027,22 +989,46 @@ function renderCourseList() {
             e.stopPropagation();
             removeCourseItem(courseList.indexOf(item));
         });
-        top.appendChild(delBtn);
+        row.appendChild(delBtn);
+
+        // Top row: the "Course Detail" label + title on the left, the
+        // accent "All" copy-everything chip pinned to the right of that
+        // same row — matches the reference certificate-card layout instead
+        // of letting the All chip wrap onto its own line.
+        const top = document.createElement('div');
+        top.className = 'course-item-top';
+
+        const info = document.createElement('div');
+        info.className = 'course-item-info';
+        const infoLabel = document.createElement('div');
+        infoLabel.className = 'course-item-label';
+        infoLabel.textContent = t('popup.courseDetail');
+        info.appendChild(infoLabel);
+        const titleText = document.createElement('div');
+        titleText.className = 'course-item-title';
+        titleText.textContent = label;
+        titleText.title = label;
+        info.appendChild(titleText);
+        top.appendChild(info);
+
+        const allBtn = document.createElement('button');
+        allBtn.type = 'button';
+        allBtn.className = 'course-item-copy-all';
+        allBtn.title = t('popup.copyAllTitle');
+        allBtn.setAttribute('aria-label', t('popup.copyAllTitle') + ': ' + label + (item.code ? ' (' + item.code + ')' : ''));
+        allBtn.innerHTML = COURSE_COPY_ICON + '<span>' + escapeHtml(t('popup.copyAllShort')) + '</span>';
+        allBtn.addEventListener('click', () => copyCourseItem(item));
+        top.appendChild(allBtn);
+
         row.appendChild(top);
 
-        // Each field is its own flat button — copy exactly that one piece of
-        // data. Name and code are dropped here since they're already shown
-        // in the header above (title text + code badge); showing them again
-        // as chips was pure duplication.
+        // Bottom row: the field chips, wrapping freely on their own line at
+        // full card width instead of competing with the title/All chip for
+        // horizontal space.
         const fieldsEl = document.createElement('div');
         fieldsEl.className = 'course-item-fields';
 
-        // Name and code get their own chips too, even though they're already
-        // shown in the header — the header truncates long titles/codes and
-        // isn't clickable per-field, so a dedicated one-click copy for just
-        // the name or just the code is still worth having.
         const fields = [];
-        if (item.name) fields.push({ field: 'name', label: t('popup.courseName'), value: item.name });
         if (item.code) fields.push({ field: 'code', label: t('popup.courseCode'), value: item.code });
         if (item.trainer) fields.push({ field: 'trainer', label: t('popup.trainerName'), value: item.trainer });
         if (item.signature) {
@@ -1058,19 +1044,17 @@ function renderCourseList() {
             btn.className = 'course-field' + (f.field === 'signature' ? ' course-field-signature' : '');
             btn.title = t('popup.copyFieldTitle', { field: f.label });
             btn.setAttribute('aria-label', t('popup.copyFieldTitle', { field: f.label }));
-            const iconEl = document.createElement('span');
-            iconEl.className = 'course-field-icon';
-            iconEl.setAttribute('aria-hidden', 'true');
-            iconEl.innerHTML = COURSE_FIELD_ICONS[f.field] || '';
+            const labelEl = document.createElement('span');
+            labelEl.className = 'course-field-label';
+            labelEl.textContent = f.label;
             const valueEl = document.createElement('span');
             valueEl.className = 'course-field-value';
             valueEl.textContent = f.value;
-            btn.appendChild(iconEl);
+            btn.appendChild(labelEl);
             btn.appendChild(valueEl);
             btn.addEventListener('click', () => copyCourseField(item, f.field, f.label, f.isImage));
             fieldsEl.appendChild(btn);
         });
-
         row.appendChild(fieldsEl);
 
         courseListEl.appendChild(row);
