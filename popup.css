@@ -734,6 +734,27 @@ body.layout-stack .tab-panel + .tab-panel {
     min-width: 80px;
     max-width: 160px;
     flex-shrink: 0;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    padding: 2px 4px;
+    margin: -2px -4px;
+    font-family: inherit;
+    text-align: left;
+    cursor: pointer;
+    transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.course-item-info:hover {
+    background: #21262d;
+    border-color: #484f58;
+}
+
+.course-item-info:active { background: #30363d; }
+
+.course-item-info:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(88, 166, 255, 0.4);
 }
 
 .course-item-label {

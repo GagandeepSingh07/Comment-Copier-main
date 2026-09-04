@@ -550,6 +550,8 @@ function loadSheetInputs() {
     }
     sheetId.value = id;
     sheetName.value = name;
+    const savedCodeDraft = localStorage.getItem(SHEET_ADD_CODE_DRAFT_KEY);
+    if (savedCodeDraft) sheetAddCode.value = savedCodeDraft;
     const rawCount = saved && Array.isArray(saved.codes)
         ? saved.codes.reduce((n, row) => n + (Array.isArray(row) ? row.length : 1), 0)
         : 0;
@@ -615,6 +617,12 @@ function renderSheetPreview() {
     });
 }
 
+function persistCodeDraft() {
+    const val = sheetAddCode.value;
+    if (val) localStorage.setItem(SHEET_ADD_CODE_DRAFT_KEY, val);
+    else localStorage.removeItem(SHEET_ADD_CODE_DRAFT_KEY);
+}
+
 function addSheetEntry() {
     const code = sheetAddCode.value.trim();
     if (!code) {
@@ -638,6 +646,7 @@ function addSheetEntry() {
     sheetEntries.push({ code, status: mark });
     sheetAddCode.value = '';
     sheetAddCode.classList.remove('duplicate');
+    persistCodeDraft();
     sheetAddMarkCustom.value = '';
     selectMark('Checked');
     renderSheetPreview();
@@ -680,6 +689,8 @@ function lastStudentRemembered() {
 function resetSheetData() {
     sheetId.value = defaultSheetData.studentId;
     sheetName.value = defaultSheetData.name;
+    sheetAddCode.value = '';
+    persistCodeDraft();
     sheetEntries = [];
     persistSheetData();
     renderSheetPreview();
@@ -919,8 +930,12 @@ function renderCourseList() {
         const row = document.createElement('div');
         row.className = 'course-item';
 
-        const info = document.createElement('div');
+        const info = document.createElement('button');
+        info.type = 'button';
         info.className = 'course-item-info';
+        const infoTitle = t('popup.copyFieldTitle', { field: t('popup.courseName') }) + ': ' + label;
+        info.title = infoTitle;
+        info.setAttribute('aria-label', infoTitle);
         const infoLabel = document.createElement('div');
         infoLabel.className = 'course-item-label';
         infoLabel.textContent = t('popup.courseDetail');
@@ -928,8 +943,8 @@ function renderCourseList() {
         const titleText = document.createElement('div');
         titleText.className = 'course-item-title';
         titleText.textContent = label;
-        titleText.title = label;
         info.appendChild(titleText);
+        info.addEventListener('click', () => copyCourseField(item, 'name', t('popup.courseName'), false));
         row.appendChild(info);
 
         const fieldsEl = document.createElement('div');
@@ -1638,6 +1653,7 @@ sheetAddCode.addEventListener('input', () => {
     const val = sheetAddCode.value.trim().toLowerCase();
     const dup = !!val && sheetEntries.some((e) => e.code.toLowerCase() === val);
     sheetAddCode.classList.toggle('duplicate', dup);
+    persistCodeDraft();
 });
 markSelectTrigger.addEventListener('click', (e) => {
     e.stopPropagation();
@@ -1689,6 +1705,11 @@ function applyI18n() {
         organizerPreviewBtn.querySelector('span').textContent = t('org.preview');
     }
 }
+
+window.addEventListener('beforeunload', () => {
+    persistCodeDraft();
+    persistSheetData();
+});
 
 load();
 loadSheetInputs();

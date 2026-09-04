@@ -2442,18 +2442,23 @@ function mwRenderCourseList() {
         const titlewrap = document.createElement('div');
         titlewrap.className = 'mw-course-item-titlewrap';
 
-        // The title is a "copy everything" trigger — a real <button> (not the
+        // The title is a "copy course name" trigger — a real <button> (not the
         // whole card) so reaching for the code pill or Edit/Delete elsewhere on
         // the card can't accidentally overwrite the clipboard, and so it's
         // keyboard-reachable (Enter/Space) with a screen-reader label instead
-        // of relying on a hover title.
+        // of relying on a hover title. Clicking the name copies just the name;
+        // use the "Copy all" button for the full details.
         const titleBtn = document.createElement('button');
         titleBtn.type = 'button';
         titleBtn.className = 'mw-course-item-title';
-        titleBtn.title = t('popup.copyAllTitle');
-        titleBtn.setAttribute('aria-label', t('popup.copyAllTitle') + ': ' + label + (item.code ? ' (' + item.code + ')' : ''));
+        const nameTitle = t('popup.copyFieldTitle', { field: t('popup.courseName') }) + (item.name ? ': ' + item.name : '');
+        titleBtn.title = nameTitle;
+        titleBtn.setAttribute('aria-label', nameTitle);
         titleBtn.textContent = label;
-        titleBtn.addEventListener('click', () => mwCopyCourseItem(item));
+        titleBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            mwCopyCourseField(item, 'name', t('popup.courseName'), false);
+        });
         titlewrap.appendChild(titleBtn);
 
         if (item.code) {

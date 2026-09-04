@@ -1,6 +1,11 @@
 const STORAGE_KEY = 'comment-copier-data-v7';
 const PROMPT_KEY = 'comment-copier-prompt-v1';
 const SHEET_KEY = 'comment-copier-sheet-v3';
+// Draft text typed into the "Code (e.g. CPCCPD2011)" input, saved as the
+// user types so it survives closing/reopening the popup — mirrors how
+// Student Id/Name already persist, unlike this field which used to lose
+// whatever was typed but not yet added.
+const SHEET_ADD_CODE_DRAFT_KEY = 'comment-copier-sheet-add-code-draft-v1';
 const COURSE_KEY = 'comment-copier-course-v1';
 const COURSES_KEY = 'comment-copier-courses-v1';
 const COURSE_FILTER_KEY = 'comment-copier-course-filter-v1';
