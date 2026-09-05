@@ -16,4 +16,10 @@ contextBridge.exposeInMainWorld('popupAPI', {
     close: () => ipcRenderer.send('popup:close'),
     resize: (size) => ipcRenderer.send('popup:resize', size),
     onClosed: (callback) => ipcRenderer.on('popup:closed', () => callback()),
+    // Per-comment-type global shortcuts: the main process notifies the popup
+    // (even while hidden) that a shortcut fired for a given comment-type key;
+    // the popup does the actual copy+advance and reports back for the tray
+    // balloon confirmation.
+    onCommentShortcut: (callback) => ipcRenderer.on('comment-shortcut:trigger', (event, key) => callback(key)),
+    reportShortcutCopy: (info) => ipcRenderer.send('comment-copier:shortcut-copied', info),
 });

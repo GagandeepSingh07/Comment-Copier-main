@@ -21,4 +21,8 @@ contextBridge.exposeInMainWorld('mainWindowAPI', {
     choosePortableDir: (title) => ipcRenderer.invoke('comment-copier:choose-portable-dir', title),
     enablePortableMode: (dir) => ipcRenderer.invoke('comment-copier:enable-portable-mode', dir),
     disablePortableMode: () => ipcRenderer.invoke('comment-copier:disable-portable-mode'),
+    // Per-comment-type global shortcuts (Settings → Shortcuts UI).
+    setCommentShortcut: (key, accelerator) => ipcRenderer.invoke('comment-shortcuts:set', key, accelerator),
+    removeCommentShortcut: (key) => ipcRenderer.invoke('comment-shortcuts:remove', key),
+    getCommentShortcuts: () => ipcRenderer.invoke('comment-shortcuts:get-all'),
 });

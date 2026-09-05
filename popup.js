@@ -296,11 +296,11 @@ function closePopupAfterCopy() {
     }, 80);
 }
 
-async function handleCopy(key) {
+async function handleCopy(key, viaShortcut) {
     const s = state[key];
     const label = catLabel(key);
     if (!s.comments.length) {
-        showToast(t('toast.nothing'));
+        if (!viaShortcut) showToast(t('toast.nothing'));
         return;
     }
     if (copyCommentTimer) {
@@ -309,12 +309,19 @@ async function handleCopy(key) {
     }
     const comment = substitutePlaceholders(s.comments[s.index], placeholderValues());
     const copiedNumber = s.index + 1;
+    const total = s.comments.length;
     const advance = () => {
         recordUsage(key, s.index);
         s.index = (s.index + 1) % s.comments.length;
         save();
         renderRows();
         pushQuickState();
+    };
+    const reportShortcut = (ok) => {
+        if (!viaShortcut) return;
+        if (window.popupAPI && typeof window.popupAPI.reportShortcutCopy === 'function') {
+            window.popupAPI.reportShortcutCopy({ ok, label, index: copiedNumber, total });
+        }
     };
     if (!getDateFirstSetting()) {
         const ok = await writeClipboard(comment);
@@ -323,10 +330,12 @@ async function handleCopy(key) {
                 window.popupAPI.reportCopyResult({ ok: false, label });
             }
             showToast(t('toast.copyFail'));
+            reportShortcut(false);
             return;
         }
         showToast(t('toast.copied', { label, n: copiedNumber }));
         advance();
+        reportShortcut(true);
         closePopupAfterCopy();
         return;
     }
@@ -336,6 +345,7 @@ async function handleCopy(key) {
             window.popupAPI.reportCopyResult({ ok: false, label });
         }
         showToast(t('toast.copyFail'));
+        reportShortcut(false);
         return;
     }
     showToast(t('toast.dateCopied'));
@@ -347,10 +357,12 @@ async function handleCopy(key) {
                 window.popupAPI.reportCopyResult({ ok: false, label });
             }
             showToast(t('toast.copyFail'));
+            reportShortcut(false);
             return;
         }
         showToast(t('toast.copied', { label, n: copiedNumber }));
         advance();
+        reportShortcut(true);
         closePopupAfterCopy();
     }, 500);
 }
@@ -1521,6 +1533,15 @@ function closeOrganizerDropdown() {
 }
 if (window.popupAPI && typeof window.popupAPI.onClosed === 'function') {
     window.popupAPI.onClosed(closeOrganizerDropdown);
+}
+// Global per-comment-type shortcuts (Settings → Shortcuts) fire this even
+// while the popup is hidden — reuse the exact same copy+auto-advance path a
+// manual click uses, just flagged so a tray balloon confirms it instead of
+// (or in addition to) the in-window toast.
+if (window.popupAPI && typeof window.popupAPI.onCommentShortcut === 'function') {
+    window.popupAPI.onCommentShortcut((key) => {
+        if (categories.includes(key)) handleCopy(key, true);
+    });
 }
 organizerBtn.addEventListener('click', (e) => {
     e.stopPropagation();

@@ -36,6 +36,16 @@ const ORG_RECURSIVE_KEY = 'comment-copier-org-recursive-v1';
 // rebindable; their current bindings live under this key. The Ctrl+Enter
 // (save) and Enter (add/confirm) shortcuts are contextual to specific
 // fields and aren't part of this rebindable set.
+// Per-comment-type global keyboard shortcuts (e.g. Ctrl+Alt+1 -> Accept).
+// Stored as { <category>: '<accelerator>' } using the same category keys as
+// `categories` below, so adding a new comment type automatically gets a slot
+// here too. Unlike SHORTCUTS_KEY (in-window only, popup-layout switching),
+// these are real OS-level global shortcuts registered in the main process
+// via Electron's globalShortcut, and they insert (copy) the comment type's
+// current comment directly — reusing the same copy+auto-advance logic as
+// clicking the row in the tray popup. The main process persists them in its
+// config (config.json), not in localStorage.
+
 const SHORTCUTS_KEY = 'comment-copier-shortcuts-v1';
 const DEFAULT_SHORTCUTS = {
     addComment: 'Ctrl+N',
@@ -262,6 +272,13 @@ const defaultCopyReject = [
 const categories = ['accept', 'aireject', 'copyreject'];
 const LABELS = { accept: 'Accept', aireject: 'AI Reject', copyreject: 'Copy Reject' };
 const DEFAULTS = { accept: defaultAccept, aireject: defaultAiReject, copyreject: defaultCopyReject };
+
+// No comment-type shortcut is assigned out of the box — the user opts in from
+// Settings → Shortcuts. Suggested accelerators are shown as placeholder text
+// only (Ctrl+Alt+1/2/3 for the three built-in comment types) and are never
+// auto-registered, so they can't silently collide with something the user (or
+// another app) is already using.
+const COMMENT_SHORTCUT_SUGGESTIONS = { accept: 'Ctrl+Alt+1', aireject: 'Ctrl+Alt+2', copyreject: 'Ctrl+Alt+3' };
 
 // Comments may contain personalisation placeholders like {name} or {unit},
 // which are substituted before copying. When a real value isn't available the

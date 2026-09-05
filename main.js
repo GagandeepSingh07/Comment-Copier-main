@@ -982,6 +982,17 @@ function registerHotkey(accelerator) {
         return { ok: true, registered: false, accelerator: '' };
     }
     const acc = toElectronAccel(accelerator);
+
+    // Mirror the comment-shortcut guard: if this global hotkey is already
+    // claimed by a per-comment-type shortcut, refuse before touching
+    // globalShortcut so both owners can't end up disagreeing about who owns
+    // the combination. `conflict` names the owning comment-type key so the
+    // renderer (which has the i18n labels) can phrase its own message.
+    const match = Object.entries(registeredCommentShortcuts).find(([, ca]) => ca && toElectronAccel(ca).toLowerCase() === acc.toLowerCase());
+    if (match) {
+        return { ok: false, conflict: match[0], current: previous || '' };
+    }
+
     try {
         const ok = globalShortcut.register(acc, () => {
             if (popupWindow && !popupWindow.isDestroyed()) {
@@ -1014,6 +1025,126 @@ ipcMain.handle('hotkey:set', (event, accelerator) => {
 });
 
 ipcMain.handle('hotkey:get', () => registeredHotkey || loadConfig().globalHotkey || '');
+
+/* ---------- Per-comment-type global shortcuts ---------- */
+// Generalization of the single global hotkey above: any number of global
+// accelerators, each mapped to a comment-type key (accept/aireject/copyreject,
+// or any future category), that insert that comment type's current comment
+// directly instead of opening the popup. Keyed the same way the popup keys
+// its own comment lists, so this extends automatically if more comment types
+// are ever added.
+let registeredCommentShortcuts = {}; // { [key]: accelerator (display form) }
+
+function loadCommentShortcuts() {
+    const cfg = loadConfig().commentShortcuts;
+    return cfg && typeof cfg === 'object' ? cfg : {};
+}
+
+function saveCommentShortcuts() {
+    saveConfig({ commentShortcuts: registeredCommentShortcuts });
+}
+
+// Everything currently holding a global accelerator (the single hotkey, plus
+// every registered comment shortcut) so a new assignment can be checked for
+// collisions before it's applied. Returns [{ source: 'hotkey'|key, accelerator }].
+function allGlobalAccelerators(excludeKey) {
+    const out = [];
+    if (registeredHotkey) out.push({ source: 'hotkey', accelerator: registeredHotkey });
+    for (const [key, acc] of Object.entries(registeredCommentShortcuts)) {
+        if (key === excludeKey || !acc) continue;
+        out.push({ source: key, accelerator: acc });
+    }
+    return out;
+}
+
+// Registers (or, with an empty accelerator, removes) the global shortcut for
+// one comment-type key. The main process treats `key` as an opaque id (it
+// doesn't know about comment categories — that's the renderer's concern);
+// it just needs to be a non-empty string so it can be stored and matched.
+// Mirrors registerHotkey()'s register-new-before-unregister-old ordering so a
+// failed registration never leaves the app with no working shortcut for that key.
+function registerCommentShortcut(key, accelerator) {
+    if (typeof key !== 'string' || !key) {
+        return { ok: false, error: 'Unknown comment type.' };
+    }
+    const previous = registeredCommentShortcuts[key] || '';
+    const prevElectron = previous ? toElectronAccel(previous) : '';
+
+    if (!accelerator) {
+        if (prevElectron) {
+            try {
+                if (globalShortcut.isRegistered(prevElectron)) globalShortcut.unregister(prevElectron);
+            } catch (e) {}
+        }
+        delete registeredCommentShortcuts[key];
+        saveCommentShortcuts();
+        return { ok: true, registered: false, key, accelerator: '' };
+    }
+
+    const acc = toElectronAccel(accelerator);
+
+    // Reject a duplicate before ever touching globalShortcut, so two
+    // conflicting comment types (or a comment type and the global hotkey)
+    // can't both silently think they own the same combination. `conflict`
+    // identifies the other owner ('hotkey', or another key) so the renderer
+    // — which has the i18n labels — can phrase its own message.
+    const clash = allGlobalAccelerators(key).find((o) => toElectronAccel(o.accelerator).toLowerCase() === acc.toLowerCase());
+    if (clash) {
+        return { ok: false, conflict: clash.source, current: previous };
+    }
+
+    try {
+        const ok = globalShortcut.register(acc, () => {
+            if (popupWindow && !popupWindow.isDestroyed()) {
+                popupWindow.webContents.send('comment-shortcut:trigger', key);
+            }
+        });
+        if (!ok) {
+            return { ok: false, error: 'That shortcut is already in use or not available.', current: previous };
+        }
+        if (previous && previous !== String(accelerator) && prevElectron) {
+            try {
+                if (globalShortcut.isRegistered(prevElectron)) globalShortcut.unregister(prevElectron);
+            } catch (e) {}
+        }
+        registeredCommentShortcuts[key] = String(accelerator);
+        saveCommentShortcuts();
+        return { ok: true, registered: true, key, accelerator: String(accelerator) };
+    } catch (e) {
+        return { ok: false, error: 'That shortcut is not valid.', current: previous };
+    }
+}
+
+function registerAllCommentShortcuts() {
+    const saved = loadCommentShortcuts();
+    for (const key of Object.keys(saved)) {
+        if (saved[key]) registerCommentShortcut(key, saved[key]);
+    }
+}
+
+ipcMain.handle('comment-shortcuts:set', (event, key, accelerator) => registerCommentShortcut(key, accelerator));
+ipcMain.handle('comment-shortcuts:remove', (event, key) => registerCommentShortcut(key, ''));
+ipcMain.handle('comment-shortcuts:get-all', () => Object.assign({}, registeredCommentShortcuts));
+
+// Fired by the popup after a shortcut-triggered copy completes, so the user
+// gets confirmation even when the popup itself is hidden (which is the whole
+// point of a global shortcut — no need to bring the app to the front first).
+ipcMain.on('comment-copier:shortcut-copied', (event, info) => {
+    if (!tray || tray.isDestroyed() || !info) return;
+    if (info.ok) {
+        tray.displayBalloon({
+            iconType: 'info',
+            title: 'Comment Copier',
+            content: `Copied ${info.label} comment ${info.index} of ${info.total}.`,
+        });
+    } else {
+        tray.displayBalloon({
+            iconType: 'warning',
+            title: 'Comment Copier',
+            content: `${info.label}: copy failed, please copy manually.`,
+        });
+    }
+});
 
 /* ---------- (previous section) ---------- */
 
@@ -1105,6 +1236,13 @@ function createPopup() {
             contextIsolation: true,
             nodeIntegration: false,
             spellcheck: false,
+            // Keep timers firing accurately while the popup is hidden: the
+            // per-comment-type global shortcuts run the copy logic inside this
+            // (hidden) renderer, and the date-first path uses a ~500ms
+            // setTimeout for its two-stage copy. Without this, Chromium's
+            // aggressive background-timer throttling delays (or effectively
+            // kills) that copy when the app is running in the background.
+            backgroundThrottling: false,
         },
     });
 
@@ -1394,6 +1532,13 @@ app.on('before-quit', () => {
     isQuitting = true;
 });
 
+app.on('will-quit', () => {
+    // Electron already unregisters global shortcuts on quit, but this makes
+    // it explicit and avoids any accelerator lingering registered if the
+    // app is relaunched quickly (second-instance lock edge cases).
+    try { globalShortcut.unregisterAll(); } catch (e) {}
+});
+
 app.on('second-instance', (event, argv) => {
     if (popupWindow && !popupWindow.isDestroyed()) {
         positionPopup();
@@ -1419,6 +1564,7 @@ app.whenReady().then(() => {
     createPopup();
     createTray();
     registerHotkey(loadConfig().globalHotkey || '');
+    registerAllCommentShortcuts();
 });
 
 }

@@ -927,6 +927,7 @@ function applyI18n() {
     updateCounts();
     setDirty(dirty);
     updateBulkBtn();
+    if (typeof renderCommentShortcutRows === 'function' && !ccCapturingKey) renderCommentShortcutRows();
     mwRefreshCourseI18n();
     mwRenderCourseList();
     renderGlobalHotkey();
@@ -1550,6 +1551,11 @@ async function applyHotkey(acc) {
         if (result.registered) showToast(t('sc.set', { acc: displayAccel(result.accelerator) }));
         else if (!acc) showToast(t('sc.removed'));
         return true;
+    } else if (result && result.conflict) {
+        showToast(t('sc.commentShortcutDuplicate', { name: catLabel(result.conflict) }));
+        if (result.current) hotkeyInput.dataset.acc = result.current;
+        renderGlobalHotkey();
+        return false;
     } else if (result && result.error) {
         showToast(result.error);
         if (result.current) hotkeyInput.dataset.acc = result.current;
@@ -2850,6 +2856,17 @@ function normalizeCaptureKey(key) {
     return key.toLowerCase();
 }
 
+// Map a DOM `code` value for the numeric keypad onto the token Electron's
+// accelerator grammar uses (num0-num9, numdec, numadd, numsub, nummult,
+// numdiv). A numpad digit reports the same `e.key` as the top number row
+// (e.g. both give "1"), so we must key off `e.code` to keep them distinct.
+const NUMPAD_TOKENS = {
+    Numpad0: 'num0', Numpad1: 'num1', Numpad2: 'num2', Numpad3: 'num3', Numpad4: 'num4',
+    Numpad5: 'num5', Numpad6: 'num6', Numpad7: 'num7', Numpad8: 'num8', Numpad9: 'num9',
+    NumpadDecimal: 'numdec', NumpadAdd: 'numadd', NumpadSubtract: 'numsub',
+    NumpadMultiply: 'nummult', NumpadDivide: 'numdiv', NumpadEnter: 'enter',
+};
+
 // Build the canonical form of a keyboard event's combination.
 function eventToAccel(e) {
     const mods = [];
@@ -2857,7 +2874,8 @@ function eventToAccel(e) {
     if (e.metaKey) mods.push('super'); // the Windows key (Command on macOS)
     if (e.shiftKey) mods.push('shift');
     if (e.altKey) mods.push('alt');
-    const key = normalizeCaptureKey(String(e.key));
+    const code = NUMPAD_TOKENS[(e.code || '').trim()];
+    const key = code || normalizeCaptureKey(String(e.key));
     const bare = ['control', 'shift', 'alt', 'meta', 'cmd', 'super', 'win'];
     if (bare.includes(key)) return ''; // a modifier alone isn't a full shortcut
     return mods.sort().join('+') + (key ? '+' + key : '');
@@ -3053,6 +3071,150 @@ document.addEventListener('keydown', (e) => {
 });
 
 renderShortcutRows();
+
+/* ---------- Per-comment-type global shortcuts ---------- */
+
+const commentShortcutsWrap = document.getElementById('comment-shortcuts-editable');
+let commentShortcuts = {}; // in-memory cache of what main.js has registered: { [key]: accelerator }
+let ccCapturingKey = null;
+let ccCapturingEl = null;
+
+async function loadCommentShortcutsUI() {
+    if (!window.mainWindowAPI || typeof window.mainWindowAPI.getCommentShortcuts !== 'function') return;
+    try {
+        commentShortcuts = await window.mainWindowAPI.getCommentShortcuts() || {};
+    } catch (e) {
+        commentShortcuts = {};
+    }
+    renderCommentShortcutRows();
+}
+
+function renderCommentShortcutRows() {
+    if (!commentShortcutsWrap) return;
+    commentShortcutsWrap.innerHTML = '';
+    categories.forEach((key) => {
+        const row = document.createElement('div');
+        row.className = 'shortcut-row shortcut-edit';
+
+        const desc = document.createElement('span');
+        desc.className = 'shortcut-desc';
+        desc.textContent = catLabel(key);
+        row.appendChild(desc);
+
+        const control = document.createElement('span');
+        control.className = 'shortcut-control';
+
+        const acc = commentShortcuts[key] || '';
+        const capture = document.createElement('button');
+        capture.type = 'button';
+        capture.className = 'shortcut-capture' + (ccCapturingKey === key ? ' capturing' : '');
+        capture.dataset.key = key;
+        capture.title = t('sc.captureTitle');
+        capture.textContent = acc
+            ? displayAccel(acc)
+            : (COMMENT_SHORTCUT_SUGGESTIONS[key] ? t('sc.clickToSetSuggested', { acc: COMMENT_SHORTCUT_SUGGESTIONS[key] }) : t('sc.clickToSet'));
+        capture.addEventListener('click', () => startCommentCapture(key, capture));
+        capture.addEventListener('blur', () => {
+            if (ccCapturingKey === key) stopCommentCapture();
+        });
+        control.appendChild(capture);
+
+        const remove = document.createElement('button');
+        remove.type = 'button';
+        remove.className = 'shortcut-reset';
+        remove.title = t('sc.clearHotkey');
+        remove.textContent = '\u00d7';
+        remove.disabled = !acc;
+        remove.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            await applyCommentShortcut(key, '');
+        });
+        control.appendChild(remove);
+
+        row.appendChild(control);
+        commentShortcutsWrap.appendChild(row);
+    });
+}
+
+async function applyCommentShortcut(key, acc) {
+    if (!window.mainWindowAPI || typeof window.mainWindowAPI.setCommentShortcut !== 'function') return false;
+    const result = await window.mainWindowAPI.setCommentShortcut(key, acc || '');
+    if (result && result.ok) {
+        if (result.accelerator) commentShortcuts[key] = result.accelerator;
+        else delete commentShortcuts[key];
+        renderCommentShortcutRows();
+        if (result.registered) showToast(t('sc.commentShortcutSet', { name: catLabel(key), acc: displayAccel(result.accelerator) }));
+        else if (!acc) showToast(t('sc.commentShortcutRemoved', { name: catLabel(key) }));
+        return true;
+    }
+    if (result && result.conflict) {
+        const conflictLabel = result.conflict === 'hotkey' ? t('sc.globalHotkey') : catLabel(result.conflict);
+        showToast(t('sc.commentShortcutDuplicate', { name: conflictLabel }));
+        renderCommentShortcutRows();
+        return false;
+    }
+    if (result && result.error) {
+        showToast(result.error);
+        renderCommentShortcutRows();
+        return false;
+    }
+    return false;
+}
+
+function startCommentCapture(key, captureEl) {
+    if (globalCapturing) stopGlobalCapture();
+    if (capturingAction) stopCapture();
+    if (ccCapturingEl && ccCapturingEl !== captureEl) {
+        ccCapturingEl.classList.remove('capturing');
+        const prevAcc = commentShortcuts[ccCapturingKey];
+        if (prevAcc) ccCapturingEl.textContent = displayAccel(prevAcc);
+    }
+    ccCapturingKey = key;
+    ccCapturingEl = captureEl;
+    captureEl.classList.add('capturing');
+    captureEl.textContent = t('sc.pressKeys');
+}
+
+function stopCommentCapture() {
+    if (!ccCapturingKey) return;
+    ccCapturingKey = null;
+    ccCapturingEl = null;
+    renderCommentShortcutRows();
+}
+
+async function handleCommentCaptureKey(e) {
+    if (!ccCapturingKey) return;
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.key === 'Escape') {
+        stopCommentCapture();
+        return;
+    }
+    const hasMod = e.ctrlKey || e.metaKey || e.shiftKey || e.altKey;
+    if (!hasMod) {
+        showToast(t('sc.includeModifier'));
+        return;
+    }
+    const accel = eventToAccel(e);
+    if (!accel) return;
+    const key = ccCapturingKey;
+    stopCommentCapture();
+    await applyCommentShortcut(key, displayAccel(accel));
+}
+
+document.addEventListener('keydown', (e) => {
+    if (ccCapturingKey) {
+        handleCommentCaptureKey(e);
+    }
+}, true);
+
+document.addEventListener('click', (e) => {
+    if (ccCapturingKey && ccCapturingEl && !ccCapturingEl.contains(e.target)) {
+        stopCommentCapture();
+    }
+});
+
+loadCommentShortcutsUI();
 
 document.getElementById('mw-quit').addEventListener('click', () => {
     if (window.mainWindowAPI && typeof window.mainWindowAPI.quitApp === 'function') {
