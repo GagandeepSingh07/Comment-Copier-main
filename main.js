@@ -103,6 +103,18 @@ const PLATFORM_NAMES = { win32: 'Windows', darwin: 'macOS', linux: 'Linux' };
 
 const CHANGELOG = [
     {
+        version: '1.16.2',
+        categories: [
+            {
+                heading: 'Fixed',
+                notes: [
+                    'The Unit Code input now keeps whatever you typed even if the app is closed before the code is added, just like the Student Id and Name fields.',
+                    'Clicking a course name on a Saved Courses card now copies just the course name to the clipboard, in both the tray popup and the main window.',
+                ],
+            },
+        ],
+    },
+    {
         version: '1.16.1',
         categories: [
             {
