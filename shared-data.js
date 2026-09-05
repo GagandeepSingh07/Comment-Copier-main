@@ -18,6 +18,11 @@ const HOTKEY_KEY = 'comment-copier-hotkey-v1';
 const CONFIRM_DELETE_KEY = 'comment-copier-confirm-delete-v1';
 const LAST_STUDENT_KEY = 'comment-copier-last-student-v1';
 const CLOSE_AFTER_COPY_KEY = 'comment-copier-close-after-copy-v1';
+// When a per-comment-type global shortcut copies a comment, also paste it
+// directly into the currently focused app (e.g. Notepad) instead of leaving
+// it on the clipboard for a manual Ctrl+V. Defaults on — the whole point of
+// those shortcuts is hands-free insertion.
+const AUTO_PASTE_KEY = 'comment-copier-auto-paste-v1';
 const AUTO_CHECK_UPDATES_KEY = 'comment-copier-auto-check-updates-v1';
 const ROLLBACK_KEY = 'comment-copier-rollback-v1';
 const RESTORE_MODE_KEY = 'comment-copier-restore-mode-v1';

@@ -286,6 +286,14 @@ function closeAfterCopyEnabled() {
     return localStorage.getItem(CLOSE_AFTER_COPY_KEY) === '1';
 }
 
+// Whether a shortcut-triggered copy should paste straight into whatever app
+// the user is typing in (default on — that's the whole point of the comment
+// shortcuts). Reads the toggle set in Settings → Shortcuts.
+function autoPasteEnabled() {
+    const saved = localStorage.getItem(AUTO_PASTE_KEY);
+    return saved === null ? true : saved !== '0';
+}
+
 function closePopupAfterCopy() {
     if (!closeAfterCopyEnabled()) return;
     // Give the "Copied ..." toast a moment to show, then hide the popup.
@@ -320,7 +328,13 @@ async function handleCopy(key, viaShortcut) {
     const reportShortcut = (ok) => {
         if (!viaShortcut) return;
         if (window.popupAPI && typeof window.popupAPI.reportShortcutCopy === 'function') {
-            window.popupAPI.reportShortcutCopy({ ok, label, index: copiedNumber, total });
+            // pasteRequested: only if the user enabled auto-paste. The main
+            // process does the final check — whether an external app is focused
+            // — so it never pastes into one of our own windows.
+            window.popupAPI.reportShortcutCopy({
+                ok, label, index: copiedNumber, total,
+                pasteRequested: ok && autoPasteEnabled(),
+            });
         }
     };
     if (!getDateFirstSetting()) {

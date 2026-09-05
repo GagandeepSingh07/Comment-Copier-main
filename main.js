@@ -1,4 +1,5 @@
 const { app, BrowserWindow, ipcMain, clipboard, nativeImage, Tray, screen, dialog, shell, globalShortcut, protocol, net } = require('electron');
+const { execFile } = require('child_process');
 const path = require('path');
 const { pathToFileURL } = require('url');
 const fs = require('fs');
@@ -1129,13 +1130,17 @@ ipcMain.handle('comment-shortcuts:get-all', () => Object.assign({}, registeredCo
 // Fired by the popup after a shortcut-triggered copy completes, so the user
 // gets confirmation even when the popup itself is hidden (which is the whole
 // point of a global shortcut — no need to bring the app to the front first).
+// When auto-paste is on and an external app is focused, the comment is sent
+// straight into it, so the balloon says "Pasted" instead of just "Copied".
 ipcMain.on('comment-copier:shortcut-copied', (event, info) => {
     if (!tray || tray.isDestroyed() || !info) return;
     if (info.ok) {
+        const willPaste = !!info.pasteRequested && canPasteToFocusedApp();
+        if (willPaste) pasteToFocusedApp(() => {});
         tray.displayBalloon({
             iconType: 'info',
             title: 'Comment Copier',
-            content: `Copied ${info.label} comment ${info.index} of ${info.total}.`,
+            content: `${willPaste ? 'Pasted' : 'Copied'} ${info.label} comment ${info.index} of ${info.total}.`,
         });
     } else {
         tray.displayBalloon({
@@ -1145,6 +1150,29 @@ ipcMain.on('comment-copier:shortcut-copied', (event, info) => {
         });
     }
 });
+
+// True when an external (non-Comment-Copier) window currently has focus, so a
+// Ctrl+V paste would land in the app the user is typing in rather than one of
+// our own windows (editor/shortcuts UI or the popup).
+function canPasteToFocusedApp() {
+    if (process.platform !== 'win32') return false;
+    const focused = BrowserWindow.getFocusedWindow();
+    return !(focused && (focused === popupWindow || focused === mainWindow));
+}
+
+// Simulate Ctrl+V into whatever window is currently focused (e.g. Notepad).
+// Windows ships with PowerShell, so SendKeys needs no extra dependency — it
+// pumps the paste through the OS rather than into one of our own windows.
+// Safe no-op on non-Windows platforms. execFile (not exec) is used so the
+// args go straight to powershell without a cmd.exe layer that would escape
+// the ^ in '^{v}'.
+function pasteToFocusedApp(done) {
+    if (!canPasteToFocusedApp()) { if (done) done(); return; }
+    execFile('powershell',
+        ['-NoProfile', '-STA', '-Command', "Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.SendKeys]::SendWait('^{v}')"],
+        { windowsHide: true },
+        () => { if (done) done(); });
+}
 
 /* ---------- (previous section) ---------- */
 

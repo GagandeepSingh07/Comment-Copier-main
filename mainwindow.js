@@ -63,6 +63,7 @@ const reduceMotionToggle = document.getElementById('mw-reduce-motion');
 const tooltipDensityOptions = document.querySelectorAll('#mw-tooltip-density .layout-picker-option');
 const confirmDeleteToggle = document.getElementById('mw-confirm-delete');
 const closeAfterCopyToggle = document.getElementById('mw-close-after-copy');
+const autoPasteToggle = document.getElementById('mw-auto-paste');
 const autoCheckUpdatesToggle = document.getElementById('mw-auto-check-updates');
 const updateChannelOptions = document.querySelectorAll('#mw-update-channel .layout-picker-option');
 const portableToggle = document.getElementById('mw-portable-mode');
@@ -963,6 +964,14 @@ function loadCloseAfterCopySetting() {
     closeAfterCopyToggle.setAttribute('aria-checked', enabled ? 'true' : 'false');
 }
 
+/* ---------- Paste directly after shortcut copy ---------- */
+
+function loadAutoPasteSetting() {
+    const saved = localStorage.getItem(AUTO_PASTE_KEY);
+    const enabled = saved === null ? true : saved !== '0'; // default on — that's the point of comment shortcuts
+    autoPasteToggle.setAttribute('aria-checked', enabled ? 'true' : 'false');
+}
+
 /* ---------- Auto-check for updates on launch ---------- */
 
 function loadAutoCheckUpdatesSetting() {
@@ -1634,6 +1643,7 @@ function buildBackupPayload() {
     payload[SHORTCUTS_KEY] = localStorage.getItem(SHORTCUTS_KEY);
     payload[CONFIRM_DELETE_KEY] = localStorage.getItem(CONFIRM_DELETE_KEY);
     payload[CLOSE_AFTER_COPY_KEY] = localStorage.getItem(CLOSE_AFTER_COPY_KEY);
+    payload[AUTO_PASTE_KEY] = localStorage.getItem(AUTO_PASTE_KEY);
     payload[AUTO_CHECK_UPDATES_KEY] = localStorage.getItem(AUTO_CHECK_UPDATES_KEY);
     payload[UPDATE_CHANNEL_KEY] = localStorage.getItem(UPDATE_CHANNEL_KEY);
     payload[LANG_KEY] = localStorage.getItem(LANG_KEY);
@@ -1833,6 +1843,7 @@ function applyBackupData(data, mode) {
         replace(SHORTCUTS_KEY, data[SHORTCUTS_KEY]);
         replace(CONFIRM_DELETE_KEY, data[CONFIRM_DELETE_KEY]);
         replace(CLOSE_AFTER_COPY_KEY, data[CLOSE_AFTER_COPY_KEY]);
+        replace(AUTO_PASTE_KEY, data[AUTO_PASTE_KEY]);
         replace(AUTO_CHECK_UPDATES_KEY, data[AUTO_CHECK_UPDATES_KEY]);
         replace(UPDATE_CHANNEL_KEY, data[UPDATE_CHANNEL_KEY]);
         replace(LANG_KEY, data[LANG_KEY]);
@@ -1854,6 +1865,7 @@ function applyBackupData(data, mode) {
     mergeFill(SHORTCUTS_KEY, data[SHORTCUTS_KEY]);
     mergeFill(CONFIRM_DELETE_KEY, data[CONFIRM_DELETE_KEY]);
     mergeFill(CLOSE_AFTER_COPY_KEY, data[CLOSE_AFTER_COPY_KEY]);
+    mergeFill(AUTO_PASTE_KEY, data[AUTO_PASTE_KEY]);
     mergeFill(AUTO_CHECK_UPDATES_KEY, data[AUTO_CHECK_UPDATES_KEY]);
     mergeFill(UPDATE_CHANNEL_KEY, data[UPDATE_CHANNEL_KEY]);
     mergeFill(LANG_KEY, data[LANG_KEY]);
@@ -1872,6 +1884,7 @@ function reloadAfterRestore() {
     loadAccentSetting();
     loadConfirmDeleteSetting();
     loadCloseAfterCopySetting();
+    loadAutoPasteSetting();
     loadAutoCheckUpdatesSetting();
     syncUpdateChannelPicker();
     loadHotkeySetting();
@@ -2621,6 +2634,8 @@ window.addEventListener('storage', (e) => {
         loadConfirmDeleteSetting();
     } else if (e.key === CLOSE_AFTER_COPY_KEY) {
         loadCloseAfterCopySetting();
+    } else if (e.key === AUTO_PASTE_KEY) {
+        loadAutoPasteSetting();
     } else if (e.key === AUTO_CHECK_UPDATES_KEY) {
         loadAutoCheckUpdatesSetting();
     } else if (e.key === THEME_KEY) {
@@ -2756,6 +2771,12 @@ closeAfterCopyToggle.addEventListener('click', () => {
     localStorage.setItem(CLOSE_AFTER_COPY_KEY, enabled ? '1' : '0');
     closeAfterCopyToggle.setAttribute('aria-checked', enabled ? 'true' : 'false');
     showToast(enabled ? t('toggles.closeOn') : t('toggles.closeOff'));
+});
+autoPasteToggle.addEventListener('click', () => {
+    const enabled = autoPasteToggle.getAttribute('aria-checked') !== 'true';
+    localStorage.setItem(AUTO_PASTE_KEY, enabled ? '1' : '0');
+    autoPasteToggle.setAttribute('aria-checked', enabled ? 'true' : 'false');
+    showToast(enabled ? t('toggles.autoPasteOn') : t('toggles.autoPasteOff'));
 });
 autoCheckUpdatesToggle.addEventListener('click', () => {
     const enabled = autoCheckUpdatesToggle.getAttribute('aria-checked') !== 'true';
@@ -3231,6 +3252,7 @@ loadDateFirstSetting();
 syncTooltipDensityPicker();
 loadConfirmDeleteSetting();
 loadCloseAfterCopySetting();
+loadAutoPasteSetting();
 loadAutoCheckUpdatesSetting();
 syncUpdateChannelPicker();
 loadPortableModeSetting();
