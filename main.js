@@ -104,6 +104,25 @@ const PLATFORM_NAMES = { win32: 'Windows', darwin: 'macOS', linux: 'Linux' };
 
 const CHANGELOG = [
     {
+        version: '1.16.3',
+        categories: [
+            {
+                heading: 'Added',
+                notes: [
+                    'Comment shortcuts (Settings \u2192 Shortcuts): assign a global shortcut to each comment type (accept, AI reject, copy reject). Press it from any app \u2014 even while Comment Copier runs in the background \u2014 and the comment is copied and the list automatically moves on to the next one.',
+                    'Shortcut capture now supports the numeric keypad (Num 1\u2013Num 9, Num 0, plus/minus, etc.) as distinct keys from the top number row.',
+                    '\u201cPaste directly after shortcut copy\u201d (Settings \u2192 Copying & editing): with a comment shortcut, the comment is pasted straight into the app you are typing in (like Notepad) \u2014 no Ctrl+V needed.',
+                ],
+            },
+            {
+                heading: 'Fixed',
+                notes: [
+                    'Comment shortcuts now fire reliably while the app is minimized to the system tray, even with date-first copying enabled.',
+                ],
+            },
+        ],
+    },
+    {
         version: '1.16.2',
         categories: [
             {
